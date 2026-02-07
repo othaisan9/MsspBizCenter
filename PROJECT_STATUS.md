@@ -265,10 +265,12 @@ MsspBizCenter/
   - packages/shared 공유 타입 패키지 생성
   - Docker Compose PostgreSQL 전환
   - 전체 문서 업데이트 (CLAUDE.md, planning.md, Docker README)
-- **커밋 여부**: 미정 (캡틴 확인 후 커밋 예정)
+  - NestJS 피어 의존성 해결 (^11 → ^10.4.0 다운그레이드)
+  - `pnpm build` 전체 빌드 검증 완료 (3/3 패키지 성공)
+- **수정한 파일**: 103개 (5,565줄 추가, 4,751줄 삭제)
+- **커밋 여부**: ✅ `a1b6e3e` 커밋 및 push 완료
 
 ### 진행 중 작업 (미완료)
-- [ ] pnpm install 의존성 설치 및 빌드 검증
 - [ ] NestJS 모듈 구조 생성 (auth, users, tasks, meetings, contracts)
 - [ ] CTEM Auth/Audit 모듈 포팅
 - 막힌 부분: 없음
