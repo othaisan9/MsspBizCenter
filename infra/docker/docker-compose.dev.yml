@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: msspbiz-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5433:5432"  # CTEM과 포트 충돌 방지 (5433 사용)
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-msspbiz}
+      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - msspbiz-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: msspbiz-redis-dev
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6380:6379"  # CTEM과 포트 충돌 방지 (6380 사용)
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-dev-redis-password}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - msspbiz-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-dev-redis-password}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Backend 서비스 (추후 활성화)
+  # backend:
+  #   build:
+  #     context: ../../apps/backend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: msspbiz-backend-dev
+  #   ...
+
+  # Frontend 서비스 (추후 활성화)
+  # frontend:
+  #   build:
+  #     context: ../../apps/frontend
+  #     dockerfile: Dockerfile.dev
+  #   container_name: msspbiz-frontend-dev
+  #   ...
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  msspbiz-network:
+    driver: bridge

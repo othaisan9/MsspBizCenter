@@ -1,0 +1,81 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+pnpm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Build
+dist/
+build/
+out/
+.next/
+*.min.js
+*.min.css
+
+# Testing
+coverage/
+.nyc_output/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Cache
+.cache/
+*.cache
+.eslintcache
+.turbo/
+
+# Temporary
+tmp/
+temp/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+docker-compose.override.yml
+
+# Production
+.vercel
+.netlify
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# Secrets (never commit)
+*.pem
+*.key
+secrets/
+apps/backend/storage/
+
+# Uploads
+uploads/
+apps/backend/uploads/
