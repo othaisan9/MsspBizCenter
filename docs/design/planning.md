@@ -1,9 +1,26 @@
 # MsspBizCenter 기획 문서
 
 > **작성일**: 2026-02-07
-> **작성자**: 정하윤 (PM)
-> **버전**: v1.0
+> **작성자**: 박서연 (PM)
+> **버전**: v1.1
 > **상태**: 승인됨
+> **최종 수정**: 2026-02-07 - 기술 스택 변경 (Flask + React, MariaDB)
+
+## ⚠️ 기술 스택 변경 (v1.1)
+
+**변경 사유**: 기존 미시시피 포털과의 일관성 및 통합 용이성
+
+| 항목 | v1.0 (계획) | v1.1 (확정) |
+|------|-------------|-------------|
+| Frontend | Next.js 15 + React 19 | React 19 + Vite |
+| Backend | NestJS 10 + TypeORM | Flask 3.x + SQLAlchemy |
+| Database | PostgreSQL 15 | MariaDB 10.x |
+| 기타 | - | SSO 통합 계획 추가 |
+
+**DB 차이점 참고**:
+- `JSONB` → `JSON`
+- `TSVECTOR` (전문 검색) → `FULLTEXT INDEX`
+- `SERIAL` → `AUTO_INCREMENT`
 
 ---
 
@@ -11,7 +28,7 @@
 
 ### 1.1 배경
 
-캡틴께서 팀 협업 및 업무 관리를 위한 **팀 업무포털** 기능 개발을 요청하셨습니다. 기존 "미시시피" 시스템과 별도로, 최신 기술 스택(Next.js 15 + NestJS)을 활용한 신규 프로젝트로 개발합니다.
+캡틴께서 팀 협업 및 업무 관리를 위한 **팀 업무포털** 기능 개발을 요청하셨습니다. 기존 "미시시피" 시스템과 일관된 기술 스택(React 19 + Flask)을 활용하여 개발하고, 독립 실행 후 SSO로 통합합니다.
 
 ### 1.2 목표
 
@@ -32,10 +49,10 @@
 
 ```json
 {
-  "frontend": "Next.js 15 + React 19 + TypeScript + Tailwind CSS",
-  "backend": "NestJS 10 + TypeORM + PostgreSQL 15",
+  "frontend": "React 19 + Vite + TypeScript + Tailwind CSS",
+  "backend": "Flask 3.x + SQLAlchemy 2.x + MariaDB 10.x",
   "infra": "Docker Compose + Redis",
-  "testing": "Jest (Backend) + Vitest (Frontend)"
+  "testing": "pytest (Backend) + Vitest (Frontend)"
 }
 ```
 

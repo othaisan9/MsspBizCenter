@@ -5,7 +5,8 @@
 ## 프로젝트 개요
 
 MsspBizCenter는 MSSP(Managed Security Service Provider) 조직을 위한 통합 업무 관리 포털입니다.
-기존 "미시시피(Mississippi)" 시스템의 차세대 버전으로, 주차별 업무 일지, 회의록, 계약 관리 기능을 제공합니다.
+기존 "미시시피(Mississippi)" 포털에 추가할 팀 업무관리 기능으로, 주차별 업무 일지, 회의록, 계약 관리 기능을 제공합니다.
+독립 실행 후 SSO(Single Sign-On)를 통해 미시시피와 통합 예정입니다.
 
 ## 주요 기능
 
@@ -31,29 +32,35 @@ MsspBizCenter는 MSSP(Managed Security Service Provider) 조직을 위한 통합
 
 | 구분 | 기술 |
 |------|------|
-| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS |
-| **Backend** | NestJS 10, TypeORM, PostgreSQL 15 |
+| **Frontend** | React 19, Vite, TypeScript, Tailwind CSS |
+| **Backend** | Flask 3.x, SQLAlchemy 2.x, MariaDB 10.x |
 | **Infra** | Docker Compose, Redis |
-| **Testing** | Jest (Backend), Vitest (Frontend), Playwright (E2E) |
+| **Testing** | pytest (Backend), Vitest (Frontend) |
+
+**통합 계획**: 기존 미시시피 포털(https://mssp.leaked.id)과 SSO 연동
 
 ## 프로젝트 구조
 
 ```
 MsspBizCenter/
 ├── apps/
-│   ├── backend/          # NestJS API 서버
-│   │   └── src/
-│   │       └── modules/
-│   │           ├── auth/       # 인증/권한
-│   │           ├── task/       # 주차별 업무 일지
-│   │           ├── meeting/    # 회의록
-│   │           └── contract/   # 계약 관리
-│   └── frontend/         # Next.js 웹 앱
+│   ├── backend/          # Flask API 서버
+│   │   ├── app/
+│   │   │   ├── api/          # Flask Blueprint
+│   │   │   │   ├── auth.py   # 인증/권한
+│   │   │   │   ├── tasks.py  # Task CRUD
+│   │   │   │   ├── meetings.py   # 회의록
+│   │   │   │   └── contracts.py  # 계약 관리
+│   │   │   ├── models/       # SQLAlchemy 모델
+│   │   │   └── services/     # 비즈니스 로직
+│   │   └── migrations/       # Alembic 마이그레이션
+│   └── frontend/         # React 웹 앱
 │       └── src/
-│           └── app/
-│               ├── tasks/      # Task 페이지
-│               ├── meetings/   # 회의록 페이지
-│               └── contracts/  # 계약 페이지
+│           ├── pages/        # React 페이지
+│           │   ├── Tasks/
+│           │   ├── Meetings/
+│           │   └── Contracts/
+│           └── components/   # 재사용 컴포넌트
 ├── docs/                 # 설계 문서
 └── infra/                # Docker 설정
 ```
@@ -62,49 +69,54 @@ MsspBizCenter/
 
 ### 사전 요구사항
 
+- Python >= 3.11
 - Node.js >= 20.0.0
-- pnpm >= 9.0.0
+- npm 또는 pnpm
 - Docker & Docker Compose
 
 ### 설치 및 실행
 
 ```bash
-# 의존성 설치
-pnpm install
-
-# Docker 환경 실행 (PostgreSQL, Redis)
+# Docker 환경 실행 (MariaDB, Redis)
 cd infra/docker
 cp .env.example .env
 docker compose -f docker-compose.dev.yml up -d
 
-# 개발 서버 실행
-pnpm dev
+# Backend (Flask)
+cd apps/backend
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+flask run --port 4001
+
+# Frontend (React + Vite)
+cd apps/frontend
+npm install  # 또는 pnpm install
+npm run dev  # 또는 pnpm dev
 ```
 
 ### 접속 URL
 
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:4000/api/v1
-- **Swagger**: http://localhost:4000/api/docs
+- **Frontend**: http://localhost:3001
+- **Backend API**: http://localhost:4001/api/v1
+- **Swagger**: http://localhost:4001/api/docs
 
-## 스크립트
+**참고**: CTEM과 포트 충돌 방지를 위해 3001/4001 사용 (CTEM은 3000/4000)
+
+## 주요 명령어
 
 ```bash
-# 개발
-pnpm dev              # 전체 개발 서버 실행
-pnpm build            # 전체 빌드
-pnpm test             # 전체 테스트
-pnpm lint             # 전체 린트
+# Backend (Flask)
+cd apps/backend
+flask run               # 개발 서버 실행
+pytest                  # 테스트 실행
+flask db upgrade        # DB 마이그레이션 적용
 
-# Backend
-pnpm --filter @msspbiz/backend dev
-pnpm --filter @msspbiz/backend test
-pnpm --filter @msspbiz/backend build
-
-# Frontend
-pnpm --filter @msspbiz/frontend dev
-pnpm --filter @msspbiz/frontend test
-pnpm --filter @msspbiz/frontend build
+# Frontend (React)
+cd apps/frontend
+npm run dev             # 개발 서버 실행
+npm run build           # 프로덕션 빌드
+npm test                # 테스트 실행
 ```
 
 ## 버전 관리
@@ -119,8 +131,12 @@ Private - All rights reserved
 
 ## 개발팀
 
-- PM: 정하윤
+- PM: 박서연
 - Backend: 박안도
 - Frontend: 유아이
 - Security: Chloe O'Brian
 - DevOps: 배포준
+
+## 관련 프로젝트
+
+- **미시시피**: https://mssp.leaked.id - 기존 MSSP 업무포털 (통합 대상)

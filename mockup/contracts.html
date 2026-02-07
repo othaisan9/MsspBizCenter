@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>계약 관리 - MsspBizCenter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-6">
+                    <a href="index.html" class="text-xl font-bold">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                        </svg>
+                    </a>
+                    <a href="tasks.html" class="hover:text-indigo-200">업무 일지</a>
+                    <a href="meetings.html" class="hover:text-indigo-200">회의록</a>
+                    <a href="contracts.html" class="font-bold border-b-2">계약 관리</a>
+                    <a href="settings.html" class="hover:text-indigo-200 flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        설정
+                    </a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span>관리자</span>
+                    <button class="hover:text-indigo-200">로그아웃</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold">계약 관리</h1>
+            <a href="contract-new.html" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700">
+                + 새 계약 등록
+            </a>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm text-gray-600 mb-1">전체 계약</div>
+                <div class="text-3xl font-bold text-gray-800">15</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm text-gray-600 mb-1">활성 계약</div>
+                <div class="text-3xl font-bold text-green-600">8</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm text-gray-600 mb-1">만료 예정 (30일)</div>
+                <div class="text-3xl font-bold text-red-600">2</div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-4">
+                <div class="text-sm text-gray-600 mb-1">총 계약 금액</div>
+                <div class="text-3xl font-bold text-blue-600">***</div>
+                <div class="text-xs text-gray-500">암호화됨</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <div class="flex gap-4 items-center">
+                <select class="border rounded px-3 py-2">
+                    <option>모든 상태</option>
+                    <option>진행중</option>
+                    <option>완성</option>
+                    <option>검토중</option>
+                </select>
+                <select class="border rounded px-3 py-2">
+                    <option>모든 제품</option>
+                    <option>StealthMole</option>
+                    <option>ThreatRecon</option>
+                    <option>TR Report</option>
+                    <option>deep.insight</option>
+                </select>
+                <input type="text" placeholder="검색..." class="border rounded px-3 py-2 flex-1">
+            </div>
+        </div>
+
+        <!-- Contract List -->
+        <div class="space-y-4">
+            <!-- Contract 1 (삼성SDS) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">25년 플랫폼센터 기술지도</h3>
+                            <span class="bg-amber-100 text-amber-700 px-3 py-1 rounded text-sm font-medium">검토중</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 삼성SDS</span>
+                            <span>📋 2025/01/07</span>
+                            <span>👤 영업담당: Chloe</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">TR Report</span>
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">StealthMole</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm">2025/01/07 → 2025/01/31</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2025/01/01</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">❌ 없음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> DT(300), TT(300), CDS(600), CB(100), CLI(500), RM(400), LM(200)</div>
+                        <div><strong>DI:</strong> 안보</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    ano_detect@samsung.com
+                </div>
+
+                <!-- 메모 미리보기 -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
+                    <div class="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        메모
+                    </div>
+                    <div class="text-sm text-gray-700">플랫폼센터와의 기술지도 계약 진행중. 1월 말 라이선스 만료 예정으로 갱신 논의 필요. DI 안보 관련 추가 요청사항 확인중...</div>
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        3개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf, 견적서.xlsx, 기술사양서.docx</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+
+            <!-- Contract 2 (IBK기업은행) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">정부 보안컨설팅 모니터링 서비스</h3>
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-medium">검토중</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 IBK기업은행</span>
+                            <span>📋 2024/11/23</span>
+                            <span>👤 영업담당: 박서연</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">ThreatRecon</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">TR Report</span>
+                            <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">deep.insight</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm text-red-600">2024/11/30 → 2026/12/31</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2024/11/23</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">✅ 있음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> DT(500), CDS(300), CLI(300), RM(1,000)</div>
+                        <div><strong>DI:</strong> 안보, 인력</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    cert@bk.co.kr
+                </div>
+
+                <!-- 메모 미리보기 -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
+                    <div class="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        메모
+                    </div>
+                    <div class="text-sm text-gray-700">정부 보안컨설팅 모니터링 서비스 계약. 2026년 12월까지 자동갱신 조건. Platform DI 인력 자원 추가 협의 진행중. 분기별 리뷰 미팅 예정...</div>
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        5개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf, 제안서.pptx, 견적서.xlsx, 기술명세서.docx, 라이선스증서.pdf</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <button class="bg-amber-600 text-white px-4 py-2 rounded text-sm hover:bg-amber-700">
+                        갱신하기
+                    </button>
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+
+            <!-- Contract 3 (KB국민은행) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">위협제보 모니터링 체계 구축</h3>
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-medium">검토중</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 KB국민은행</span>
+                            <span>📋 2024/12/18</span>
+                            <span>👤 영업담당: Chloe</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">ThreatRecon</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">TR Report</span>
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">StealthMole</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm">2024/12/01 → 2026/12/31</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2024/12/18</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">✅ 있음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> DT(3,000), CDS(500), CLI(500)</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    kbcc@kbfg.com
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        2개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf, 견적서.xlsx</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+
+            <!-- Contract 4 (포스코) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">StealthMole 라이선스 구독 서비스</h3>
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-medium">완성</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 포스코</span>
+                            <span>📋 2024/07/01</span>
+                            <span>👤 영업담당: 박서연</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">StealthMole</span>
+                            <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded text-xs">deep.insight</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm">2024/07/01 → 2026/06/30</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2024/07/01</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">✅ 있음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> DT(300), CLI(500), CDS(500), CB(100), RM(10400), LM(100), TT (100), JU (500)</div>
+                        <div><strong>DI:</strong> 3,631개 리포트, 2년간 신규(초대 구매) 인력 자원 추가</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    poscocert_group1@posco.com, poscocert_group2@posco.com, poscocert_group3@posco.com
+                </div>
+
+                <!-- 메모 미리보기 -->
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-3">
+                    <div class="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        메모
+                    </div>
+                    <div class="text-sm text-gray-700">StealthMole 및 DI 통합 서비스 계약. 2년간 3,631개 리포트 제공 예정. 신규 인력 자원 추가 구매 조건 포함. 분기별 보고서 제출 필요...</div>
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        4개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf, 기술명세서.docx, 라이선스증서.pdf, 운영계획서.pptx</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+
+            <!-- Contract 5 (빗썸) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">NSHC StealthMole TI 솔루션 신규도입</h3>
+                            <span class="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-medium">완성</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 빗썸</span>
+                            <span>📋 2024/07/01</span>
+                            <span>👤 영업담당: 박서연</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">StealthMole</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm">2024/07/01 → 2026/06/30</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2024/07/01</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">❌ 없음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> DT(300), CLI(100), CB(100), CDS(100)</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    soc@bithumbcorp.com
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        1개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+
+            <!-- Contract 6 (LGCNS) -->
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <h3 class="text-xl font-bold">그룹사업장 준영 DarkTracer</h3>
+                            <span class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-medium">검토중</span>
+                        </div>
+                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
+                            <span>🏢 LGCNS</span>
+                            <span>📋 2024/02/15</span>
+                            <span>👤 영업담당: Chloe</span>
+                        </div>
+                        <div class="flex gap-2 flex-wrap">
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">StealthMole</span>
+                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">TR Report</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                    <div>
+                        <div class="text-xs text-gray-600">라이선스 기간</div>
+                        <div class="font-medium text-sm">2025/04/01 → 2026/03/31</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">요청일</div>
+                        <div class="font-medium">2025/01/07</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약일</div>
+                        <div class="font-medium">2024/02/15</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">계약 금액</div>
+                        <div class="font-medium text-blue-600">********</div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-gray-600">자동 갱신</div>
+                        <div class="font-medium">✅ 있음</div>
+                    </div>
+                </div>
+
+                <!-- 공급 내역 -->
+                <div class="bg-gray-50 rounded p-3 mb-4">
+                    <div class="text-xs text-gray-600 mb-2">공급 내역 (예정)</div>
+                    <div class="space-y-1 text-sm">
+                        <div><strong>Platform:</strong> 이름 [DT] CLI [CDS] woo_subin 1500/150/350</div>
+                        <div><strong>이세웅도:</strong> 300/0/50</div>
+                        <div><strong>maison1:</strong> 180/0/50</div>
+                        <div><strong>jha07 (인사/소문):</strong> 180/0/50</div>
+                    </div>
+                </div>
+
+                <!-- 연락처 -->
+                <div class="text-xs text-gray-600 mb-3">
+                    <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                    inwseok@lgcns.com, woo_subin@lgcns.com, maison1@lgcns.com, jha07@lgcns.com
+                </div>
+
+                <!-- 첨부파일 -->
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs text-gray-600 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                        </svg>
+                        2개 첨부
+                    </span>
+                    <span class="text-xs text-gray-400">|</span>
+                    <span class="text-xs text-gray-500">계약서.pdf, 기술사양서.docx</span>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="contract-detail.html" class="text-blue-600 hover:underline text-sm">상세 보기</a>
+                    <button class="text-gray-600 hover:underline text-sm">수정</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

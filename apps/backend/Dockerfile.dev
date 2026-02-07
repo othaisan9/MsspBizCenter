@@ -1,0 +1,27 @@
+FROM python:3.11-slim
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 시스템 패키지 업데이트 및 필수 도구 설치
+RUN apt-get update && apt-get install -y \
+    gcc \
+    default-libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 의존성 설치
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 개발 모드용 추가 패키지
+RUN pip install --no-cache-dir watchdog flask-shell-ipython
+
+# 애플리케이션 코드 복사 (개발 모드에서는 volume으로 마운트될 수 있음)
+COPY . .
+
+# 포트 노출
+EXPOSE 4001
+
+# 개발 서버 실행 (hot reload 활성화)
+CMD ["flask", "run", "--host=0.0.0.0", "--port=4001", "--reload", "--debugger"]

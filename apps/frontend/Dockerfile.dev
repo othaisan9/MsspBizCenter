@@ -1,0 +1,20 @@
+FROM node:20-alpine
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# pnpm 설치
+RUN npm install -g pnpm
+
+# package.json 복사 및 의존성 설치
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
+
+# 애플리케이션 코드 복사 (개발 모드에서는 volume으로 마운트될 수 있음)
+COPY . .
+
+# 포트 노출
+EXPOSE 3001
+
+# Vite 개발 서버 실행 (HMR 활성화)
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3001"]

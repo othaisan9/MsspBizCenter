@@ -1,25 +1,31 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: msspbiz-postgres-dev
+  mariadb:
+    image: mariadb:10.11
+    container_name: msspbiz-mariadb-dev
     restart: unless-stopped
     ports:
-      - "5433:5432"  # CTEM과 포트 충돌 방지 (5433 사용)
+      - "3307:3306"  # CTEM과 포트 충돌 방지 (3307 사용)
     environment:
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: ${DB_DATABASE:-msspbiz}
-      POSTGRES_INITDB_ARGS: "-E UTF8 --locale=C"
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_DATABASE: ${DB_DATABASE:-msspbiz}
+      MYSQL_USER: ${DB_USERNAME:-msspbiz}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      TZ: Asia/Seoul
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mariadb_data:/var/lib/mysql
     networks:
       - msspbiz-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres}"]
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=200
+      - --innodb_buffer_pool_size=256M
 
   redis:
     image: redis:7-alpine
@@ -43,24 +49,64 @@ services:
       timeout: 3s
       retries: 5
 
-  # Backend 서비스 (추후 활성화)
-  # backend:
-  #   build:
-  #     context: ../../apps/backend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: msspbiz-backend-dev
-  #   ...
+  # Backend 서비스 (Flask)
+  backend:
+    build:
+      context: ../../apps/backend
+      dockerfile: Dockerfile.dev
+    container_name: msspbiz-backend-dev
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      FLASK_APP: run.py
+      FLASK_ENV: development
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: ${DB_DATABASE:-msspbiz}
+      DB_USER: ${DB_USERNAME:-msspbiz}
+      DB_PASSWORD: ${DB_PASSWORD:-password}
+      JWT_SECRET_KEY: ${JWT_SECRET:-jwt-secret-key}
+      JWT_ACCESS_TOKEN_EXPIRES: ${JWT_EXPIRES_IN:-3600}
+      JWT_REFRESH_TOKEN_EXPIRES: ${JWT_REFRESH_EXPIRES_IN:-604800}
+      CONTRACT_ENCRYPTION_KEY: ${CONTRACT_ENCRYPTION_KEY:-change-this-to-32-character-key!!}
+      CORS_ORIGINS: ${CORS_ORIGIN:-http://localhost:3001}
+      AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-90}
+    volumes:
+      - ../../apps/backend:/app
+      - /app/venv
+      - /app/__pycache__
+    networks:
+      - msspbiz-network
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-  # Frontend 서비스 (추후 활성화)
-  # frontend:
-  #   build:
-  #     context: ../../apps/frontend
-  #     dockerfile: Dockerfile.dev
-  #   container_name: msspbiz-frontend-dev
-  #   ...
+  # Frontend 서비스 (React + Vite)
+  frontend:
+    build:
+      context: ../../apps/frontend
+      dockerfile: Dockerfile.dev
+    container_name: msspbiz-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:4001/api/v1}
+    volumes:
+      - ../../apps/frontend:/app
+      - /app/node_modules
+      - /app/dist
+    networks:
+      - msspbiz-network
+    depends_on:
+      - backend
 
 volumes:
-  postgres_data:
+  mariadb_data:
     driver: local
   redis_data:
     driver: local

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>새 계약 등록 - MsspBizCenter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-indigo-600 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-6">
+                    <a href="index.html" class="text-xl font-bold">🏠</a>
+                    <a href="tasks.html" class="hover:text-indigo-200">업무 일지</a>
+                    <a href="meetings.html" class="hover:text-indigo-200">회의록</a>
+                    <a href="contracts.html" class="font-bold border-b-2">계약 관리</a>
+                    <a href="settings.html" class="hover:text-indigo-200">⚙️ 설정</a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span>관리자</span>
+                    <button class="hover:text-indigo-200">로그아웃</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold">새 계약 등록</h1>
+            <a href="contracts.html" class="text-gray-600 hover:text-gray-800">← 목록으로</a>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <div>
+                    <h3 class="font-bold text-amber-800">보안 안내</h3>
+                    <p class="text-sm text-amber-700 mt-1">
+                        계약 금액은 AES-256-GCM 암호화되어 저장됩니다.
+                        Owner/Admin 권한만 복호화된 금액을 확인할 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form class="bg-white rounded-lg shadow p-6 space-y-6">
+            <!-- 기본 정보 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">기본 정보</h2>
+
+                <!-- 계약명 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        계약명 <span class="text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        placeholder="예: 보안 솔루션 라이선스"
+                        required
+                    >
+                </div>
+
+                <!-- 계약번호 & 계약 업체 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            계약번호 <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            placeholder="예: SVC-2026-001"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            계약 업체 <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            placeholder="예: ABC 보안 주식회사"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- 계약 유형 -->
+                <div class="mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        계약 유형 <span class="text-red-500">*</span>
+                    </label>
+                    <select class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" required>
+                        <option value="">선택하세요</option>
+                        <option value="service">서비스 계약</option>
+                        <option value="license">라이선스</option>
+                        <option value="maintenance">유지보수</option>
+                        <option value="consulting">컨설팅</option>
+                        <option value="subscription">구독형 서비스</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 계약 기간 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">계약 기간</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            계약 시작일 <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            value="2026-02-07"
+                            required
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            계약 종료일 <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="date"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- 자동 갱신 -->
+                <div class="mt-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 rounded focus:ring-2 focus:ring-amber-500">
+                        <span class="text-sm font-medium text-gray-700">자동 갱신 계약</span>
+                    </label>
+                    <p class="text-xs text-gray-500 ml-7 mt-1">
+                        체크 시 만료일 30일 전 갱신 알림이 발송됩니다
+                    </p>
+                </div>
+            </div>
+
+            <!-- 금액 정보 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">금액 정보</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            계약 금액 <span class="text-red-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="number"
+                                class="w-full border border-gray-300 rounded px-4 py-2 pr-12 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                                placeholder="0"
+                                min="0"
+                                step="1000"
+                                required
+                            >
+                            <span class="absolute right-4 top-2.5 text-gray-500">원</span>
+                        </div>
+                        <p class="text-xs text-amber-600 mt-1 flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            암호화되어 저장됩니다
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            결제 주기
+                        </label>
+                        <select class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                            <option value="onetime">일시불</option>
+                            <option value="monthly">월납</option>
+                            <option value="quarterly">분기납</option>
+                            <option value="yearly">연납</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- VAT 포함 여부 -->
+                <div class="mt-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 rounded focus:ring-2 focus:ring-amber-500" checked>
+                        <span class="text-sm font-medium text-gray-700">VAT 포함 (10%)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 재무 정보 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">재무 정보</h2>
+                <p class="text-xs text-amber-600 mb-4 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Admin 권한 필요
+                </p>
+
+                <!-- 매입 정보 -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <h3 class="flex items-center gap-2 text-sm font-bold text-blue-900 mb-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    매입 정보
+                </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                기본 매입가
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    id="purchasePrice"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 pr-12 focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
+                                    placeholder="0"
+                                    min="0"
+                                    step="1000"
+                                    oninput="calculateMargin()"
+                                >
+                                <span class="absolute right-4 top-2.5 text-gray-500">원</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                매입 수수료율
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    id="purchaseCommissionRate"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 pr-8 focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
+                                    placeholder="0"
+                                    min="0"
+                                    max="100"
+                                    step="0.1"
+                                    oninput="calculateMargin()"
+                                >
+                                <span class="absolute right-4 top-2.5 text-gray-500">%</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">예: 대리점 수수료</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                실제 매입가
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="actualPurchasePrice"
+                                    class="w-full border border-blue-300 rounded px-4 py-2 pr-12 bg-blue-100 font-bold text-blue-800"
+                                    placeholder="0"
+                                    readonly
+                                >
+                                <span class="absolute right-4 top-2.5 text-blue-600">원</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">수수료 포함</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 판매 정보 -->
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+                    <h3 class="flex items-center gap-2 text-sm font-bold text-green-900 mb-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                    </svg>
+                    판매 정보
+                </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                기본 판매가
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="number"
+                                    id="salesPrice"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 pr-12 focus:ring-2 focus:ring-amber-500 focus:border-transparent bg-white"
+                                    placeholder="0"
+                                    min="0"
+                                    step="1000"
+                                    oninput="calculateMargin()"
+                                >
+                                <span class="absolute right-4 top-2.5 text-gray-500">원</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center gap-2 mb-2">
+                                <input
+                                    type="checkbox"
+                                    id="hasPartner"
+                                    class="w-4 h-4 text-green-600 rounded focus:ring-2 focus:ring-green-500"
+                                    onchange="togglePartnerSection()"
+                                >
+                                <span class="text-sm font-medium text-gray-700">파트너사 포함</span>
+                            </label>
+                            <p class="text-xs text-gray-500">파트너사를 통한 계약인 경우 체크하세요</p>
+                        </div>
+                    </div>
+
+                    <!-- 파트너 수수료 (조건부 표시) -->
+                    <div id="partnerSection" class="hidden border-t border-green-300 pt-3">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    파트너사명
+                                </label>
+                                <input
+                                    type="text"
+                                    id="partnerName"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                                    placeholder="파트너사 이름"
+                                >
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    수수료 방식
+                                </label>
+                                <select
+                                    id="partnerCommissionType"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                                    onchange="calculateMargin()"
+                                >
+                                    <option value="rate">비율 (%)</option>
+                                    <option value="amount">금액 (원)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    파트너 수수료
+                                </label>
+                                <div class="relative">
+                                    <input
+                                        type="number"
+                                        id="partnerCommission"
+                                        class="w-full border border-gray-300 rounded px-4 py-2 pr-12 focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white"
+                                        placeholder="0"
+                                        min="0"
+                                        step="0.1"
+                                        oninput="calculateMargin()"
+                                    >
+                                    <span class="absolute right-4 top-2.5 text-gray-500" id="partnerCommissionUnit">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            실제 판매가 (수령액)
+                        </label>
+                        <div class="relative">
+                            <input
+                                type="text"
+                                id="actualSalesPrice"
+                                class="w-full border border-green-300 rounded px-4 py-2 pr-12 bg-green-100 font-bold text-green-800"
+                                placeholder="0"
+                                readonly
+                            >
+                            <span class="absolute right-4 top-2.5 text-green-600">원</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">파트너 수수료 차감 후</p>
+                    </div>
+                </div>
+
+                <!-- 최종 마진 -->
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h3 class="flex items-center gap-2 text-sm font-bold text-purple-900 mb-3">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                    </svg>
+                    최종 마진율
+                </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                기본 마진율
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="basicMarginRate"
+                                    class="w-full border border-gray-300 rounded px-4 py-2 pr-8 bg-gray-100 text-gray-700"
+                                    placeholder="-"
+                                    readonly
+                                >
+                                <span class="absolute right-4 top-2.5 text-gray-500">%</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">수수료 미반영</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                실제 마진율
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="actualMarginRate"
+                                    class="w-full border border-purple-300 rounded px-4 py-2 pr-8 bg-purple-100 font-bold text-lg"
+                                    placeholder="-"
+                                    readonly
+                                >
+                                <span class="absolute right-4 top-2.5 text-purple-600">%</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">모든 수수료 반영</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                실제 마진액
+                            </label>
+                            <div class="relative">
+                                <input
+                                    type="text"
+                                    id="actualMarginAmount"
+                                    class="w-full border border-purple-300 rounded px-4 py-2 pr-12 bg-purple-100 font-bold"
+                                    placeholder="0"
+                                    readonly
+                                >
+                                <span class="absolute right-4 top-2.5 text-purple-600">원</span>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-1">실제 수령 - 실제 매입</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 담당자 정보 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">담당자 정보</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            사내 담당자
+                        </label>
+                        <select class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent">
+                            <option value="">선택하세요</option>
+                            <option value="박서연">👤 박서연 (PM)</option>
+                            <option value="박안도">👤 박안도 (Backend)</option>
+                            <option value="배포준">👤 배포준 (DevOps)</option>
+                            <option value="Chloe">👤 Chloe (Security)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            업체 담당자명
+                        </label>
+                        <input
+                            type="text"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            placeholder="예: 홍길동 (영업팀 부장)"
+                        >
+                    </div>
+                </div>
+
+                <!-- 업체 연락처 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            업체 연락처
+                        </label>
+                        <input
+                            type="tel"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            placeholder="예: 02-1234-5678"
+                        >
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            업체 이메일
+                        </label>
+                        <input
+                            type="email"
+                            class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                            placeholder="예: contact@company.com"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <!-- 알림 설정 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">알림 설정</h2>
+
+                <div class="space-y-3">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 rounded focus:ring-2 focus:ring-amber-500" checked>
+                        <span class="text-sm text-gray-700">만료 30일 전 알림</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 rounded focus:ring-2 focus:ring-amber-500" checked>
+                        <span class="text-sm text-gray-700">만료 7일 전 알림</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-5 h-5 text-amber-600 rounded focus:ring-2 focus:ring-amber-500">
+                        <span class="text-sm text-gray-700">만료일 당일 알림</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 추가 정보 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">추가 정보</h2>
+
+                <!-- 설명 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        계약 설명
+                    </label>
+                    <textarea
+                        rows="4"
+                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        placeholder="계약에 대한 상세 설명을 입력하세요&#10;&#10;예시:&#10;• 제공 서비스 내용&#10;• 특이사항&#10;• 계약 조건 등"
+                    ></textarea>
+                </div>
+
+                <!-- 메모 -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        메모
+                    </label>
+                    <textarea
+                        rows="3"
+                        class="w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        placeholder="내부 메모를 입력하세요 (선택사항)"
+                    ></textarea>
+                </div>
+
+                <!-- 첨부파일 -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        계약서 첨부
+                    </label>
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-600">계약서 PDF 파일을 업로드하세요</p>
+                        <input type="file" class="hidden" accept=".pdf,.doc,.docx" multiple>
+                        <button type="button" class="mt-2 text-amber-600 hover:text-amber-800 text-sm">파일 선택</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-3 pt-4">
+                <button
+                    type="submit"
+                    class="bg-amber-600 text-white px-6 py-2 rounded hover:bg-amber-700 font-medium"
+                >
+                    계약 등록
+                </button>
+                <a
+                    href="contracts.html"
+                    class="bg-gray-200 text-gray-700 px-6 py-2 rounded hover:bg-gray-300 font-medium"
+                >
+                    취소
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Toggle partner section visibility
+        function togglePartnerSection() {
+            const hasPartner = document.getElementById('hasPartner').checked;
+            const partnerSection = document.getElementById('partnerSection');
+
+            if (hasPartner) {
+                partnerSection.classList.remove('hidden');
+            } else {
+                partnerSection.classList.add('hidden');
+                // Reset partner fields
+                document.getElementById('partnerName').value = '';
+                document.getElementById('partnerCommission').value = '';
+            }
+
+            calculateMargin();
+        }
+
+        // Update partner commission unit when type changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const typeSelect = document.getElementById('partnerCommissionType');
+            typeSelect.addEventListener('change', function() {
+                const unit = document.getElementById('partnerCommissionUnit');
+                unit.textContent = this.value === 'rate' ? '%' : '원';
+                calculateMargin();
+            });
+        });
+
+        // Calculate all margins and prices
+        function calculateMargin() {
+            // Get input values
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
+            const purchaseCommissionRate = parseFloat(document.getElementById('purchaseCommissionRate').value) || 0;
+            const salesPrice = parseFloat(document.getElementById('salesPrice').value) || 0;
+            const hasPartner = document.getElementById('hasPartner').checked;
+            const partnerCommissionType = document.getElementById('partnerCommissionType').value;
+            const partnerCommission = parseFloat(document.getElementById('partnerCommission').value) || 0;
+
+            // Calculate actual purchase price (매입가 + 수수료)
+            const actualPurchasePrice = purchasePrice * (1 + purchaseCommissionRate / 100);
+            document.getElementById('actualPurchasePrice').value = actualPurchasePrice.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+
+            // Calculate partner commission amount
+            let partnerCommissionAmount = 0;
+            if (hasPartner && partnerCommission > 0) {
+                if (partnerCommissionType === 'rate') {
+                    partnerCommissionAmount = salesPrice * (partnerCommission / 100);
+                } else {
+                    partnerCommissionAmount = partnerCommission;
+                }
+            }
+
+            // Calculate actual sales price (판매가 - 파트너 수수료)
+            const actualSalesPrice = salesPrice - partnerCommissionAmount;
+            document.getElementById('actualSalesPrice').value = actualSalesPrice.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+
+            // Calculate basic margin rate (기본 마진율 - 수수료 미반영)
+            const basicMarginRateField = document.getElementById('basicMarginRate');
+            if (salesPrice > 0) {
+                const basicMargin = ((salesPrice - purchasePrice) / salesPrice) * 100;
+                basicMarginRateField.value = basicMargin.toFixed(2);
+                applyMarginColor(basicMarginRateField, basicMargin);
+            } else {
+                basicMarginRateField.value = '-';
+                basicMarginRateField.classList.remove('text-red-600', 'text-green-600', 'text-amber-600');
+            }
+
+            // Calculate actual margin rate (실제 마진율 - 모든 수수료 반영)
+            const actualMarginRateField = document.getElementById('actualMarginRate');
+            const actualMarginAmountField = document.getElementById('actualMarginAmount');
+
+            if (actualSalesPrice > 0) {
+                const actualMargin = ((actualSalesPrice - actualPurchasePrice) / actualSalesPrice) * 100;
+                const actualMarginAmount = actualSalesPrice - actualPurchasePrice;
+
+                actualMarginRateField.value = actualMargin.toFixed(2);
+                actualMarginAmountField.value = actualMarginAmount.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+
+                applyMarginColor(actualMarginRateField, actualMargin);
+            } else {
+                actualMarginRateField.value = '-';
+                actualMarginAmountField.value = '0';
+                actualMarginRateField.classList.remove('text-red-600', 'text-green-600', 'text-amber-600');
+            }
+        }
+
+        // Apply color based on margin percentage
+        function applyMarginColor(field, margin) {
+            if (margin < 0) {
+                field.classList.add('text-red-600');
+                field.classList.remove('text-green-600', 'text-amber-600');
+            } else if (margin >= 20) {
+                field.classList.add('text-green-600');
+                field.classList.remove('text-red-600', 'text-amber-600');
+            } else {
+                field.classList.add('text-amber-600');
+                field.classList.remove('text-red-600', 'text-green-600');
+            }
+        }
+
+        // Format number with commas
+        function formatNumber(value) {
+            return value.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
+        }
+    </script>
+</body>
+</html>
