@@ -1,0 +1,49 @@
+import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // CORS 설정
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    credentials: true,
+  });
+
+  // 글로벌 ValidationPipe 설정
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+    }),
+  );
+
+  // Swagger 설정
+  const config = new DocumentBuilder()
+    .setTitle('MsspBizCenter API')
+    .setDescription('MSSP 비즈니스 센터 Backend API 문서')
+    .setVersion('0.1.0-alpha.3')
+    .addBearerAuth()
+    .addTag('auth', '인증 및 권한')
+    .addTag('tasks', '주차별 업무 일지')
+    .addTag('meetings', '회의록')
+    .addTag('contracts', '계약 관리')
+    .addTag('users', '사용자 관리')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  const port = process.env.PORT || 4001;
+  await app.listen(port);
+
+  console.log(`🚀 MsspBizCenter Backend is running on: http://localhost:${port}`);
+  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
+}
+bootstrap();

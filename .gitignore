@@ -79,4 +79,9 @@ apps/backend/storage/
 # Uploads
 uploads/
 apps/backend/uploads/
-apps/backend-nestjs-backup/
+
+# Python (legacy)
+__pycache__/
+*.py[cod]
+venv/
+*.egg-info/

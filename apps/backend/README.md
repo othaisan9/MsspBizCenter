@@ -1,252 +1,98 @@
-# MsspBizCenter Backend (Flask)
+<p align="center">
+  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+</p>
 
-Flask-based REST API for MSSP Business Center.
+[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
+[circleci-url]: https://circleci.com/gh/nestjs/nest
 
-## Tech Stack
+  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
+    <p align="center">
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
+<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
+<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
+<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
+<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
+<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
+  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
+    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
+  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
+</p>
+  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
+  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-- **Framework**: Flask 3.0
-- **ORM**: SQLAlchemy 2.x
-- **Database**: MariaDB (MySQL compatible)
-- **Authentication**: Flask-JWT-Extended
-- **API Documentation**: Flask-RESTX (Swagger)
-- **Validation**: Marshmallow
-- **Encryption**: AES-256-GCM (cryptography)
+## Description
 
-## Setup
+[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-### 1. Virtual Environment
-
-```bash
-cd apps/backend
-python3 -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
-```
-
-### 2. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Environment Variables
-
-Copy `.env.example` to `.env` and configure:
+## Project setup
 
 ```bash
-cp .env.example .env
+$ pnpm install
 ```
 
-**Important variables:**
-- `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` - Database connection
-- `JWT_SECRET_KEY` - JWT signing key (change in production!)
-- `CONTRACT_ENCRYPTION_KEY` - AES encryption key (minimum 32 characters)
-- `CORS_ORIGINS` - Allowed frontend origins
-
-### 4. Database Initialization
+## Compile and run the project
 
 ```bash
-# Create database tables
-flask db upgrade
+# development
+$ pnpm run start
 
-# Or manually create tables
-python
->>> from app import create_app
->>> from app.extensions import db
->>> app = create_app()
->>> with app.app_context():
-...     db.create_all()
+# watch mode
+$ pnpm run start:dev
+
+# production mode
+$ pnpm run start:prod
 ```
 
-### 5. Run Development Server
+## Run tests
 
 ```bash
-flask run --port 4001
-# or
-python run.py
+# unit tests
+$ pnpm run test
+
+# e2e tests
+$ pnpm run test:e2e
+
+# test coverage
+$ pnpm run test:cov
 ```
 
-API will be available at: http://localhost:4001/api/v1
+## Deployment
 
-Swagger documentation: http://localhost:4001/api/docs
+When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-## API Endpoints
-
-### Authentication (`/api/v1/auth`)
-
-- `POST /login` - User login
-- `POST /register` - User registration
-- `POST /refresh` - Refresh access token
-- `GET /me` - Get current user info
-
-### Tasks (`/api/v1/tasks`)
-
-- `GET /tasks` - List tasks (with filters: week, year, status, assigned_to)
-- `POST /tasks` - Create task
-- `GET /tasks/<id>` - Get task by ID
-- `PUT /tasks/<id>` - Update task
-- `DELETE /tasks/<id>` - Delete task
-
-### Meetings (`/api/v1/meetings`)
-
-- `GET /meetings` - List meetings (with filters: status, from_date, to_date)
-- `POST /meetings` - Create meeting
-- `GET /meetings/<id>` - Get meeting by ID
-- `PUT /meetings/<id>` - Update meeting
-- `DELETE /meetings/<id>` - Delete meeting
-
-### Contracts (`/api/v1/contracts`)
-
-- `GET /contracts` - List contracts (requires Editor+)
-- `POST /contracts` - Create contract (requires Admin+)
-- `GET /contracts/<id>` - Get contract by ID (requires Editor+)
-- `PUT /contracts/<id>` - Update contract (requires Admin+)
-- `DELETE /contracts/<id>` - Delete contract (requires Owner)
-
-**Note:** Contract amounts are encrypted. Only Owner/Admin roles can view decrypted amounts.
-
-## Role-Based Access Control
-
-| Role | Permissions |
-|------|-------------|
-| **owner** | Full access (all CRUD + delete contracts) |
-| **admin** | Manage tasks, meetings, contracts (view amounts) |
-| **editor** | Manage tasks, meetings, view contracts |
-| **analyst** | View tasks, meetings |
-| **viewer** | View tasks, meetings |
-
-## Multi-Tenancy
-
-All data is isolated by `tenant_id`:
-- JWT tokens include `tenant_id`
-- All queries automatically filter by tenant
-- Users can only access data within their tenant
-
-## Testing
+If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
 
 ```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=app tests/
-
-# Run specific test file
-pytest tests/test_auth.py
+$ pnpm install -g @nestjs/mau
+$ mau deploy
 ```
 
-## Database Migrations
+With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
-```bash
-# Initialize migrations (first time only)
-flask db init
+## Resources
 
-# Generate migration after model changes
-flask db migrate -m "Description of changes"
+Check out a few resources that may come in handy when working with NestJS:
 
-# Apply migrations
-flask db upgrade
+- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
+- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
+- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
+- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
+- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
+- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
+- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
+- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
-# Rollback last migration
-flask db downgrade
-```
+## Support
 
-## Project Structure
+Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
 
-```
-apps/backend/
-├── app/
-│   ├── __init__.py          # Flask app factory
-│   ├── config.py            # Configuration
-│   ├── extensions.py        # Flask extensions
-│   ├── models/              # SQLAlchemy models
-│   │   ├── base.py          # Base model (tenant_id, timestamps)
-│   │   ├── user.py          # User model
-│   │   ├── task.py          # Task, TaskComment
-│   │   ├── meeting.py       # Meeting, MeetingAttendee, ActionItem
-│   │   └── contract.py      # Contract, ContractHistory
-│   ├── api/                 # REST API endpoints
-│   │   ├── auth.py          # Authentication
-│   │   ├── tasks.py         # Tasks CRUD
-│   │   ├── meetings.py      # Meetings CRUD
-│   │   └── contracts.py     # Contracts CRUD
-│   ├── schemas/             # Marshmallow validation schemas
-│   ├── services/            # Business logic
-│   │   └── encryption.py    # AES-256-GCM encryption
-│   └── utils/               # Utilities
-│       └── decorators.py    # tenant_required, role_required
-├── tests/                   # Unit and integration tests
-├── migrations/              # Alembic migrations
-├── requirements.txt         # Python dependencies
-├── .env.example            # Environment variables template
-└── run.py                  # Application entry point
-```
+## Stay in touch
 
-## Example API Usage
-
-### 1. Register User
-
-```bash
-curl -X POST http://localhost:4001/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@msspbiz.local",
-    "password": "Admin@1234!",
-    "name": "Admin User",
-    "tenant_id": "msspbiz-tenant-1"
-  }'
-```
-
-### 2. Login
-
-```bash
-curl -X POST http://localhost:4001/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@msspbiz.local",
-    "password": "Admin@1234!"
-  }'
-```
-
-Response:
-```json
-{
-  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGc...",
-  "user": {
-    "id": 1,
-    "email": "admin@msspbiz.local",
-    "name": "Admin User",
-    "role": "viewer"
-  }
-}
-```
-
-### 3. Create Task (with JWT)
-
-```bash
-curl -X POST http://localhost:4001/api/v1/tasks \
-  -H "Authorization: Bearer <access_token>" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "API 개발",
-    "description": "Task API CRUD 구현",
-    "status": "in_progress",
-    "priority": "high",
-    "week_number": 6,
-    "year": 2026,
-    "tags": ["backend", "api"]
-  }'
-```
-
-### 4. List Tasks
-
-```bash
-curl -X GET "http://localhost:4001/api/v1/tasks?week=6&year=2026" \
-  -H "Authorization: Bearer <access_token>"
-```
+- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
+- Website - [https://nestjs.com](https://nestjs.com/)
+- Twitter - [@nestframework](https://twitter.com/nestframework)
 
 ## License
 
-Proprietary - MSSP BizCenter
+Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

@@ -1,31 +1,33 @@
 services:
-  mariadb:
-    image: mariadb:10.11
-    container_name: msspbiz-mariadb-dev
+  postgres:
+    image: postgres:16-alpine
+    container_name: msspbiz-postgres-dev
     restart: unless-stopped
     ports:
-      - "3307:3306"  # CTEM과 포트 충돌 방지 (3307 사용)
+      - "5433:5432"  # CTEM 5432와 포트 충돌 방지 (5433 사용)
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
-      MYSQL_DATABASE: ${DB_DATABASE:-msspbiz}
-      MYSQL_USER: ${DB_USERNAME:-msspbiz}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_DATABASE:-msspbiz}
+      POSTGRES_USER: ${DB_USERNAME:-msspbiz}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
       TZ: Asia/Seoul
     volumes:
-      - mariadb_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - msspbiz-network
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-msspbiz} -d ${DB_DATABASE:-msspbiz}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
     command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --max_connections=200
-      - --innodb_buffer_pool_size=256M
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - max_connections=200
+      - -c
+      - client_encoding=UTF8
 
   redis:
     image: redis:7-alpine
@@ -49,7 +51,7 @@ services:
       timeout: 3s
       retries: 5
 
-  # Backend 서비스 (Flask)
+  # Backend 서비스 (NestJS)
   backend:
     build:
       context: ../../apps/backend
@@ -59,33 +61,42 @@ services:
     ports:
       - "4001:4001"
     environment:
-      FLASK_APP: run.py
-      FLASK_ENV: development
-      SECRET_KEY: ${SECRET_KEY:-dev-secret-key-change-in-production}
-      DB_HOST: mariadb
-      DB_PORT: 3306
-      DB_NAME: ${DB_DATABASE:-msspbiz}
-      DB_USER: ${DB_USERNAME:-msspbiz}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 4001
+      DB_TYPE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-msspbiz}
       DB_PASSWORD: ${DB_PASSWORD:-password}
-      JWT_SECRET_KEY: ${JWT_SECRET:-jwt-secret-key}
-      JWT_ACCESS_TOKEN_EXPIRES: ${JWT_EXPIRES_IN:-3600}
-      JWT_REFRESH_TOKEN_EXPIRES: ${JWT_REFRESH_EXPIRES_IN:-604800}
+      DB_DATABASE: ${DB_DATABASE:-msspbiz}
+      DB_SYNCHRONIZE: ${DB_SYNCHRONIZE:-true}
+      DB_LOGGING: ${DB_LOGGING:-true}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-dev-redis-password}
+      JWT_SECRET: ${JWT_SECRET:-jwt-secret-key}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-1h}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-jwt-refresh-secret-key}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
       CONTRACT_ENCRYPTION_KEY: ${CONTRACT_ENCRYPTION_KEY:-change-this-to-32-character-key!!}
-      CORS_ORIGINS: ${CORS_ORIGIN:-http://localhost:3001}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3001}
+      THROTTLE_TTL: ${THROTTLE_TTL:-60}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
       AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-90}
     volumes:
       - ../../apps/backend:/app
-      - /app/venv
-      - /app/__pycache__
+      - /app/node_modules
+      - /app/dist
     networks:
       - msspbiz-network
     depends_on:
-      mariadb:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
 
-  # Frontend 서비스 (React + Vite)
+  # Frontend 서비스 (Next.js)
   frontend:
     build:
       context: ../../apps/frontend
@@ -95,18 +106,19 @@ services:
     ports:
       - "3001:3001"
     environment:
-      VITE_API_URL: ${VITE_API_URL:-http://localhost:4001/api/v1}
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4001/api/v1}
     volumes:
       - ../../apps/frontend:/app
       - /app/node_modules
-      - /app/dist
+      - /app/.next
     networks:
       - msspbiz-network
     depends_on:
       - backend
 
 volumes:
-  mariadb_data:
+  postgres_data:
     driver: local
   redis_data:
     driver: local

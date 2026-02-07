@@ -2,30 +2,40 @@
 
 이 파일은 이 저장소에서 코드 작업을 할 때 Claude Code (claude.ai/code)에게 가이드를 제공합니다.
 
+## MCP 도구 활용
+
+- **Context7**: 외부 라이브러리/프레임워크 코드 작성 시 `resolve-library-id` → `get-library-docs`로 최신 문서를 확인한 후 구현할 것
+
 ## 프로젝트 개요
 
 - **프로젝트명**: MsspBizCenter - MSSP 비즈니스 센터 (팀 업무포털)
-- **목적**: 기존 '미시시피' MSSP 업무포털에 팀 업무관리 기능 추가
+- **목적**: 독립형 MSSP 팀 업무관리 플랫폼
 - **핵심 기능**: 주차별 업무 일지(Task), 회의록, 계약관리
 - **현재 버전**: v0.1.0-alpha.1 (초기 개발 단계)
 - **상세 기획**: [docs/design/planning.md](docs/design/planning.md)
 
 ## 기술 스택
 
-**확정된 스택** (미시시피와 일관성 유지):
-- **Frontend**: React 19 + TypeScript + Vite
-- **Backend**: Python 3.11+ + Flask 3.x
-- **DB**: MariaDB 10.x (기존 미시시피와 동일)
+**확정된 스택** (독립 플랫폼 + CTEM 코드 재활용):
+- **Frontend**: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS
+- **Backend**: NestJS 10 + TypeScript + TypeORM
+- **DB**: PostgreSQL 16 (CTEM과 동일)
 - **Cache**: Redis 7
-- **Infra**: Docker Compose
-- **ORM**: SQLAlchemy 2.x
-- **인증**: Flask-JWT-Extended
-- **API 문서**: Flask-RESTX (Swagger)
+- **Monorepo**: pnpm 9 + Turborepo 2
+- **ORM**: TypeORM 0.3.x
+- **인증**: @nestjs/passport + JWT
+- **API 문서**: @nestjs/swagger (Swagger)
+- **Icons**: Iconoir 7.x
+- **Charts**: Recharts 2.x
+- **DnD**: @dnd-kit/core
+- **Testing**: Jest (Backend) + Vitest (Frontend) + Playwright (E2E)
 
-**통합 계획**:
-- 독립 실행 후 SSO(Single Sign-On)로 미시시피와 연동
-- JWT 토큰 공유 방식
-- 향후 프로젝트 인계를 통한 통합
+**CTEM 코드 재활용 계획**:
+- Auth 모듈 (JWT RS256 + Refresh Token + RBAC) 포팅
+- Audit Log 모듈 포팅
+- TypeORM Entity 패턴 및 마이그레이션 구조 참고
+- Docker Compose / CI/CD 파이프라인 참고
+- 향후 SSO 통합 시 JWT 토큰 공유 방식 검토
 
 ## 버전 관리 규칙 (필수)
 
@@ -60,17 +70,19 @@ git commit -m "feat: Task CRUD API 구현 (v0.1.0-alpha.2)"
 
 ### 로컬 개발 실행
 ```bash
-# Backend (Flask)
-cd apps/backend
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-flask run --port 4001
+# 의존성 설치 (루트에서)
+pnpm install
 
-# Frontend (React + Vite)
+# 전체 개발 서버 (Turborepo)
+pnpm dev
+
+# Backend만 (NestJS)
+cd apps/backend
+pnpm run start:dev
+
+# Frontend만 (Next.js)
 cd apps/frontend
-npm install
-npm run dev  # 또는 pnpm dev
+pnpm dev
 ```
 
 ### Docker 실행 (권장)
@@ -81,18 +93,22 @@ docker compose -f docker-compose.dev.yml up -d
 ```
 
 ### 포트 설정
-- **Frontend**: `3001` (미시시피/CTEM과 충돌 방지)
-- **Backend**: `4001` (미시시피/CTEM과 충돌 방지)
-- **MariaDB**: `3307` (기본 3306과 충돌 방지)
-- **Redis**: `6380` (기본 6379와 충돌 방지)
+- **Frontend**: `3001` (CTEM 3000과 충돌 방지)
+- **Backend**: `4001` (CTEM 4000과 충돌 방지)
+- **PostgreSQL**: `5433` (CTEM 5432와 충돌 방지)
+- **Redis**: `6380` (CTEM 6379와 충돌 방지)
 
 ### 주요 환경 변수
 ```bash
-# Database (MariaDB)
+# App
+PORT=4001
+NODE_ENV=development
+
+# Database (PostgreSQL)
 DB_HOST=localhost
-DB_PORT=3307
+DB_PORT=5433
 DB_NAME=msspbiz
-DB_USER=root
+DB_USERNAME=msspbiz
 DB_PASSWORD=your_password
 
 # Redis
@@ -100,21 +116,16 @@ REDIS_HOST=localhost
 REDIS_PORT=6380
 REDIS_PASSWORD=your_redis_password
 
-# Flask
-FLASK_APP=app
-FLASK_ENV=development
-SECRET_KEY=your_secret_key
-
 # JWT
-JWT_SECRET_KEY=your_jwt_secret
-JWT_ACCESS_TOKEN_EXPIRES=3600  # 1시간
-JWT_REFRESH_TOKEN_EXPIRES=604800  # 7일
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=3600
+JWT_REFRESH_EXPIRES_IN=604800
 
 # 계약 금액 암호화
 CONTRACT_ENCRYPTION_KEY=your_32_char_encryption_key
 
-# CORS (미시시피 SSO 연동용)
-CORS_ORIGINS=https://mssp.leaked.id,http://localhost:3001
+# CORS
+CORS_ORIGIN=http://localhost:3001
 ```
 
 ## Claude Code 권한 설정 (자동화)
@@ -143,8 +154,9 @@ cat > ~/.claude/settings.json << 'EOF'
         "npm install",
         "pip install",
         "docker compose",
-        "flask db migrate",
-        "pytest",
+        "typeorm migration",
+        "jest",
+        "vitest",
         "npm run build",
         "version update"
       ]
@@ -268,53 +280,60 @@ docs/
 └── images/              # 스크린샷, 다이어그램
 ```
 
-## 프로젝트 구조 (Flask)
+## 프로젝트 구조
 
 ```
 apps/backend/
-├── app/
-│   ├── __init__.py          # Flask app 초기화
-│   ├── config.py            # 환경별 설정
-│   ├── extensions.py        # SQLAlchemy, JWT, CORS 등
-│   ├── models/              # SQLAlchemy 모델
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── task.py
-│   │   ├── meeting.py
-│   │   └── contract.py
-│   ├── api/                 # Flask Blueprint (API)
-│   │   ├── __init__.py
-│   │   ├── auth.py          # 인증 (/api/auth/*)
-│   │   ├── tasks.py         # Task CRUD
-│   │   ├── meetings.py      # 회의록 CRUD
-│   │   └── contracts.py     # 계약 CRUD
-│   ├── services/            # 비즈니스 로직
-│   ├── schemas/             # Marshmallow 스키마
-│   └── utils/               # 유틸리티 (암호화 등)
-├── migrations/              # Alembic 마이그레이션
-├── tests/
-├── requirements.txt
-└── run.py
+├── src/
+│   ├── main.ts               # 앱 진입점 (포트, Swagger, CORS)
+│   ├── app.module.ts          # 루트 모듈
+│   ├── app.controller.ts      # 루트 컨트롤러
+│   ├── app.service.ts         # 루트 서비스
+│   ├── modules/               # 기능 모듈
+│   │   ├── auth/              # 인증 (JWT, Passport)
+│   │   ├── users/             # 사용자 CRUD
+│   │   ├── tasks/             # Task CRUD
+│   │   ├── meetings/          # 회의록 CRUD
+│   │   ├── contracts/         # 계약 CRUD
+│   │   ├── audit/             # 감사 로그
+│   │   └── files/             # 파일 업로드
+│   └── common/                # 공통 (Guards, Decorators, Pipes)
+├── test/
+├── Dockerfile.dev
+├── nest-cli.json
+├── tsconfig.json
+└── package.json
 
 apps/frontend/
 ├── src/
-│   ├── pages/               # React 페이지
-│   │   ├── Login.jsx
-│   │   ├── Tasks/
-│   │   ├── Meetings/
-│   │   └── Contracts/
-│   ├── components/          # 재사용 컴포넌트
-│   ├── context/             # Context API
-│   ├── services/            # API 호출 (axios)
-│   └── utils/
-├── vite.config.js
+│   ├── app/                   # Next.js App Router
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── (auth)/            # 인증 관련 페이지
+│   │   ├── tasks/             # Task 페이지
+│   │   ├── meetings/          # 회의록 페이지
+│   │   └── contracts/         # 계약 페이지
+│   ├── components/            # 재사용 컴포넌트
+│   ├── lib/                   # 유틸리티
+│   └── types/                 # 타입 정의
+├── Dockerfile.dev
+├── next.config.ts
+├── tailwind.config.ts
+└── package.json
+
+packages/shared/
+├── src/
+│   ├── enums/                 # 공유 Enum (TaskStatus, UserRole 등)
+│   ├── types/                 # 공유 타입 (ApiResponse, JwtPayload 등)
+│   └── constants/             # 공유 상수
+├── tsconfig.json
 └── package.json
 ```
 
 ## 관련 프로젝트
 
-- **미시시피**: https://mssp.leaked.id - 기존 MSSP 업무포털 (SSO 통합 대상)
-- **CTEM**: `/home/wynne/othaisan/CTEM/` - 보안 위협 관리 플랫폼 (참고용)
+- **CTEM**: `/home/wynne/othaisan/CTEM/` - 보안 위협 관리 플랫폼 (코드 재활용 대상)
+- **미시시피**: https://mssp.leaked.id - 기존 MSSP 업무포털 (향후 SSO 통합 검토 대상)
 
 ## 참고
 

@@ -1,7 +1,7 @@
 # MsspBizCenter 프로젝트 상태
 
 **마지막 업데이트**: 2026-02-07
-**현재 버전**: v0.1.0-alpha.2
+**현재 버전**: v0.1.0-alpha.3
 **개발 브랜치**: `master` (main 브랜치로 PR 예정)
 
 ---
@@ -23,9 +23,10 @@
 - **프로젝트명**: MsspBizCenter - MSSP 비즈니스 센터 (팀 업무 포털)
 - **아키텍처**: Monorepo (pnpm Workspaces + Turborepo) + Docker
 - **기술 스택**:
-  - Backend: NestJS + TypeScript + MariaDB + Redis
+  - Backend: NestJS 10 + TypeScript + TypeORM + PostgreSQL 16 + Redis 7
   - Frontend: Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS
-  - Infra: Docker Compose (개발), AWS ECS (프로덕션 예정)
+  - Infra: Docker Compose (개발), 향후 AWS ECS (프로덕션)
+  - Shared: packages/shared (공유 Enum, 타입, 상수)
 
 ### 핵심 기능 (3대 모듈)
 1. **Task 관리** - 주차별 업무 일지, 칸반 보드
@@ -41,18 +42,91 @@ MsspBizCenter/
 ├── apps/
 │   ├── backend/          # NestJS API 서버 (포트 4001)
 │   └── frontend/         # Next.js 15 앱 (포트 3001)
+├── packages/
+│   └── shared/           # 공유 타입/Enum/상수
 ├── mockup/               # HTML 프로토타입 (9개 파일)
 ├── infra/
 │   └── docker/           # Docker Compose 개발 환경
 ├── docs/                 # 프로젝트 문서
 ├── CLAUDE.md             # 개발 가이드 (Claude Code용)
 ├── VERSION               # 버전 관리 (단일 소스)
+├── turbo.json            # Turborepo 설정
+├── pnpm-workspace.yaml   # 워크스페이스 설정
 └── package.json          # 루트 워크스페이스
 ```
 
 ---
 
 ## 3. 최근 변경사항
+
+### v0.1.0-alpha.3 - 독립 플랫폼 기술 스택 전환 (2026-02-07)
+
+**담당**: PM 박서연 + 전체 팀
+
+#### 📋 주요 작업
+
+**1. 기술 스택 전면 재설계**
+- 개발팀 전체 회의 (9명 참석): 독립 플랫폼 스택 결정
+- Flask + React + MariaDB → **NestJS + Next.js + PostgreSQL** 전환
+- 전원 만장일치 결정 사유:
+  - CTEM 프로젝트 코드/패턴 재활용 (Auth, Audit 등)
+  - 풀스택 TypeScript로 Backend/Frontend 타입 공유
+  - Node.js 단일 런타임으로 인프라 단순화
+  - PostgreSQL의 JSONB, 전문검색, 분석함수 활용
+
+**2. 기존 코드 삭제 및 신규 프로젝트 초기화**
+- Flask Backend 삭제 → NestJS 10 프로젝트 생성
+- React + Vite Frontend 삭제 → Next.js 15 (App Router) 프로젝트 생성
+- packages/shared 패키지 생성 (Enum, 타입, 상수 공유)
+
+**3. NestJS Backend 설정**
+- TypeORM + PostgreSQL 16 연결 설정
+- Swagger API 문서 자동 생성 (/api/docs)
+- ValidationPipe 글로벌 설정
+- CORS 활성화
+- 의존성: @nestjs/typeorm, @nestjs/swagger, @nestjs/passport, @nestjs/jwt, class-validator 등
+
+**4. Next.js Frontend 설정**
+- App Router 구조 (src/app/)
+- Tailwind CSS 3.x + PostCSS
+- API 프록시 (rewrites)
+- 의존성: SWR, Recharts, Iconoir, @dnd-kit
+
+**5. packages/shared 공유 패키지**
+- Enum: TaskStatus, TaskPriority, MeetingType, ContractType, UserRole, AuditAction 등
+- Types: ApiResponse, PaginatedResponse, JwtPayload, BaseEntity 등
+- Constants: API_PREFIX, 페이지네이션 기본값, 파일 업로드 제한 등
+
+**6. Docker Compose PostgreSQL 전환**
+- MariaDB 10.11 → PostgreSQL 16 Alpine
+- 포트: 5433 (CTEM 5432와 충돌 방지)
+- 환경변수 전체 NestJS/PostgreSQL 기준으로 업데이트
+
+**7. 문서 전면 업데이트**
+- CLAUDE.md: 기술 스택, 개발 환경, 프로젝트 구조 전면 변경
+- planning.md: v1.2로 업데이트 (독립 플랫폼 전환)
+- Docker README.md: PostgreSQL 기준으로 재작성
+
+#### 📁 수정된 파일
+- `apps/backend/` - NestJS 프로젝트 (신규 생성)
+- `apps/frontend/` - Next.js 프로젝트 (신규 생성)
+- `packages/shared/` - 공유 타입 패키지 (신규 생성)
+- `infra/docker/docker-compose.dev.yml` - PostgreSQL 전환
+- `infra/docker/.env.example`, `.env` - 환경변수 업데이트
+- `infra/docker/README.md` - PostgreSQL 기준 재작성
+- `CLAUDE.md` - 기술 스택 전면 변경
+- `docs/design/planning.md` - v1.2 업데이트
+- `package.json`, `turbo.json`, `pnpm-workspace.yaml` - 모노레포 설정
+- `.gitignore` - 업데이트
+- `VERSION` - 0.1.0-alpha.3
+
+#### 🎯 성과 지표
+- 기술 스택 전환 완료 (Flask → NestJS, React+Vite → Next.js, MariaDB → PostgreSQL)
+- 모노레포 구조 확립 (apps/ + packages/)
+- 공유 타입 패키지로 Backend/Frontend 타입 일관성 확보
+- CTEM 코드 재활용 기반 마련
+
+---
 
 ### v0.1.0-alpha.2 - 목업 검토 및 보완 기획 수립 ✅ 완료 (2026-02-07)
 
@@ -186,38 +260,36 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - 마스터 데이터에 "계약 관리" 섹션 추가 (PoC, 데모 등 5개 계약 유형)
-  - 개발팀 전체 목업 검토 회의 시뮬레이션 (9명 페르소나)
-  - PM 박서연의 보완 기획안 작성 (Phase 1~4 로드맵)
-- **수정한 파일**: `mockup/settings.html`
-- **커밋 여부**: ❌ (이 세션 종료 후 커밋 예정)
+  - 독립 플랫폼 기술 스택 재설계 회의 (전원 만장일치: NestJS + Next.js + PostgreSQL)
+  - 기존 Flask/React 코드 삭제 후 NestJS/Next.js 프로젝트 초기화
+  - packages/shared 공유 타입 패키지 생성
+  - Docker Compose PostgreSQL 전환
+  - 전체 문서 업데이트 (CLAUDE.md, planning.md, Docker README)
+- **커밋 여부**: 미정 (캡틴 확인 후 커밋 예정)
 
 ### 진행 중 작업 (미완료)
-- [ ] Backend API 개발 (NestJS 프로젝트 생성)
-- [ ] Frontend 앱 개발 (Next.js 프로젝트 생성)
-- [ ] Docker Compose 파일 작성 (backend/frontend 컨테이너 추가)
+- [ ] pnpm install 의존성 설치 및 빌드 검증
+- [ ] NestJS 모듈 구조 생성 (auth, users, tasks, meetings, contracts)
+- [ ] CTEM Auth/Audit 모듈 포팅
 - 막힌 부분: 없음
-- 다음 단계: Phase 1 시작 (Backend validation API, CSRF 토큰)
 
 ### 다음 세션 TODO
 
-**우선순위 1 (Phase 1 시작 준비)**:
-1. NestJS 프로젝트 생성 (`apps/backend/`)
-2. Next.js 15 프로젝트 생성 (`apps/frontend/`)
-3. Docker Compose 개발 환경 완성 (4개 컨테이너)
-4. 환경변수 설정 (`.env` 파일)
+**우선순위 1 (Backend 핵심 모듈)**:
+1. Auth 모듈 포팅 (CTEM 참조: JWT RS256, Refresh Token, RBAC)
+2. User/Tenant 엔티티 및 모듈 생성
+3. Task 모듈 (Entity, DTO, Service, Controller)
+4. DB 마이그레이션 설정
 
-**우선순위 2 (Backend 기본 구조)**:
-1. Auth 모듈 (JWT, 멀티테넌시)
-2. User 모듈 (CRUD, RBAC)
-3. Task 모듈 (엔티티, DTO, 서비스)
-4. Database 마이그레이션 설정
+**우선순위 2 (Frontend 기본 구조)**:
+1. 인증 페이지 (로그인/회원가입)
+2. 레이아웃 (Sidebar, Header)
+3. Task 목록 페이지 (SWR + API 연동)
+4. 공통 컴포넌트 (Button, Input, Select 등)
 
-**우선순위 3 (Frontend 기본 구조)**:
-1. App Router 구조 설정
-2. Tailwind CSS 설정
-3. API 클라이언트 설정
-4. 공통 컴포넌트 8개 (Button, Input, Select 등)
+**우선순위 3 (인프라)**:
+1. Docker Compose로 전체 환경 테스트
+2. CI/CD 파이프라인 설정 (GitHub Actions)
 
 ---
 
@@ -225,15 +297,15 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | Phase 1~4 기획 완료 ✅ |
-| **Backend** | 박안도 | API, DB, 서버 로직 | NestJS 프로젝트 준비 중 |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Next.js 프로젝트 준비 중 |
-| **Security** | Chloe O'Brian | 보안, 암호화 | CSRF 토큰 가이드 작성 예정 |
-| **DevOps** | 배포준 | CI/CD, 인프라 | Docker Compose 완성 예정 |
+| **PM** | 박서연 | 요구사항, 일정 관리 | 기술 스택 전환 완료 ✅ |
+| **Backend** | 박안도 | API, DB, 서버 로직 | NestJS 프로젝트 초기화 완료 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Next.js 프로젝트 초기화 완료 ✅ |
+| **Security** | Chloe O'Brian | 보안, 암호화 | CTEM Auth 모듈 포팅 예정 |
+| **DevOps** | 배포준 | CI/CD, 인프라 | PostgreSQL Docker 설정 완료 ✅ |
 | **QA** | 나검수 | 테스트, 품질 보증 | E2E 시나리오 작성 예정 |
-| **Docs** | 문서인 | 문서화 | API 문서 구조 설계 예정 |
-| **Data Analyst** | 이지표 | KPI, 분석 | 분석 API 요구사항 정리 예정 |
-| **Visualization** | 송대시 | 차트, 시각화 | 차트 라이브러리 PoC 예정 |
+| **Docs** | 문서인 | 문서화 | 기술 스택 문서 업데이트 완료 ✅ |
+| **Data Analyst** | 이지표 | KPI, 분석 | PostgreSQL 분석함수 리서치 예정 |
+| **Visualization** | 송대시 | 차트, 시각화 | Recharts 호환성 검증 예정 |
 
 ---
 
@@ -267,7 +339,8 @@ MsspBizCenter/
 - **포트 정보**:
   - Frontend: http://localhost:3001
   - Backend API: http://localhost:4001/api/v1
-  - MariaDB: localhost:3307
+  - Swagger: http://localhost:4001/api/docs
+  - PostgreSQL: localhost:5433
   - Redis: localhost:6380
 
 ---

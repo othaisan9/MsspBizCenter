@@ -2,25 +2,33 @@
 
 > **작성일**: 2026-02-07
 > **작성자**: 박서연 (PM)
-> **버전**: v1.1
+> **버전**: v1.2
 > **상태**: 승인됨
-> **최종 수정**: 2026-02-07 - 기술 스택 변경 (Flask + React, MariaDB)
+> **최종 수정**: 2026-02-07 - 독립 플랫폼 전환 (NestJS + Next.js, PostgreSQL)
 
-## ⚠️ 기술 스택 변경 (v1.1)
+## ⚠️ 기술 스택 변경 (v1.2)
 
-**변경 사유**: 기존 미시시피 포털과의 일관성 및 통합 용이성
+**변경 사유**: 독립 플랫폼 전환 - CTEM 코드 재활용 + 풀스택 TypeScript 통일
 
-| 항목 | v1.0 (계획) | v1.1 (확정) |
-|------|-------------|-------------|
-| Frontend | Next.js 15 + React 19 | React 19 + Vite |
-| Backend | NestJS 10 + TypeORM | Flask 3.x + SQLAlchemy |
-| Database | PostgreSQL 15 | MariaDB 10.x |
-| 기타 | - | SSO 통합 계획 추가 |
+| 항목 | v1.0 (초안) | v1.1 (미시시피 통합) | v1.2 (독립 플랫폼) |
+|------|-------------|---------------------|---------------------|
+| Frontend | Next.js 15 + React 19 | React 19 + Vite | **Next.js 15 + React 19** |
+| Backend | NestJS 10 + TypeORM | Flask 3.x + SQLAlchemy | **NestJS 10 + TypeORM** |
+| Database | PostgreSQL 15 | MariaDB 10.x | **PostgreSQL 16** |
+| Monorepo | pnpm + Turborepo | - | **pnpm 9 + Turborepo 2** |
+| 기타 | - | SSO 통합 계획 | CTEM 코드 재활용 |
 
-**DB 차이점 참고**:
-- `JSONB` → `JSON`
-- `TSVECTOR` (전문 검색) → `FULLTEXT INDEX`
-- `SERIAL` → `AUTO_INCREMENT`
+**v1.1 → v1.2 변경 사유**:
+- 미시시피와의 SSO 통합 전제 해제 → 독립 플랫폼으로 전환
+- CTEM 프로젝트 (NestJS + Next.js + PostgreSQL)의 검증된 모듈 재활용
+- 풀스택 TypeScript로 Backend/Frontend 타입 공유
+- Node.js 단일 런타임으로 인프라 단순화
+
+**DB 참고 (PostgreSQL 네이티브)**:
+- `JSONB` 타입 사용 (인덱싱 가능)
+- `TSVECTOR` 전문 검색 (가중치 지원)
+- `uuid_generate_v4()` 사용
+- Row-Level Security (RLS) 정책 적용 가능
 
 ---
 
@@ -28,7 +36,7 @@
 
 ### 1.1 배경
 
-캡틴께서 팀 협업 및 업무 관리를 위한 **팀 업무포털** 기능 개발을 요청하셨습니다. 기존 "미시시피" 시스템과 일관된 기술 스택(React 19 + Flask)을 활용하여 개발하고, 독립 실행 후 SSO로 통합합니다.
+캡틴께서 팀 협업 및 업무 관리를 위한 **팀 업무포털** 기능 개발을 요청하셨습니다. CTEM 프로젝트에서 검증된 기술 스택(NestJS + Next.js + PostgreSQL)을 재활용하여 독립 플랫폼으로 개발합니다.
 
 ### 1.2 목표
 
@@ -49,10 +57,10 @@
 
 ```json
 {
-  "frontend": "React 19 + Vite + TypeScript + Tailwind CSS",
-  "backend": "Flask 3.x + SQLAlchemy 2.x + MariaDB 10.x",
-  "infra": "Docker Compose + Redis",
-  "testing": "pytest (Backend) + Vitest (Frontend)"
+  "frontend": "Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS",
+  "backend": "NestJS 10 + TypeORM 0.3.x + PostgreSQL 16",
+  "infra": "Docker Compose + Redis + pnpm Workspaces + Turborepo",
+  "testing": "Jest (Backend) + Vitest (Frontend) + Playwright (E2E)"
 }
 ```
 
@@ -315,12 +323,15 @@ enum ContractStatus {
 
 | 항목 | 기술 | 버전 | 용도 |
 |------|------|------|------|
-| Framework | Next.js | 15.x | SSR, App Router |
+| Framework | Next.js | 15.x | App Router, SSR |
 | UI Library | React | 19.x | UI 컴포넌트 |
 | Language | TypeScript | 5.7+ | 타입 안정성 |
 | Styling | Tailwind CSS | 3.4+ | 유틸리티 CSS |
 | State | SWR | 2.x | 서버 상태 관리 |
-| Testing | Vitest | 2.x | 단위 테스트 |
+| Icons | Iconoir | 7.x | SVG 아이콘 |
+| Charts | Recharts | 2.x | 데이터 시각화 |
+| DnD | @dnd-kit | 6.x+ | 드래그앤드롭 |
+| Testing | Vitest + Playwright | 2.x + 1.x | Unit + E2E |
 
 ### 3.2 Backend
 
@@ -332,7 +343,8 @@ enum ContractStatus {
 | Cache | Redis | 7.x | 캐시, 세션 |
 | Validation | class-validator | 0.14+ | DTO 검증 |
 | Auth | Passport + JWT | - | 인증 |
-| Testing | Jest | 29.x | 단위/E2E 테스트 |
+| API Docs | @nestjs/swagger | - | Swagger 자동 생성 |
+| Testing | Jest | 29.x | Unit/E2E 테스트 |
 
 ### 3.3 Infrastructure
 
@@ -729,3 +741,5 @@ enum UserRole {
 | 버전 | 일자 | 작성자 | 변경 내용 |
 |------|------|--------|-----------|
 | v1.0 | 2026-02-07 | 정하윤 | 초안 작성, 캡틴 승인 |
+| v1.1 | 2026-02-07 | 박서연 | Flask + React + MariaDB (미시시피 통합) |
+| v1.2 | 2026-02-07 | 박서연 | 독립 플랫폼 전환, NestJS + Next.js + PostgreSQL |
