@@ -79,3 +79,4 @@ apps/backend/storage/
 # Uploads
 uploads/
 apps/backend/uploads/
+apps/backend-nestjs-backup/
