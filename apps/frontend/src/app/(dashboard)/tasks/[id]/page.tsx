@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { tasksApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -98,7 +99,10 @@ export default function TaskDetailPage() {
         tags: data.tags?.join(', ') || '',
       });
     } catch (err: any) {
-      setError(err.message || '업무를 불러오는 데 실패했습니다.');
+      console.error('Task fetch error:', err);
+      const message = err.message || '업무를 불러오는 데 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -110,8 +114,12 @@ export default function TaskDetailPage() {
     try {
       await tasksApi.updateStatus(task.id, newStatus);
       setTask({ ...task, status: newStatus });
+      toast.success('상태가 변경되었습니다.');
     } catch (err: any) {
-      setError(err.message || '상태 변경에 실패했습니다.');
+      console.error('Status update error:', err);
+      const message = err.message || '상태 변경에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -156,8 +164,12 @@ export default function TaskDetailPage() {
       const updated = await tasksApi.update(task.id, payload);
       setTask(updated);
       setEditModalOpen(false);
+      toast.success('업무가 수정되었습니다.');
     } catch (err: any) {
-      setError(err.message || '업무 수정에 실패했습니다.');
+      console.error('Task update error:', err);
+      const message = err.message || '업무 수정에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setSaving(false);
     }
@@ -169,9 +181,13 @@ export default function TaskDetailPage() {
     try {
       setDeleting(true);
       await tasksApi.delete(task.id);
+      toast.success('업무가 삭제되었습니다.');
       router.push('/tasks');
     } catch (err: any) {
-      setError(err.message || '업무 삭제에 실패했습니다.');
+      console.error('Task delete error:', err);
+      const message = err.message || '업무 삭제에 실패했습니다.';
+      setError(message);
+      toast.error(message);
       setDeleteModalOpen(false);
     } finally {
       setDeleting(false);

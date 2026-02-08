@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { KanbanBoard } from '@/components/tasks/KanbanBoard';
 import {
   getStatusColor,
   getStatusLabel,
@@ -49,6 +50,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
@@ -139,9 +141,37 @@ export default function TasksPage() {
               {filters.year}년 {filters.weekNumber}주차 업무 목록
             </p>
           </div>
-          <Button onClick={() => router.push('/tasks/new')}>
-            새 업무
-          </Button>
+          <div className="flex gap-2">
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('list')}
+                className={`
+                  px-3 py-1.5 text-sm font-medium rounded-md transition-colors
+                  ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}
+                `}
+              >
+                <svg className="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                목록
+              </button>
+              <button
+                onClick={() => setViewMode('kanban')}
+                className={`
+                  px-3 py-1.5 text-sm font-medium rounded-md transition-colors
+                  ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}
+                `}
+              >
+                <svg className="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                </svg>
+                칸반
+              </button>
+            </div>
+            <Button onClick={() => router.push('/tasks/new')}>
+              새 업무
+            </Button>
+          </div>
         </div>
 
         <Card>
@@ -191,7 +221,30 @@ export default function TasksPage() {
         </div>
       )}
 
-      <Card>
+      {viewMode === 'kanban' ? (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+              <p className="mt-2 text-sm text-gray-500">로딩 중...</p>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500">업무가 없습니다.</p>
+              <Button
+                variant="secondary"
+                className="mt-4"
+                onClick={() => router.push('/tasks/new')}
+              >
+                첫 업무 생성하기
+              </Button>
+            </div>
+          ) : (
+            <KanbanBoard tasks={tasks} onTasksUpdate={fetchTasks} />
+          )}
+        </div>
+      ) : (
+        <Card>
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
@@ -314,7 +367,8 @@ export default function TasksPage() {
             )}
           </>
         )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

@@ -217,4 +217,72 @@ export const auditApi = {
     request<any>(`/audit/${entityType}/${entityId}`),
 };
 
+// Stats
+export const statsApi = {
+  dashboard: () => request<any>('/stats/dashboard'),
+  tasksWeekly: () => request<any>('/stats/tasks/weekly'),
+  contractsMonthly: () => request<any>('/stats/contracts/monthly'),
+  tasksByStatus: () => request<any>('/stats/tasks/by-status'),
+  tasksByPriority: () => request<any>('/stats/tasks/by-priority'),
+};
+
+// Files
+export const filesApi = {
+  upload: async (
+    file: File,
+    entityType?: string,
+    entityId?: string,
+  ): Promise<any> => {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('accessToken')
+        : null;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (entityType) formData.append('entityType', entityType);
+    if (entityId) formData.append('entityId', entityId);
+
+    const res = await fetch(`${API_BASE}${API_PREFIX}/files/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new ApiError(
+        res.status,
+        errorData.message || 'Upload failed',
+        errorData,
+      );
+    }
+
+    return res.json();
+  },
+
+  list: (entityType: string, entityId: string) => {
+    const query = new URLSearchParams({ entityType, entityId }).toString();
+    return request<any>(`/files?${query}`);
+  },
+
+  getById: (id: string) => request<any>(`/files/${id}`),
+
+  download: (id: string) => {
+    const token =
+      typeof window !== 'undefined'
+        ? localStorage.getItem('accessToken')
+        : null;
+    return fetch(`${API_BASE}${API_PREFIX}/files/${id}/download`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  delete: (id: string) => request<any>(`/files/${id}`, { method: 'DELETE' }),
+};
+
 export { ApiError };

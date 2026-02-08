@@ -8,6 +8,8 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
 import { ContractsModule } from './modules/contracts/contracts.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { StatsModule } from './modules/stats/stats.module';
+import { FilesModule } from './modules/files/files.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { AuditModule } from './modules/audit/audit.module';
     MeetingsModule,
     ContractsModule,
     AuditModule,
+    StatsModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

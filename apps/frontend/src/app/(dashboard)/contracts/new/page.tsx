@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { contractsApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -102,9 +103,13 @@ export default function NewContractPage() {
       }
 
       await contractsApi.create(payload);
+      toast.success('계약이 등록되었습니다.');
       router.push('/contracts');
     } catch (err: any) {
-      setError(err.message || '계약 생성에 실패했습니다.');
+      console.error('Contract creation error:', err);
+      const message = err.message || '계약 생성에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

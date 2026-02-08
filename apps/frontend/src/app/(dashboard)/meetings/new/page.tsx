@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { meetingsApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -66,9 +67,13 @@ export default function NewMeetingPage() {
       }
 
       await meetingsApi.create(payload);
+      toast.success('회의록이 생성되었습니다.');
       router.push('/meetings');
     } catch (err: any) {
-      setError(err.message || '회의록 생성에 실패했습니다.');
+      console.error('Meeting creation error:', err);
+      const message = err.message || '회의록 생성에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

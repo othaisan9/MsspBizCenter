@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { tasksApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -119,9 +120,13 @@ export default function NewTaskPage() {
       }
 
       await tasksApi.create(payload);
+      toast.success('업무가 생성되었습니다.');
       router.push('/tasks');
     } catch (err: any) {
-      setError(err.message || '업무 생성에 실패했습니다.');
+      console.error('Task creation error:', err);
+      const message = err.message || '업무 생성에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

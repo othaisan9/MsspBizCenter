@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -22,9 +23,13 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
+      toast.success('로그인되었습니다.');
       router.push('/');
     } catch (err: any) {
-      setError(err.message || '로그인에 실패했습니다.');
+      console.error('Login error:', err);
+      const message = err.message || '로그인에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

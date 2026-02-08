@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { meetingsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/Button';
@@ -56,7 +57,10 @@ export default function MeetingDetailPage() {
       const result = await meetingsApi.get(meetingId);
       setMeeting(result);
     } catch (err: any) {
-      setError(err.message || '회의록을 불러오지 못했습니다.');
+      console.error('Meeting fetch error:', err);
+      const message = err.message || '회의록을 불러오지 못했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -71,8 +75,10 @@ export default function MeetingDetailPage() {
     try {
       await meetingsApi.publish(meetingId);
       await loadMeeting();
+      toast.success('회의록이 발행되었습니다.');
     } catch (err: any) {
-      alert(err.message || '발행에 실패했습니다.');
+      console.error('Meeting publish error:', err);
+      toast.error(err.message || '발행에 실패했습니다.');
     }
   };
 
@@ -80,9 +86,11 @@ export default function MeetingDetailPage() {
     setDeleting(true);
     try {
       await meetingsApi.delete(meetingId);
+      toast.success('회의록이 삭제되었습니다.');
       router.push('/meetings');
     } catch (err: any) {
-      alert(err.message || '삭제에 실패했습니다.');
+      console.error('Meeting delete error:', err);
+      toast.error(err.message || '삭제에 실패했습니다.');
       setDeleting(false);
     }
   };
@@ -107,8 +115,10 @@ export default function MeetingDetailPage() {
       setActionItemModalOpen(false);
       setActionItemForm({ title: '', assigneeId: '', dueDate: '' });
       await loadMeeting();
+      toast.success('Action Item이 추가되었습니다.');
     } catch (err: any) {
-      alert(err.message || 'Action Item 추가에 실패했습니다.');
+      console.error('Action item creation error:', err);
+      toast.error(err.message || 'Action Item 추가에 실패했습니다.');
     } finally {
       setSubmittingAction(false);
     }
@@ -118,8 +128,10 @@ export default function MeetingDetailPage() {
     try {
       await meetingsApi.updateActionItem(meetingId, itemId, { status });
       await loadMeeting();
+      toast.success('상태가 변경되었습니다.');
     } catch (err: any) {
-      alert(err.message || '상태 변경에 실패했습니다.');
+      console.error('Action item status update error:', err);
+      toast.error(err.message || '상태 변경에 실패했습니다.');
     }
   };
 

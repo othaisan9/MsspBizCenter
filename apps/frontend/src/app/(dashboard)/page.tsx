@@ -1,49 +1,57 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { tasksApi, meetingsApi, contractsApi } from '@/lib/api';
+import { statsApi } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { getStatusColor, getStatusLabel, formatDate, getWeekNumber } from '@/lib/utils';
+import { getWeekNumber } from '@/lib/utils';
+import { WeeklyTaskChart } from '@/components/charts/WeeklyTaskChart';
+import { TaskStatusChart } from '@/components/charts/TaskStatusChart';
+import { TaskPriorityChart } from '@/components/charts/TaskPriorityChart';
+import { MonthlyContractChart } from '@/components/charts/MonthlyContractChart';
+
+interface DashboardStats {
+  totalTasks: number;
+  completedTasksThisWeek: number;
+  meetingsThisMonth: number;
+  activeContracts: number;
+  expiringContracts: number;
+}
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ tasks: 0, meetings: 0, contracts: 0 });
-  const [recentTasks, setRecentTasks] = useState<any[]>([]);
-  const [recentMeetings, setRecentMeetings] = useState<any[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalTasks: 0,
+    completedTasksThisWeek: 0,
+    meetingsThisMonth: 0,
+    activeContracts: 0,
+    expiringContracts: 0,
+  });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadDashboard() {
-      try {
-        const [taskRes, meetingRes, contractRes] = await Promise.allSettled([
-          tasksApi.list({ limit: '5', sortBy: 'createdAt', sortOrder: 'DESC' }),
-          meetingsApi.list({ limit: '5', sortBy: 'meetingDate', sortOrder: 'DESC' }),
-          contractsApi.dashboard(),
-        ]);
-
-        if (taskRes.status === 'fulfilled') {
-          setRecentTasks(taskRes.value.data || []);
-          setStats((s) => ({ ...s, tasks: taskRes.value.meta?.total || 0 }));
-        }
-        if (meetingRes.status === 'fulfilled') {
-          setRecentMeetings(meetingRes.value.data || []);
-          setStats((s) => ({ ...s, meetings: meetingRes.value.meta?.total || 0 }));
-        }
-        if (contractRes.status === 'fulfilled') {
-          setStats((s) => ({ ...s, contracts: contractRes.value.total || 0 }));
-        }
-      } catch {
-        // Dashboard is best-effort
-      } finally {
-        setLoading(false);
+  const loadDashboardStats = useCallback(async () => {
+    try {
+      const result = await statsApi.dashboard();
+      if (result) {
+        setStats({
+          totalTasks: result.totalTasks || 0,
+          completedTasksThisWeek: result.completedTasksThisWeek || 0,
+          meetingsThisMonth: result.meetingsThisMonth || 0,
+          activeContracts: result.activeContracts || 0,
+          expiringContracts: result.expiringContracts || 0,
+        });
       }
+    } catch (error) {
+      console.error('Failed to load dashboard stats:', error);
+    } finally {
+      setLoading(false);
     }
-
-    loadDashboard();
   }, []);
+
+  useEffect(() => {
+    loadDashboardStats();
+  }, [loadDashboardStats]);
 
   const currentWeek = getWeekNumber();
   const currentYear = new Date().getFullYear();
@@ -60,9 +68,9 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link href="/tasks">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,15 +78,22 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.tasks}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? '-' : stats.totalTasks}
+                </p>
                 <p className="text-sm text-gray-500">전체 업무</p>
+                {!loading && stats.completedTasksThisWeek > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    이번 주 {stats.completedTasksThisWeek}건 완료
+                  </p>
+                )}
               </div>
             </div>
           </div>
         </Link>
 
         <Link href="/meetings">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -86,15 +101,17 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.meetings}</p>
-                <p className="text-sm text-gray-500">전체 회의록</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? '-' : stats.meetingsThisMonth}
+                </p>
+                <p className="text-sm text-gray-500">이번 달 회의</p>
               </div>
             </div>
           </div>
         </Link>
 
         <Link href="/contracts">
-          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,78 +119,51 @@ export default function DashboardPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{stats.contracts}</p>
-                <p className="text-sm text-gray-500">전체 계약</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {loading ? '-' : stats.activeContracts}
+                </p>
+                <p className="text-sm text-gray-500">활성 계약</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+
+        <Link href="/contracts">
+          <div className="bg-white rounded-xl border border-red-200 p-6 hover:shadow-md transition-shadow cursor-pointer bg-red-50">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-red-900">
+                  {loading ? '-' : stats.expiringContracts}
+                </p>
+                <p className="text-sm text-red-600">만료 임박</p>
+                <p className="text-xs text-red-500 mt-1">30일 이내</p>
               </div>
             </div>
           </div>
         </Link>
       </div>
 
-      {/* Recent content */}
+      {/* Charts grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card
-          title="최근 업무"
-          action={
-            <Link href="/tasks" className="text-sm text-primary-600 hover:text-primary-700">
-              전체보기
-            </Link>
-          }
-        >
-          {loading ? (
-            <p className="text-sm text-gray-400">불러오는 중...</p>
-          ) : recentTasks.length === 0 ? (
-            <p className="text-sm text-gray-400">등록된 업무가 없습니다.</p>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {recentTasks.map((task: any) => (
-                <li key={task.id} className="py-3 first:pt-0 last:pb-0">
-                  <Link href={`/tasks/${task.id}`} className="flex items-center justify-between hover:opacity-70">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">{task.title}</p>
-                      <p className="text-xs text-gray-500">
-                        {task.year}년 {task.weekNumber}주차
-                      </p>
-                    </div>
-                    <Badge color={getStatusColor(task.status)}>
-                      {getStatusLabel(task.status)}
-                    </Badge>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+        <Card title="주차별 업무 현황">
+          <WeeklyTaskChart />
         </Card>
 
-        <Card
-          title="최근 회의록"
-          action={
-            <Link href="/meetings" className="text-sm text-primary-600 hover:text-primary-700">
-              전체보기
-            </Link>
-          }
-        >
-          {loading ? (
-            <p className="text-sm text-gray-400">불러오는 중...</p>
-          ) : recentMeetings.length === 0 ? (
-            <p className="text-sm text-gray-400">등록된 회의록이 없습니다.</p>
-          ) : (
-            <ul className="divide-y divide-gray-100">
-              {recentMeetings.map((meeting: any) => (
-                <li key={meeting.id} className="py-3 first:pt-0 last:pb-0">
-                  <Link href={`/meetings/${meeting.id}`} className="flex items-center justify-between hover:opacity-70">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-900 truncate">{meeting.title}</p>
-                      <p className="text-xs text-gray-500">{formatDate(meeting.meetingDate)}</p>
-                    </div>
-                    <Badge color={getStatusColor(meeting.status)}>
-                      {getStatusLabel(meeting.status)}
-                    </Badge>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+        <Card title="상태별 업무 비율">
+          <TaskStatusChart />
+        </Card>
+
+        <Card title="월별 계약 추이">
+          <MonthlyContractChart />
+        </Card>
+
+        <Card title="우선순위 분포">
+          <TaskPriorityChart />
         </Card>
       </div>
     </div>

@@ -1,15 +1,28 @@
-FROM node:22-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
 # pnpm 설치
-RUN corepack enable && corepack prepare pnpm@9.15.0 --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
-COPY package.json ./
-RUN pnpm install
+# 루트 workspace 설정 복사
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml* ./
 
-COPY . .
+# 모든 패키지의 package.json 복사 (의존성 해결용)
+COPY apps/frontend/package.json ./apps/frontend/
+COPY packages/shared/package.json ./packages/shared/
+
+# 의존성 설치
+RUN pnpm install --frozen-lockfile
+
+# shared 패키지 소스 복사 및 빌드
+COPY packages/shared/ ./packages/shared/
+RUN pnpm --filter @msspbiz/shared build
+
+# frontend 소스 복사 (소스는 volume으로 마운트되지만 초기 빌드용)
+COPY apps/frontend/ ./apps/frontend/
 
 EXPOSE 3001
 
-CMD ["pnpm", "run", "dev"]
+# 개발 서버 실행 (핫리로드 활성화)
+CMD ["pnpm", "--filter", "@msspbiz/frontend", "dev"]

@@ -83,7 +83,7 @@ export function Sidebar() {
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-200">
-        <p className="text-xs text-gray-400">v0.1.0-alpha.4</p>
+        <p className="text-xs text-gray-400">v0.1.0-alpha.5</p>
       </div>
     </aside>
   );

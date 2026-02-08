@@ -1,10 +1,11 @@
 services:
+  # PostgreSQL 데이터베이스
   postgres:
     image: postgres:16-alpine
     container_name: msspbiz-postgres-dev
     restart: unless-stopped
     ports:
-      - "5433:5432"  # CTEM 5432와 포트 충돌 방지 (5433 사용)
+      - "5433:5432"  # CTEM 5432와 포트 충돌 방지
     environment:
       POSTGRES_DB: ${DB_DATABASE:-msspbiz}
       POSTGRES_USER: ${DB_USERNAME:-msspbiz}
@@ -29,12 +30,13 @@ services:
       - -c
       - client_encoding=UTF8
 
+  # Redis 캐시
   redis:
     image: redis:7-alpine
     container_name: msspbiz-redis-dev
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6380:6379"  # CTEM과 포트 충돌 방지 (6380 사용)
+      - "127.0.0.1:6380:6379"  # CTEM과 포트 충돌 방지
     command: >
       redis-server
       --appendonly yes
@@ -51,11 +53,11 @@ services:
       timeout: 3s
       retries: 5
 
-  # Backend 서비스 (NestJS)
+  # Backend 서비스 (NestJS) - 핫리로드
   backend:
     build:
-      context: ../../apps/backend
-      dockerfile: Dockerfile.dev
+      context: ../../
+      dockerfile: apps/backend/Dockerfile.dev
     container_name: msspbiz-backend-dev
     restart: unless-stopped
     ports:
@@ -85,9 +87,17 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       AUDIT_RETENTION_DAYS: ${AUDIT_RETENTION_DAYS:-90}
     volumes:
-      - ../../apps/backend:/app
+      # 소스 코드 마운트 (핫리로드)
+      - ../../apps/backend/src:/app/apps/backend/src
+      - ../../packages/shared/src:/app/packages/shared/src
+      # node_modules는 컨테이너 것 사용 (anonymous volume)
       - /app/node_modules
-      - /app/dist
+      - /app/apps/backend/node_modules
+      - /app/packages/shared/node_modules
+      # dist는 컨테이너 것 사용
+      - /app/apps/backend/dist
+      # 업로드 파일 영속화
+      - ../../uploads:/app/uploads
     networks:
       - msspbiz-network
     depends_on:
@@ -96,11 +106,11 @@ services:
       redis:
         condition: service_healthy
 
-  # Frontend 서비스 (Next.js)
+  # Frontend 서비스 (Next.js) - 핫리로드
   frontend:
     build:
-      context: ../../apps/frontend
-      dockerfile: Dockerfile.dev
+      context: ../../
+      dockerfile: apps/frontend/Dockerfile.dev
     container_name: msspbiz-frontend-dev
     restart: unless-stopped
     ports:
@@ -108,10 +118,21 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4001/api/v1}
+      # Docker에서 파일 변경 감지 (Next.js)
+      WATCHPACK_POLLING: "true"
+      # 핫리로드 설정
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
-      - ../../apps/frontend:/app
+      # 소스 코드 마운트 (핫리로드)
+      - ../../apps/frontend/src:/app/apps/frontend/src
+      - ../../apps/frontend/public:/app/apps/frontend/public
+      - ../../packages/shared/src:/app/packages/shared/src
+      # node_modules는 컨테이너 것 사용 (anonymous volume)
       - /app/node_modules
-      - /app/.next
+      - /app/apps/frontend/node_modules
+      - /app/packages/shared/node_modules
+      # .next 캐시는 컨테이너 것 사용
+      - /app/apps/frontend/.next
     networks:
       - msspbiz-network
     depends_on:

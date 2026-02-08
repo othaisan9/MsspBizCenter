@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -30,9 +31,13 @@ export default function RegisterPage() {
 
     try {
       await register(form);
+      toast.success('회원가입이 완료되었습니다.');
       router.push('/');
     } catch (err: any) {
-      setError(err.message || '회원가입에 실패했습니다.');
+      console.error('Register error:', err);
+      const message = err.message || '회원가입에 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

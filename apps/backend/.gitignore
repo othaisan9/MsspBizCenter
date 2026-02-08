@@ -41,3 +41,6 @@ lerna-debug.log*
 
 # Source maps
 *.js.map
+
+# Uploads
+/uploads

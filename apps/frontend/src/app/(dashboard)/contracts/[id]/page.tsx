@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { toast } from 'sonner';
 import { contractsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { formatDate, formatDateTime, getStatusColor, getStatusLabel, cn } from '@/lib/utils';
@@ -92,7 +93,10 @@ export default function ContractDetailPage() {
       const data = await contractsApi.get(contractId);
       setContract(data);
     } catch (err: any) {
-      setError(err.message || '계약 정보를 불러오는데 실패했습니다.');
+      console.error('Contract fetch error:', err);
+      const message = err.message || '계약 정보를 불러오는데 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -122,8 +126,10 @@ export default function ContractDetailPage() {
       await fetchHistory();
       setStatusModalOpen(false);
       setNewStatus('');
+      toast.success('상태가 변경되었습니다.');
     } catch (err: any) {
-      alert(err.message || '상태 변경에 실패했습니다.');
+      console.error('Contract status update error:', err);
+      toast.error(err.message || '상태 변경에 실패했습니다.');
     } finally {
       setActionLoading(false);
     }
@@ -136,8 +142,10 @@ export default function ContractDetailPage() {
       await fetchContract();
       await fetchHistory();
       setRenewModalOpen(false);
+      toast.success('계약이 갱신되었습니다.');
     } catch (err: any) {
-      alert(err.message || '계약 갱신에 실패했습니다.');
+      console.error('Contract renewal error:', err);
+      toast.error(err.message || '계약 갱신에 실패했습니다.');
     } finally {
       setActionLoading(false);
     }
@@ -147,9 +155,11 @@ export default function ContractDetailPage() {
     try {
       setActionLoading(true);
       await contractsApi.delete(contractId);
+      toast.success('계약이 삭제되었습니다.');
       router.push('/contracts');
     } catch (err: any) {
-      alert(err.message || '계약 삭제에 실패했습니다.');
+      console.error('Contract delete error:', err);
+      toast.error(err.message || '계약 삭제에 실패했습니다.');
       setActionLoading(false);
     }
   };
