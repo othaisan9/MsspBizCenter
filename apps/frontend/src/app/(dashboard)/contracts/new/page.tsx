@@ -288,7 +288,7 @@ export default function NewContractPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
       <Breadcrumb
         items={[
           { label: '계약 관리', href: '/contracts' },

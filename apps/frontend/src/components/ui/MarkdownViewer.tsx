@@ -13,6 +13,7 @@ interface MarkdownViewerProps {
 
 export const MarkdownViewer = ({ content, className }: MarkdownViewerProps) => {
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {

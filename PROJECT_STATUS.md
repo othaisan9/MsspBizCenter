@@ -378,17 +378,25 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - alpha.9: tiptap 리치텍스트 에디터 도입 (3개 모듈 × 생성/상세 = 6페이지 적용)
-  - MarkdownEditor/Viewer 컴포넌트 + prose Neo-Brutalism 타이포그래피
-  - XSS 보안 검증 완료 (ProseMirror 스키마 화이트리스트)
-  - 빌드 13/13 정상
-- **수정한 파일**: Frontend 9파일 + 버전 5파일 = 14파일
-- **커밋 여부**: ✅
+  - alpha.9 핫픽스: tiptap SSR 에러 수정 (`immediatelyRender: false`)
+  - Docker anonymous volume 이슈 해결 (`docker compose up -V`)
+  - 에디터 UI 조정: 기본 높이 200→120px, 패딩 p-4→p-3
+  - 폼 페이지 너비 확장: max-w-3xl → max-w-5xl (3페이지)
+  - **제품 구조 재설계 플랜 수립** (productType 제거 → 파생제품 유형 도입)
+- **수정한 파일**: MarkdownEditor.tsx, MarkdownViewer.tsx, tasks/new, contracts/new, meetings/[id]
+- **커밋 여부**: ✅ (핫픽스)
 
 ### 진행 중 작업 (미완료)
-- 없음 (alpha.9 tiptap 에디터 적용 완료)
+- **제품 데이터 모델 재설계** (계획 완료, 구현 대기)
+  - 플랜 파일: `~/.claude/plans/resilient-orbiting-mccarthy.md`
+  - 핵심: Product에서 productType 제거 → ProductOption에 type(사용자 정의) 추가
+  - 영향 범위: shared enum + backend entity/DTO/service/controller + DB migration + frontend settings/contracts
+  - 예상 수정 파일: ~12파일
 
 ### 다음 세션 TODO (PM 종합 우선순위)
+
+**우선 (제품 재설계)**:
+1. 제품 구조 재설계 구현 — 플랜 승인 후 실행 (박안도+유아이, 8h)
 
 **Phase B: 핵심 개선 (잔여)**:
 1. 공통 컴포넌트 추출 — Pagination, Table (유아이, 6h) ← EmptyState/Skeleton 완료
@@ -410,9 +418,9 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | Phase A 완료, Phase B 잔여 조율 중 |
-| **Backend** | 박안도 | API, DB, 서버 로직 | Rate Limit + N+1 최적화 + Users API 완료 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | tiptap 에디터 3모듈 적용 완료 ✅ |
+| **PM** | 박서연 | 요구사항, 일정 관리 | 제품 재설계 플랜 수립 완료, 구현 대기 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | 제품 재설계 구현 대기 (entity/DTO/migration) |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | tiptap 핫픽스 완료 ✅ → 제품 설정 UI 재설계 대기 |
 | **Security** | Chloe O'Brian | 보안, 암호화 | Helmet + FilesController RolesGuard 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
 | **QA** | 나검수 | 테스트, 품질 보증 | alpha.8 검수 완료 (FE 95/100, BE 96.7%) ✅ |

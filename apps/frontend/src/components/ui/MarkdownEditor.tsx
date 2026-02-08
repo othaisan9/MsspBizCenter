@@ -22,11 +22,12 @@ export const MarkdownEditor = ({
   placeholder = 'Write something...',
   label,
   error,
-  minHeight = '200px',
+  minHeight = '120px',
 }: MarkdownEditorProps) => {
   const editorId = label?.toLowerCase().replace(/\s+/g, '-');
 
   const editor = useEditor({
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: {
@@ -49,7 +50,7 @@ export const MarkdownEditor = ({
     },
     editorProps: {
       attributes: {
-        class: 'p-4 prose prose-sm max-w-none focus:outline-none',
+        class: 'p-3 prose prose-sm max-w-none focus:outline-none',
       },
     },
   });

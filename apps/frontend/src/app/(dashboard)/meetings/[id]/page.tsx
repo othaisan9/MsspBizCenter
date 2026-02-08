@@ -147,7 +147,7 @@ export default function MeetingDetailPage() {
 
   if (error || !meeting) {
     return (
-      <div className="space-y-6 max-w-3xl mx-auto">
+      <div className="space-y-6 max-w-5xl mx-auto">
         <div className="bg-red-50 border-2 border-red-700 text-red-800 px-4 py-3 rounded-md shadow-brutal-sm">
           {error || '회의록을 찾을 수 없습니다.'}
         </div>
