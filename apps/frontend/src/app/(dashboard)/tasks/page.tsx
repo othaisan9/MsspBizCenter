@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { tasksApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -89,11 +90,7 @@ export default function TasksPage() {
     { value: 'low', label: '낮음' },
   ];
 
-  useEffect(() => {
-    fetchTasks();
-  }, [filters]);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -113,11 +110,17 @@ export default function TasksPage() {
       setTasks(response.data);
       setMeta(response.meta);
     } catch (err: any) {
-      setError(err.message || '업무 목록을 불러오는 데 실패했습니다.');
+      const message = err.message || '업무 목록을 불러오는 데 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.year, filters.weekNumber, filters.page, filters.limit, filters.status, filters.priority, filters.search]);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const handleFilterChange = (key: string, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value, page: 1 }));

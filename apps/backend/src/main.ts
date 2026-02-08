@@ -1,16 +1,24 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Helmet 보안 헤더
+  app.use(helmet());
 
   // CORS 설정 (개발 환경에서는 모든 origin 허용)
   app.enableCors({
     origin: process.env.NODE_ENV === 'development' ? true : (process.env.CORS_ORIGIN || 'http://localhost:3001'),
     credentials: true,
   });
+
+  // 글로벌 Exception Filter (프로덕션 스택 트레이스 차단)
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 글로벌 ValidationPipe 설정
   app.useGlobalPipes(
@@ -36,7 +44,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle('MsspBizCenter API')
       .setDescription('MSSP 비즈니스 센터 Backend API 문서')
-      .setVersion('0.1.0-alpha.6')
+      .setVersion('0.1.0-alpha.7')
       .addBearerAuth()
       .addTag('auth', '인증 및 권한')
       .addTag('tasks', '주차별 업무 일지')

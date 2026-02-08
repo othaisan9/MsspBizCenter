@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { meetingsApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -87,10 +88,11 @@ export default function MeetingsPage() {
       setMeta(result.meta || {});
     } catch (error) {
       console.error('Failed to load meetings', error);
+      toast.error('회의록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters.page, filters.limit, filters.meetingType, filters.status, filters.startDate, filters.endDate, filters.search]);
 
   useEffect(() => {
     loadMeetings();

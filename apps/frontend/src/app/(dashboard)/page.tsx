@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { toast } from 'sonner';
 import { useAuth } from '@/lib/auth-context';
 import { statsApi, contractsApi } from '@/lib/api';
 import { Card } from '@/components/ui/Card';
@@ -53,6 +54,7 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Failed to load dashboard stats:', error);
+      toast.error('대시보드 통계를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -69,13 +71,15 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error('Failed to load expiring contracts:', error);
+      toast.error('만료 예정 계약을 불러오는데 실패했습니다.');
     }
   }, []);
 
   useEffect(() => {
     loadDashboardStats();
     loadExpiringContracts();
-  }, [loadDashboardStats, loadExpiringContracts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const currentWeek = getWeekNumber();
   const currentYear = new Date().getFullYear();

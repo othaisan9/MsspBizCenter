@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { contractsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { formatDate, getStatusColor, getStatusLabel, cn } from '@/lib/utils';
@@ -87,7 +88,9 @@ export default function ContractsPage() {
       setTotal(result.total || 0);
       setTotalPages(result.totalPages || 1);
     } catch (err: any) {
-      setError(err.message || '계약 목록을 불러오는데 실패했습니다.');
+      const message = err.message || '계약 목록을 불러오는데 실패했습니다.';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -99,6 +102,7 @@ export default function ContractsPage() {
       setExpiring(result || []);
     } catch (err) {
       console.error('Failed to fetch expiring contracts:', err);
+      toast.error('만료 예정 계약을 불러오는데 실패했습니다.');
     }
   }, []);
 
@@ -108,6 +112,7 @@ export default function ContractsPage() {
       setDashboardStats(result);
     } catch (err) {
       console.error('Failed to fetch dashboard stats:', err);
+      toast.error('계약 통계를 불러오는데 실패했습니다.');
     }
   }, []);
 

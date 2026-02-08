@@ -20,7 +20,7 @@ import { File } from './entities/file.entity';
           'image/png',
           'image/gif',
           'image/webp',
-          'image/svg+xml',
+          // 'image/svg+xml', // SVG 차단 (XSS 위험)
           // PDF
           'application/pdf',
           // Excel

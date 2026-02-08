@@ -15,8 +15,11 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
 import { FilesService } from './files.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '@msspbiz/shared';
 import { UploadFileDto } from './dto/upload-file.dto';
 import { FileResponseDto } from './dto/file-response.dto';
 import type { Response } from 'express';
@@ -155,7 +158,9 @@ export class FilesController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: '파일 삭제' })
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: '파일 삭제 (OWNER, ADMIN만 가능)' })
   @ApiResponse({ status: 204, description: '파일 삭제 성공' })
   async deleteFile(
     @Param('id') id: string,

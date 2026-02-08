@@ -64,9 +64,11 @@ export function WeeklyTaskChart() {
         <Tooltip
           contentStyle={{
             backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '0.5rem',
+            border: '2px solid #1f2937',
+            borderRadius: '0.375rem',
             fontSize: '0.875rem',
+            boxShadow: '3px 3px 0px 0px #1f2937',
+            padding: '8px 12px',
           }}
         />
         <Legend

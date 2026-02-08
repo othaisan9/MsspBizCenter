@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { statsApi } from '@/lib/api';
 
 interface PriorityData {
@@ -11,17 +11,28 @@ interface PriorityData {
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  urgent: '#ef4444',
-  high: '#f97316',
-  medium: '#f59e0b',
-  low: '#10b981',
+  critical: '#dc2626',
+  urgent: '#dc2626',
+  high: '#ea580c',
+  medium: '#d97706',
+  low: '#059669',
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
+  critical: '긴급',
   urgent: '긴급',
   high: '높음',
   medium: '보통',
   low: '낮음',
+};
+
+const BRUTAL_TOOLTIP = {
+  backgroundColor: 'white',
+  border: '2px solid #1f2937',
+  borderRadius: '0.375rem',
+  fontSize: '0.875rem',
+  boxShadow: '3px 3px 0px 0px #1f2937',
+  padding: '8px 12px',
 };
 
 export function TaskPriorityChart() {
@@ -66,42 +77,33 @@ export function TaskPriorityChart() {
     );
   }
 
-  const renderLabel = (entry: any) => {
-    const percent = ((entry.value / data.reduce((sum, item) => sum + item.value, 0)) * 100).toFixed(0);
-    return `${percent}%`;
-  };
-
   return (
     <ResponsiveContainer width="100%" height={320}>
-      <PieChart>
-        <Pie
-          data={data}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={renderLabel}
-          outerRadius={100}
-          fill="#8884d8"
-          dataKey="value"
-        >
-          {data.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.name] || '#9ca3af'} />
-          ))}
-        </Pie>
+      <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 60, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+        <XAxis
+          type="number"
+          tick={{ fontSize: 12 }}
+          stroke="#9ca3af"
+          allowDecimals={false}
+        />
+        <YAxis
+          type="category"
+          dataKey="label"
+          tick={{ fontSize: 13, fontWeight: 500 }}
+          stroke="#9ca3af"
+          width={50}
+        />
         <Tooltip
-          contentStyle={{
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
-          }}
-          formatter={(value: number, name: string, props: any) => [value, props.payload.label]}
+          contentStyle={BRUTAL_TOOLTIP}
+          formatter={(value: number) => [`${value}건`, '업무 수']}
         />
-        <Legend
-          wrapperStyle={{ fontSize: '0.875rem' }}
-          formatter={(value: string, entry: any) => entry.payload.label}
-        />
-      </PieChart>
+        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={28} strokeWidth={2} stroke="#1f2937">
+          {data.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.name] || '#6b7280'} />
+          ))}
+        </Bar>
+      </BarChart>
     </ResponsiveContainer>
   );
 }

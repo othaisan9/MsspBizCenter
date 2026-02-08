@@ -116,14 +116,18 @@ export class StatsService {
       .addSelect('task.weekNumber', 'week')
       .addSelect('COUNT(*)', 'total')
       .addSelect(
-        `COUNT(CASE WHEN task.status = '${TaskStatus.COMPLETED}' THEN 1 END)`,
+        `COUNT(CASE WHEN task.status = :completedStatus THEN 1 END)`,
         'completed',
       )
       .addSelect(
-        `COUNT(CASE WHEN task.status = '${TaskStatus.IN_PROGRESS}' THEN 1 END)`,
+        `COUNT(CASE WHEN task.status = :inProgressStatus THEN 1 END)`,
         'inProgress',
       )
       .where('task.tenantId = :tenantId', { tenantId })
+      .setParameters({
+        completedStatus: TaskStatus.COMPLETED,
+        inProgressStatus: TaskStatus.IN_PROGRESS,
+      })
       .groupBy('task.year')
       .addGroupBy('task.weekNumber')
       .orderBy('task.year', 'DESC')
