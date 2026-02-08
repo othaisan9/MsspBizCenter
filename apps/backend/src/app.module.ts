@@ -7,6 +7,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { MeetingsModule } from './modules/meetings/meetings.module';
 import { ContractsModule } from './modules/contracts/contracts.module';
+import { ProductsModule } from './modules/products/products.module';
+import { UsersModule } from './modules/users/users.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { FilesModule } from './modules/files/files.module';
@@ -36,6 +38,8 @@ import { FilesModule } from './modules/files/files.module';
     TasksModule,
     MeetingsModule,
     ContractsModule,
+    ProductsModule,
+    UsersModule,
     AuditModule,
     StatsModule,
     FilesModule,

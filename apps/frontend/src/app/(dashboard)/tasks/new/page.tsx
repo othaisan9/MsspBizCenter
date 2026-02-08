@@ -1,19 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { tasksApi } from '@/lib/api';
+import { tasksApi, usersApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { getWeekNumber } from '@/lib/utils';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
 
 export default function NewTaskPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
@@ -28,6 +38,7 @@ export default function NewTaskPage() {
     dueDate: '',
     estimatedHours: '',
     tags: '',
+    assigneeId: '',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -47,6 +58,38 @@ export default function NewTaskPage() {
     { value: 'low', label: '낮음' },
   ];
 
+  const tagPresets = [
+    '보안관제',
+    '취약점진단',
+    '모의해킹',
+    '컨설팅',
+    '인증심사',
+    '교육',
+    '보고서',
+    '영업',
+    '미팅',
+    '기술지원',
+    '유지보수',
+    '개발',
+  ];
+
+  const fetchUsers = useCallback(async () => {
+    try {
+      setUsersLoading(true);
+      const data = await usersApi.list();
+      setUsers(data.items || data || []);
+    } catch (error) {
+      console.error('Failed to fetch users:', error);
+      setUsers([]);
+    } finally {
+      setUsersLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
   const handleChange = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -56,6 +99,29 @@ export default function NewTaskPage() {
         return next;
       });
     }
+  };
+
+  const handleTagPresetToggle = (preset: string) => {
+    const currentTags = formData.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+
+    if (currentTags.includes(preset)) {
+      const newTags = currentTags.filter((t) => t !== preset);
+      handleChange('tags', newTags.join(', '));
+    } else {
+      const newTags = [...currentTags, preset];
+      handleChange('tags', newTags.join(', '));
+    }
+  };
+
+  const isPresetSelected = (preset: string) => {
+    const currentTags = formData.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter((t) => t.length > 0);
+    return currentTags.includes(preset);
   };
 
   const validate = () => {
@@ -119,6 +185,10 @@ export default function NewTaskPage() {
           .filter((t) => t.length > 0);
       }
 
+      if (formData.assigneeId) {
+        payload.assigneeId = formData.assigneeId;
+      }
+
       await tasksApi.create(payload);
       toast.success('업무가 생성되었습니다.');
       router.push('/tasks');
@@ -132,8 +202,19 @@ export default function NewTaskPage() {
     }
   };
 
+  const userOptions = users.map((user) => ({
+    value: user.id,
+    label: `${user.name} (${user.role})`,
+  }));
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumb
+        items={[
+          { label: '업무 관리', href: '/tasks' },
+          { label: '새 업무' },
+        ]}
+      />
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">새 업무 생성</h1>
         <p className="mt-1 text-sm text-gray-600">
@@ -232,12 +313,43 @@ export default function NewTaskPage() {
               />
             </div>
 
-            <Input
-              label="태그"
-              placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 개발, 긴급)"
-              value={formData.tags}
-              onChange={(e) => handleChange('tags', e.target.value)}
+            <Select
+              label="담당자"
+              options={[
+                { value: '', label: '담당자 선택 (선택사항)' },
+                ...userOptions,
+              ]}
+              value={formData.assigneeId}
+              onChange={(e) => handleChange('assigneeId', e.target.value)}
+              disabled={usersLoading}
             />
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                태그
+              </label>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {tagPresets.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => handleTagPresetToggle(preset)}
+                    className={`px-3 py-1 rounded-full text-sm border cursor-pointer transition-colors ${
+                      isPresetSelected(preset)
+                        ? 'bg-primary-100 text-primary-700 border-primary-300'
+                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+              <Input
+                placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 개발, 긴급)"
+                value={formData.tags}
+                onChange={(e) => handleChange('tags', e.target.value)}
+              />
+            </div>
 
             <div className="flex gap-3 pt-4">
               <Button

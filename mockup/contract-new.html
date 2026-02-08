@@ -203,6 +203,55 @@
                 </div>
             </div>
 
+            <!-- 공급 제품 및 구성 섹션 -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4">공급 제품 및 구성</h2>
+                <p class="text-sm text-gray-600 mb-4">계약에 포함되는 제품과 구성(옵션)을 선택하세요.</p>
+
+                <!-- Product items container -->
+                <div id="productItems" class="space-y-4">
+                    <!-- Default first item -->
+                    <div class="product-item bg-gray-50 border border-gray-300 rounded-lg p-4 relative">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-gray-800">항목 1</h3>
+                            <button type="button" class="remove-btn text-red-500 hover:text-red-700 text-xl font-bold hidden" onclick="removeProductItem(this)">✕</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">제품</label>
+                                <select class="product-select w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" onchange="updateOptions(this)">
+                                    <option value="">선택하세요</option>
+                                    <option value="StealthMole">StealthMole</option>
+                                    <option value="ThreatRecon">ThreatRecon</option>
+                                    <option value="TR Report">TR Report</option>
+                                    <option value="deep.insight">deep.insight</option>
+                                    <option value="Consulting">Consulting</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">구성</label>
+                                <select class="option-select w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" disabled>
+                                    <option value="">제품을 먼저 선택하세요</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">수량</label>
+                                <input type="number" class="quantity-input w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" min="1" value="1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">비고</label>
+                                <input type="text" class="note-input w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="추가 정보 입력">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add button -->
+                <button type="button" onclick="addProductItem()" class="mt-4 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 font-medium text-sm">+ 제품 추가</button>
+            </div>
+
             <!-- 재무 정보 섹션 -->
             <div class="border-b pb-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">재무 정보</h2>
@@ -692,6 +741,150 @@
         function formatNumber(value) {
             return value.toLocaleString('ko-KR', { maximumFractionDigits: 0 });
         }
+
+        // ========== Product Items Management ==========
+
+        // Product options data
+        const productOptionsData = {
+            'StealthMole': ['DT (Dark Tracer)', 'TT (Threat Tracer)', 'CDS (Credential Detection Service)'],
+            'ThreatRecon': ['Platform (플랫폼)', 'API (API 연동)', 'RFI (Request for Intelligence)'],
+            'TR Report': ['Monthly (월간 리포트)', 'Ad-hoc (건별 리포트)', 'Custom (맞춤 리포트)'],
+            'deep.insight': ['Basic (기본 분석)', 'Advanced (심층 분석)', 'Premium (프리미엄 분석)'],
+            'Consulting': ['Assessment (보안 평가)', 'Advisory (자문)', 'Training (교육)']
+        };
+
+        let productItemCounter = 1;
+
+        // Add a new product item
+        function addProductItem() {
+            productItemCounter++;
+            const container = document.getElementById('productItems');
+
+            // Create new product item
+            const newItem = document.createElement('div');
+            newItem.className = 'product-item bg-gray-50 border border-gray-300 rounded-lg p-4 relative';
+            newItem.innerHTML = `
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-bold text-gray-800">항목 ${productItemCounter}</h3>
+                    <button type="button" class="remove-btn text-red-500 hover:text-red-700 text-xl font-bold" onclick="removeProductItem(this)">✕</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">제품</label>
+                        <select class="product-select w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" onchange="updateOptions(this)">
+                            <option value="">선택하세요</option>
+                            <option value="StealthMole">StealthMole</option>
+                            <option value="ThreatRecon">ThreatRecon</option>
+                            <option value="TR Report">TR Report</option>
+                            <option value="deep.insight">deep.insight</option>
+                            <option value="Consulting">Consulting</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">구성</label>
+                        <select class="option-select w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" disabled>
+                            <option value="">제품을 먼저 선택하세요</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">수량</label>
+                        <input type="number" class="quantity-input w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" min="1" value="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">비고</label>
+                        <input type="text" class="note-input w-full border border-gray-300 rounded px-4 py-2 focus:ring-2 focus:ring-amber-500 focus:border-transparent" placeholder="추가 정보 입력">
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(newItem);
+            updateRemoveButtons();
+        }
+
+        // Remove a product item
+        function removeProductItem(button) {
+            const items = document.querySelectorAll('.product-item');
+
+            // Keep at least 1 item
+            if (items.length <= 1) {
+                alert('최소 1개의 제품 항목이 필요합니다.');
+                return;
+            }
+
+            // Remove the item
+            button.closest('.product-item').remove();
+
+            // Renumber remaining items
+            renumberItems();
+            updateRemoveButtons();
+        }
+
+        // Update options dropdown when product is selected
+        function updateOptions(selectElement) {
+            const productValue = selectElement.value;
+            const productItem = selectElement.closest('.product-item');
+            const optionSelect = productItem.querySelector('.option-select');
+
+            // Clear existing options
+            optionSelect.innerHTML = '';
+
+            if (productValue && productOptionsData[productValue]) {
+                // Enable and populate options
+                optionSelect.disabled = false;
+
+                // Add default option
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = '선택하세요';
+                optionSelect.appendChild(defaultOption);
+
+                // Add product-specific options
+                productOptionsData[productValue].forEach(option => {
+                    const optElement = document.createElement('option');
+                    optElement.value = option;
+                    optElement.textContent = option;
+                    optionSelect.appendChild(optElement);
+                });
+            } else {
+                // Disable and show placeholder
+                optionSelect.disabled = true;
+                const placeholderOption = document.createElement('option');
+                placeholderOption.value = '';
+                placeholderOption.textContent = '제품을 먼저 선택하세요';
+                optionSelect.appendChild(placeholderOption);
+            }
+        }
+
+        // Renumber all items after deletion
+        function renumberItems() {
+            const items = document.querySelectorAll('.product-item');
+            items.forEach((item, index) => {
+                const heading = item.querySelector('h3');
+                heading.textContent = `항목 ${index + 1}`;
+            });
+            productItemCounter = items.length;
+        }
+
+        // Show/hide remove buttons based on item count
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.product-item');
+            const removeButtons = document.querySelectorAll('.remove-btn');
+
+            if (items.length === 1) {
+                // Hide remove button when only 1 item
+                removeButtons.forEach(btn => btn.classList.add('hidden'));
+            } else {
+                // Show all remove buttons when 2+ items
+                removeButtons.forEach(btn => btn.classList.remove('hidden'));
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRemoveButtons();
+        });
     </script>
 </body>
 </html>

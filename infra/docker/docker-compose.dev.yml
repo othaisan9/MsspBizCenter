@@ -94,8 +94,6 @@ services:
       - /app/node_modules
       - /app/apps/backend/node_modules
       - /app/packages/shared/node_modules
-      # dist는 컨테이너 것 사용
-      - /app/apps/backend/dist
       # 업로드 파일 영속화
       - ../../uploads:/app/uploads
     networks:
@@ -117,7 +115,7 @@ services:
       - "3001:3001"
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4001/api/v1}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4001}
       # Docker에서 파일 변경 감지 (Next.js)
       WATCHPACK_POLLING: "true"
       # 핫리로드 설정

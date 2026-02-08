@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001';
+const API_BASE =
+  typeof window !== 'undefined'
+    ? `${window.location.protocol}//${window.location.hostname}:4001`
+    : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001');
 const API_PREFIX = '/api/v1';
 
 class ApiError extends Error {
@@ -214,7 +217,7 @@ export const auditApi = {
     return request<any>(`/audit${query}`);
   },
   byEntity: (entityType: string, entityId: string) =>
-    request<any>(`/audit/${entityType}/${entityId}`),
+    request<any>(`/audit/entity/${entityType}/${entityId}`),
 };
 
 // Stats
@@ -283,6 +286,43 @@ export const filesApi = {
   },
 
   delete: (id: string) => request<any>(`/files/${id}`, { method: 'DELETE' }),
+};
+
+// Products
+export const productsApi = {
+  list: () => request<any>('/products'),
+  get: (id: string) => request<any>(`/products/${id}`),
+  create: (data: any) =>
+    request<any>('/products', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: any) =>
+    request<any>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    request<any>(`/products/${id}`, { method: 'DELETE' }),
+  addOption: (productId: string, data: any) =>
+    request<any>(`/products/${productId}/options`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateOption: (productId: string, optionId: string, data: any) =>
+    request<any>(`/products/${productId}/options/${optionId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deleteOption: (productId: string, optionId: string) =>
+    request<any>(`/products/${productId}/options/${optionId}`, { method: 'DELETE' }),
+};
+
+// Users
+export const usersApi = {
+  list: (params?: Record<string, any>) => {
+    const query = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request<any>(`/users${query}`);
+  },
+  get: (id: string) => request<any>(`/users/${id}`),
+  update: (id: string, data: any) =>
+    request<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    request<any>(`/users/${id}`, { method: 'DELETE' }),
 };
 
 export { ApiError };

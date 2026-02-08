@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { getStatusColor, getStatusLabel, formatDate } from '@/lib/utils';
 
+type ViewMode = 'card' | 'table';
+
 const MEETING_TYPE_OPTIONS = [
   { value: '', label: '전체' },
   { value: 'regular', label: '정기 회의' },
@@ -40,6 +42,7 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState<any>({});
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
 
   const [filters, setFilters] = useState({
     meetingType: '',
@@ -50,6 +53,18 @@ export default function MeetingsPage() {
     page: 1,
     limit: 12,
   });
+
+  useEffect(() => {
+    const savedView = localStorage.getItem('msspbiz_meetings_view') as ViewMode;
+    if (savedView === 'card' || savedView === 'table') {
+      setViewMode(savedView);
+    }
+  }, []);
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('msspbiz_meetings_view', mode);
+  };
 
   const loadMeetings = useCallback(async () => {
     setLoading(true);
@@ -104,9 +119,39 @@ export default function MeetingsPage() {
             전체 {meta.total || 0}개
           </p>
         </div>
-        <Button onClick={() => router.push('/meetings/new')}>
-          + 새 회의록
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => handleViewModeChange('card')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                viewMode === 'card'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="카드 뷰"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={() => handleViewModeChange('table')}
+              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-white text-gray-900 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+              title="테이블 뷰"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
+          <Button onClick={() => router.push('/meetings/new')}>
+            + 새 회의록
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -160,56 +205,121 @@ export default function MeetingsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {meetings.map((meeting) => (
-              <Card
-                key={meeting.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => router.push(`/meetings/${meeting.id}`)}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
-                      {meeting.title}
-                    </h3>
-                    <Badge color={getStatusColor(meeting.status)}>
-                      {getStatusLabel(meeting.status)}
-                    </Badge>
-                  </div>
-
-                  <div className="space-y-1 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      <span>{formatDate(meeting.meetingDate)}</span>
+          {viewMode === 'card' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {meetings.map((meeting) => (
+                <Card
+                  key={meeting.id}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => router.push(`/meetings/${meeting.id}`)}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="text-base font-semibold text-gray-900 line-clamp-2">
+                        {meeting.title}
+                      </h3>
+                      <Badge color={getStatusColor(meeting.status)}>
+                        {getStatusLabel(meeting.status)}
+                      </Badge>
                     </div>
 
-                    {meeting.location && (
+                    <div className="space-y-1 text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span>{meeting.location}</span>
+                        <span>{formatDate(meeting.meetingDate)}</span>
                       </div>
-                    )}
 
-                    <div className="flex items-center justify-between">
-                      <Badge color="bg-blue-100 text-blue-800">
-                        {getMeetingTypeLabel(meeting.meetingType)}
-                      </Badge>
-                      {meeting.attendees && meeting.attendees.length > 0 && (
-                        <span className="text-xs text-gray-500">
-                          참석자 {meeting.attendees.length}명
-                        </span>
+                      {meeting.location && (
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                          <span>{meeting.location}</span>
+                        </div>
                       )}
+
+                      <div className="flex items-center justify-between">
+                        <Badge color="bg-blue-100 text-blue-800">
+                          {getMeetingTypeLabel(meeting.meetingType)}
+                        </Badge>
+                        {meeting.attendees && meeting.attendees.length > 0 && (
+                          <span className="text-xs text-gray-500">
+                            참석자 {meeting.attendees.length}명
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        제목
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        유형
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        날짜
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        장소
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        참석자
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        상태
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {meetings.map((meeting) => (
+                      <tr
+                        key={meeting.id}
+                        onClick={() => router.push(`/meetings/${meeting.id}`)}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{meeting.title}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge color="bg-blue-100 text-blue-800">
+                            {getMeetingTypeLabel(meeting.meetingType)}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{formatDate(meeting.meetingDate)}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{meeting.location || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {meeting.attendees && meeting.attendees.length > 0 ? `${meeting.attendees.length}명` : '-'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <Badge color={getStatusColor(meeting.status)}>
+                            {getStatusLabel(meeting.status)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          )}
 
           {meta.totalPages > 1 && (
             <div className="flex items-center justify-center gap-2">

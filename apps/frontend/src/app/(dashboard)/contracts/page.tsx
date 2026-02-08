@@ -32,6 +32,16 @@ interface ExpiringContract {
   daysUntilExpiry: number;
 }
 
+interface DashboardStats {
+  total: number;
+  byStatus: Array<{ status: string; count: number }>;
+  byType: Array<{ contractType: string; count: number }>;
+  expiring: {
+    within30Days: number;
+    within7Days: number;
+  };
+}
+
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   service: '서비스 계약',
   license: '라이선스',
@@ -46,6 +56,7 @@ export default function ContractsPage() {
   const { user } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [expiring, setExpiring] = useState<ExpiringContract[]>([]);
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -91,6 +102,15 @@ export default function ContractsPage() {
     }
   }, []);
 
+  const fetchDashboard = useCallback(async () => {
+    try {
+      const result = await contractsApi.dashboard();
+      setDashboardStats(result);
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats:', err);
+    }
+  }, []);
+
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
@@ -98,6 +118,10 @@ export default function ContractsPage() {
   useEffect(() => {
     fetchExpiring();
   }, [fetchExpiring]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -118,6 +142,19 @@ export default function ContractsPage() {
     router.push(`/contracts/${id}`);
   };
 
+  const getActiveCount = () => {
+    if (!dashboardStats) return 0;
+    const activeItem = dashboardStats.byStatus.find((item) => item.status === 'active');
+    return activeItem ? activeItem.count : 0;
+  };
+
+  const getExpiredTerminatedCount = () => {
+    if (!dashboardStats) return 0;
+    const expired = dashboardStats.byStatus.find((item) => item.status === 'expired');
+    const terminated = dashboardStats.byStatus.find((item) => item.status === 'terminated');
+    return (expired?.count || 0) + (terminated?.count || 0);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -129,6 +166,124 @@ export default function ContractsPage() {
           새 계약
         </Button>
       </div>
+
+      {dashboardStats && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card
+            className="bg-blue-50 border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => {
+              setStatusFilter('');
+              setPage(1);
+            }}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-blue-100 rounded-lg">
+                <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-blue-600">전체 계약</p>
+                <p className="text-2xl font-bold text-blue-900">{dashboardStats.total}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="bg-green-50 border-green-200 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => {
+              setStatusFilter('active');
+              setPage(1);
+            }}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-green-100 rounded-lg">
+                <svg className="w-8 h-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-green-600">활성 계약</p>
+                <p className="text-2xl font-bold text-green-900">{getActiveCount()}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className={cn(
+              'border-2 cursor-pointer hover:shadow-md transition-shadow',
+              dashboardStats.expiring.within7Days > 0
+                ? 'bg-red-50 border-red-200'
+                : 'bg-yellow-50 border-yellow-200'
+            )}
+            onClick={() => {
+              setStatusFilter('');
+              setPage(1);
+            }}
+          >
+            <div className="flex items-center space-x-4">
+              <div className={cn(
+                'p-3 rounded-lg',
+                dashboardStats.expiring.within7Days > 0
+                  ? 'bg-red-100'
+                  : 'bg-yellow-100'
+              )}>
+                <svg
+                  className={cn(
+                    'w-8 h-8',
+                    dashboardStats.expiring.within7Days > 0
+                      ? 'text-red-600'
+                      : 'text-yellow-600'
+                  )}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className={cn(
+                  'text-sm font-medium',
+                  dashboardStats.expiring.within7Days > 0
+                    ? 'text-red-600'
+                    : 'text-yellow-600'
+                )}>
+                  만료 임박
+                </p>
+                <p className={cn(
+                  'text-2xl font-bold',
+                  dashboardStats.expiring.within7Days > 0
+                    ? 'text-red-900'
+                    : 'text-yellow-900'
+                )}>
+                  {dashboardStats.expiring.within30Days}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card
+            className="bg-gray-50 border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => {
+              setStatusFilter('');
+              setPage(1);
+            }}
+          >
+            <div className="flex items-center space-x-4">
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <svg className="w-8 h-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-gray-600">만료/해지</p>
+                <p className="text-2xl font-bold text-gray-900">{getExpiredTerminatedCount()}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {expiring.length > 0 && (
         <Card className="bg-yellow-50 border-yellow-200">
@@ -235,44 +390,81 @@ export default function ContractsPage() {
                         계약 기간
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        남은 기간
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         상태
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {contracts.map((contract) => (
-                      <tr
-                        key={contract.id}
-                        onClick={() => handleRowClick(contract.id)}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{contract.title}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">{contract.contractNumber || '-'}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">
-                            {CONTRACT_TYPE_LABELS[contract.contractType] || contract.contractType}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">{contract.partyB}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-600">
-                            {formatDate(contract.startDate)}
-                            {contract.endDate && ` ~ ${formatDate(contract.endDate)}`}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge color={getStatusColor(contract.status)}>
-                            {getStatusLabel(contract.status)}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
+                    {contracts.map((contract) => {
+                      const getRemainingDays = () => {
+                        if (!contract.endDate) return null;
+                        if (contract.status === 'expired' || contract.status === 'terminated') return null;
+
+                        const now = new Date();
+                        const endDate = new Date(contract.endDate);
+                        const remainingDays = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+                        return remainingDays;
+                      };
+
+                      const remainingDays = getRemainingDays();
+
+                      const getRemainingDaysBadge = () => {
+                        if (remainingDays === null) return <span className="text-sm text-gray-400">-</span>;
+
+                        if (remainingDays < 0) {
+                          return <Badge color="red">만료</Badge>;
+                        } else if (remainingDays <= 7) {
+                          return <Badge color="red">D-{remainingDays}</Badge>;
+                        } else if (remainingDays <= 30) {
+                          return <Badge color="orange">D-{remainingDays}</Badge>;
+                        } else if (remainingDays <= 90) {
+                          return <Badge color="yellow">D-{remainingDays}</Badge>;
+                        } else {
+                          return <Badge color="green">D-{remainingDays}</Badge>;
+                        }
+                      };
+
+                      return (
+                        <tr
+                          key={contract.id}
+                          onClick={() => handleRowClick(contract.id)}
+                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{contract.title}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">{contract.contractNumber || '-'}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">
+                              {CONTRACT_TYPE_LABELS[contract.contractType] || contract.contractType}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">{contract.partyB}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">
+                              {formatDate(contract.startDate)}
+                              {contract.endDate && ` ~ ${formatDate(contract.endDate)}`}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {getRemainingDaysBadge()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge color={getStatusColor(contract.status)}>
+                              {getStatusLabel(contract.status)}
+                            </Badge>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

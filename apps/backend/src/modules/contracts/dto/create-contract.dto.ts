@@ -131,4 +131,81 @@ export class CreateContractDto {
   @IsOptional()
   @IsUUID()
   parentContractId?: string;
+
+  // 결제 정보
+  @ApiPropertyOptional({ description: '결제 주기', example: 'monthly' })
+  @IsOptional()
+  @IsString()
+  paymentCycle?: string;
+
+  @ApiPropertyOptional({ description: 'VAT 포함 여부', example: true })
+  @IsOptional()
+  @IsBoolean()
+  vatIncluded?: boolean;
+
+  // 재무 정보 (매입)
+  @ApiPropertyOptional({ description: '매입 단가 (평문, 자동 암호화됨)', example: 40000000 })
+  @IsOptional()
+  @IsNumber()
+  purchasePrice?: number;
+
+  @ApiPropertyOptional({ description: '매입 커미션율 (%)', example: 10.5 })
+  @IsOptional()
+  @IsNumber()
+  purchaseCommissionRate?: number;
+
+  // 재무 정보 (판매)
+  @ApiPropertyOptional({ description: '판매 단가 (평문, 자동 암호화됨)', example: 50000000 })
+  @IsOptional()
+  @IsNumber()
+  sellingPrice?: number;
+
+  @ApiPropertyOptional({ description: '파트너 여부', example: false })
+  @IsOptional()
+  @IsBoolean()
+  hasPartner?: boolean;
+
+  @ApiPropertyOptional({ description: '파트너사명', example: '파트너사 A' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  partnerName?: string;
+
+  @ApiPropertyOptional({ description: '파트너 커미션 방식', example: 'percentage' })
+  @IsOptional()
+  @IsString()
+  commissionType?: string;
+
+  @ApiPropertyOptional({ description: '파트너 커미션 (금액 또는 %)', example: 5000000 })
+  @IsOptional()
+  @IsNumber()
+  partnerCommission?: number;
+
+  // 담당자
+  @ApiPropertyOptional({ description: '내부 담당자 ID' })
+  @IsOptional()
+  @IsUUID()
+  internalManagerId?: string;
+
+  // 메모
+  @ApiPropertyOptional({ description: '메모' })
+  @IsOptional()
+  @IsString()
+  memo?: string;
+
+  // 알림 설정
+  @ApiPropertyOptional({ description: '30일 전 알림', example: true })
+  @IsOptional()
+  @IsBoolean()
+  notifyBefore30Days?: boolean;
+
+  @ApiPropertyOptional({ description: '7일 전 알림', example: true })
+  @IsOptional()
+  @IsBoolean()
+  notifyBefore7Days?: boolean;
+
+  @ApiPropertyOptional({ description: '만료일 알림', example: false })
+  @IsOptional()
+  @IsBoolean()
+  notifyOnExpiry?: boolean;
 }

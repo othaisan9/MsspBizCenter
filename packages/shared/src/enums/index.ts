@@ -74,3 +74,29 @@ export enum AuditAction {
   LOGIN = 'login',
   LOGOUT = 'logout',
 }
+
+// Product 관련
+export enum ProductType {
+  PLATFORM = 'platform',
+  REPORT = 'report',
+  CONSULTING = 'consulting',
+  OTHER = 'other',
+}
+
+export enum ProductStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
+// 결제 관련
+export enum PaymentCycle {
+  LUMP_SUM = 'lump_sum',
+  MONTHLY = 'monthly',
+  QUARTERLY = 'quarterly',
+  ANNUAL = 'annual',
+}
+
+export enum CommissionType {
+  PERCENTAGE = 'percentage',
+  FIXED = 'fixed',
+}

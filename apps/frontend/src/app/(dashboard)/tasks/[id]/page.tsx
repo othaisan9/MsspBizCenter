@@ -10,6 +10,7 @@ import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import {
   getStatusColor,
   getStatusLabel,
@@ -226,6 +227,12 @@ export default function TaskDetailPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Breadcrumb
+        items={[
+          { label: '업무 관리', href: '/tasks' },
+          { label: '업무 상세' },
+        ]}
+      />
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>

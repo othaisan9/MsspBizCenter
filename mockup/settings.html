@@ -335,75 +335,269 @@
                 <p class="text-sm text-gray-600">계약 및 영업 관련 기준 정보를 관리합니다.</p>
             </div>
 
-            <!-- Row 1: 제품 관련 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <!-- Product/Service Management (판매 제품) -->
-                <div class="bg-white rounded-lg shadow">
-                    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                        <h3 class="font-bold flex items-center gap-2">
-                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                            </svg>
-                            판매 제품 관리
-                        </h3>
-                        <button class="text-indigo-600 hover:underline text-sm">+ 추가</button>
-                    </div>
-                    <div class="p-4">
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                                <div>
-                                    <div class="font-medium">StealthMole</div>
-                                    <div class="text-xs text-gray-600">DarkWeb 위협 인텔리전스</div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:underline text-xs">수정</button>
-                                    <button class="text-red-600 hover:underline text-xs">삭제</button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                                <div>
-                                    <div class="font-medium">ThreatRecon</div>
-                                    <div class="text-xs text-gray-600">위협 정보 수집 플랫폼</div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:underline text-xs">수정</button>
-                                    <button class="text-red-600 hover:underline text-xs">삭제</button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                                <div>
-                                    <div class="font-medium">TR Report</div>
-                                    <div class="text-xs text-gray-600">위협 분석 리포트 서비스</div>
-                                </div>
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:underline text-xs">수정</button>
-                                    <button class="text-red-600 hover:underline text-xs">삭제</button>
+            <!-- Row 1: 판매 제품 관리 (Full Width Accordion) -->
+            <div class="bg-white rounded-lg shadow mb-6">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="font-bold flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                        판매 제품 관리
+                    </h3>
+                    <button class="text-indigo-600 hover:underline text-sm">+ 제품 추가</button>
+                </div>
+                <div class="p-4">
+                    <div class="space-y-3">
+                        <!-- Product 1: StealthMole (Pre-expanded) -->
+                        <div class="border rounded">
+                            <div class="p-3 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <button onclick="toggleProductOptions('stealthmole')" class="text-gray-500 hover:text-gray-700 transition-transform" id="toggle-stealthmole">
+                                            <svg class="w-5 h-5 transform rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <div class="font-medium">StealthMole</div>
+                                                <span class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs">3개 구성</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">DarkWeb 위협 인텔리전스</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="text-blue-600 hover:underline text-xs">수정</button>
+                                        <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                                <div>
-                                    <div class="font-medium">deep.insight</div>
-                                    <div class="text-xs text-gray-600">심층 위협 분석 서비스</div>
+                            <div id="options-stealthmole" class="border-t bg-gray-50 p-4">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">DT</span>
+                                        <span class="text-blue-500">·</span>
+                                        <span>Dark Tracer</span>
+                                        <button class="ml-1 hover:text-blue-900">×</button>
+                                    </div>
+                                    <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">TT</span>
+                                        <span class="text-blue-500">·</span>
+                                        <span>Threat Tracer</span>
+                                        <button class="ml-1 hover:text-blue-900">×</button>
+                                    </div>
+                                    <div class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">CDS</span>
+                                        <span class="text-blue-500">·</span>
+                                        <span>Credential Detection Service</span>
+                                        <button class="ml-1 hover:text-blue-900">×</button>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:underline text-xs">수정</button>
-                                    <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                <button class="text-blue-600 hover:underline text-xs">+ 옵션 추가</button>
+                            </div>
+                        </div>
+
+                        <!-- Product 2: ThreatRecon -->
+                        <div class="border rounded">
+                            <div class="p-3 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <button onclick="toggleProductOptions('threatrecon')" class="text-gray-500 hover:text-gray-700 transition-transform" id="toggle-threatrecon">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <div class="font-medium">ThreatRecon</div>
+                                                <span class="bg-purple-100 text-purple-700 px-2 py-0.5 rounded text-xs">3개 구성</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">위협 인텔리전스 플랫폼</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="text-blue-600 hover:underline text-xs">수정</button>
+                                        <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
-                                <div>
-                                    <div class="font-medium">Consulting</div>
-                                    <div class="text-xs text-gray-600">보안 컨설팅 서비스</div>
+                            <div id="options-threatrecon" class="border-t bg-gray-50 p-4 hidden">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Platform</span>
+                                        <span class="text-purple-500">·</span>
+                                        <span>플랫폼</span>
+                                        <button class="ml-1 hover:text-purple-900">×</button>
+                                    </div>
+                                    <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">API</span>
+                                        <span class="text-purple-500">·</span>
+                                        <span>API 연동</span>
+                                        <button class="ml-1 hover:text-purple-900">×</button>
+                                    </div>
+                                    <div class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">RFI</span>
+                                        <span class="text-purple-500">·</span>
+                                        <span>Request for Intelligence</span>
+                                        <button class="ml-1 hover:text-purple-900">×</button>
+                                    </div>
                                 </div>
-                                <div class="flex gap-2">
-                                    <button class="text-blue-600 hover:underline text-xs">수정</button>
-                                    <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                <button class="text-purple-600 hover:underline text-xs">+ 옵션 추가</button>
+                            </div>
+                        </div>
+
+                        <!-- Product 3: TR Report -->
+                        <div class="border rounded">
+                            <div class="p-3 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <button onclick="toggleProductOptions('trreport')" class="text-gray-500 hover:text-gray-700 transition-transform" id="toggle-trreport">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <div class="font-medium">TR Report</div>
+                                                <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs">3개 구성</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">위협 분석 리포트 서비스</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="text-blue-600 hover:underline text-xs">수정</button>
+                                        <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                    </div>
                                 </div>
+                            </div>
+                            <div id="options-trreport" class="border-t bg-gray-50 p-4 hidden">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Monthly</span>
+                                        <span class="text-red-500">·</span>
+                                        <span>월간 리포트</span>
+                                        <button class="ml-1 hover:text-red-900">×</button>
+                                    </div>
+                                    <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Ad-hoc</span>
+                                        <span class="text-red-500">·</span>
+                                        <span>건별 리포트</span>
+                                        <button class="ml-1 hover:text-red-900">×</button>
+                                    </div>
+                                    <div class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Custom</span>
+                                        <span class="text-red-500">·</span>
+                                        <span>맞춤 리포트</span>
+                                        <button class="ml-1 hover:text-red-900">×</button>
+                                    </div>
+                                </div>
+                                <button class="text-red-600 hover:underline text-xs">+ 옵션 추가</button>
+                            </div>
+                        </div>
+
+                        <!-- Product 4: deep.insight -->
+                        <div class="border rounded">
+                            <div class="p-3 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <button onclick="toggleProductOptions('deepinsight')" class="text-gray-500 hover:text-gray-700 transition-transform" id="toggle-deepinsight">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <div class="font-medium">deep.insight</div>
+                                                <span class="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs">3개 구성</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">심층 위협 분석 서비스</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="text-blue-600 hover:underline text-xs">수정</button>
+                                        <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="options-deepinsight" class="border-t bg-gray-50 p-4 hidden">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Basic</span>
+                                        <span class="text-indigo-500">·</span>
+                                        <span>기본 분석</span>
+                                        <button class="ml-1 hover:text-indigo-900">×</button>
+                                    </div>
+                                    <div class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Advanced</span>
+                                        <span class="text-indigo-500">·</span>
+                                        <span>심층 분석</span>
+                                        <button class="ml-1 hover:text-indigo-900">×</button>
+                                    </div>
+                                    <div class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Premium</span>
+                                        <span class="text-indigo-500">·</span>
+                                        <span>프리미엄 분석</span>
+                                        <button class="ml-1 hover:text-indigo-900">×</button>
+                                    </div>
+                                </div>
+                                <button class="text-indigo-600 hover:underline text-xs">+ 옵션 추가</button>
+                            </div>
+                        </div>
+
+                        <!-- Product 5: Consulting -->
+                        <div class="border rounded">
+                            <div class="p-3 hover:bg-gray-50">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3 flex-1">
+                                        <button onclick="toggleProductOptions('consulting')" class="text-gray-500 hover:text-gray-700 transition-transform" id="toggle-consulting">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </button>
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <div class="font-medium">Consulting</div>
+                                                <span class="bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs">3개 구성</span>
+                                            </div>
+                                            <div class="text-xs text-gray-600">보안 컨설팅 서비스</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="text-blue-600 hover:underline text-xs">수정</button>
+                                        <button class="text-red-600 hover:underline text-xs">삭제</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="options-consulting" class="border-t bg-gray-50 p-4 hidden">
+                                <div class="flex flex-wrap gap-2 mb-3">
+                                    <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Assessment</span>
+                                        <span class="text-green-500">·</span>
+                                        <span>보안 평가</span>
+                                        <button class="ml-1 hover:text-green-900">×</button>
+                                    </div>
+                                    <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Advisory</span>
+                                        <span class="text-green-500">·</span>
+                                        <span>자문</span>
+                                        <button class="ml-1 hover:text-green-900">×</button>
+                                    </div>
+                                    <div class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                                        <span class="font-medium">Training</span>
+                                        <span class="text-green-500">·</span>
+                                        <span>교육</span>
+                                        <button class="ml-1 hover:text-green-900">×</button>
+                                    </div>
+                                </div>
+                                <button class="text-green-600 hover:underline text-xs">+ 옵션 추가</button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- Row 2: 매입 제품 및 파트너 관리 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <!-- Purchase Product Management (매입 제품) -->
                 <div class="bg-white rounded-lg shadow">
                     <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
@@ -509,7 +703,7 @@
                 </div>
             </div>
 
-            <!-- Row 2: 계약 및 인력 관련 -->
+            <!-- Row 3: 계약 및 인력 관련 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Contract Type Management (계약 관리) -->
                 <div class="bg-white rounded-lg shadow">
@@ -1197,6 +1391,21 @@
 
     <!-- Tab Switching Script -->
     <script>
+        // Toggle product options accordion
+        function toggleProductOptions(productId) {
+            const optionsPanel = document.getElementById('options-' + productId);
+            const toggleButton = document.getElementById('toggle-' + productId);
+            const toggleIcon = toggleButton.querySelector('svg');
+
+            if (optionsPanel.classList.contains('hidden')) {
+                optionsPanel.classList.remove('hidden');
+                toggleIcon.classList.add('rotate-90');
+            } else {
+                optionsPanel.classList.add('hidden');
+                toggleIcon.classList.remove('rotate-90');
+            }
+        }
+
         function switchTab(tabName) {
             // Hide all tab contents
             document.querySelectorAll('.tab-content').forEach(content => {

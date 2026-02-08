@@ -56,6 +56,58 @@ export class Contract extends TenantBaseEntity {
   @Column({ type: 'text', nullable: true, name: 'payment_terms' })
   paymentTerms: string | null;
 
+  // 결제 정보
+  @Column({ type: 'varchar', length: 20, nullable: true, name: 'payment_cycle' })
+  paymentCycle: string | null; // PaymentCycle enum
+
+  @Column({ type: 'boolean', default: true, name: 'vat_included' })
+  vatIncluded: boolean;
+
+  // 재무 정보 (매입) - 암호화 저장
+  @Column({ type: 'text', nullable: true, name: 'purchase_price_encrypted' })
+  purchasePriceEncrypted: string | null;
+
+  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true, name: 'purchase_commission_rate' })
+  purchaseCommissionRate: number | null;
+
+  // 재무 정보 (판매) - 암호화 저장
+  @Column({ type: 'text', nullable: true, name: 'selling_price_encrypted' })
+  sellingPriceEncrypted: string | null;
+
+  @Column({ type: 'boolean', default: false, name: 'has_partner' })
+  hasPartner: boolean;
+
+  @Column({ type: 'varchar', length: 200, nullable: true, name: 'partner_name' })
+  partnerName: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true, name: 'commission_type' })
+  commissionType: string | null; // CommissionType enum
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true, name: 'partner_commission' })
+  partnerCommission: number | null;
+
+  // 담당자
+  @Column({ type: 'uuid', nullable: true, name: 'internal_manager_id' })
+  internalManagerId: string | null;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'internal_manager_id' })
+  internalManager: User | null;
+
+  // 메모
+  @Column({ type: 'text', nullable: true })
+  memo: string | null;
+
+  // 알림 설정
+  @Column({ type: 'boolean', default: true, name: 'notify_before_30_days' })
+  notifyBefore30Days: boolean;
+
+  @Column({ type: 'boolean', default: true, name: 'notify_before_7_days' })
+  notifyBefore7Days: boolean;
+
+  @Column({ type: 'boolean', default: false, name: 'notify_on_expiry' })
+  notifyOnExpiry: boolean;
+
   @Column({
     type: 'enum',
     enum: ContractStatus,

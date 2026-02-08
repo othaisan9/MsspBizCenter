@@ -6,9 +6,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS 설정
+  // CORS 설정 (개발 환경에서는 모든 origin 허용)
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+    origin: process.env.NODE_ENV === 'development' ? true : (process.env.CORS_ORIGIN || 'http://localhost:3001'),
     credentials: true,
   });
 
@@ -29,26 +29,30 @@ async function bootstrap() {
     exclude: ['api/docs(.*)'],
   });
 
-  // Swagger 설정
-  const config = new DocumentBuilder()
-    .setTitle('MsspBizCenter API')
-    .setDescription('MSSP 비즈니스 센터 Backend API 문서')
-    .setVersion('0.1.0-alpha.5')
-    .addBearerAuth()
-    .addTag('auth', '인증 및 권한')
-    .addTag('tasks', '주차별 업무 일지')
-    .addTag('meetings', '회의록')
-    .addTag('contracts', '계약 관리')
-    .addTag('users', '사용자 관리')
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
-
   const port = process.env.PORT || 4001;
+
+  // Swagger 설정 (프로덕션에서는 비활성화)
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('MsspBizCenter API')
+      .setDescription('MSSP 비즈니스 센터 Backend API 문서')
+      .setVersion('0.1.0-alpha.6')
+      .addBearerAuth()
+      .addTag('auth', '인증 및 권한')
+      .addTag('tasks', '주차별 업무 일지')
+      .addTag('meetings', '회의록')
+      .addTag('contracts', '계약 관리')
+      .addTag('products', '제품 및 옵션 관리')
+      .addTag('users', '사용자 관리')
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
+  }
+
   await app.listen(port);
 
   console.log(`🚀 MsspBizCenter Backend is running on: http://localhost:${port}`);
-  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
 }
 bootstrap();

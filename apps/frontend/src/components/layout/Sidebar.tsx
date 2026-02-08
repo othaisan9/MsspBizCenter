@@ -1,10 +1,20 @@
 'use client';
 
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
+import { contractsApi } from '@/lib/api';
 
-const navigation = [
+interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  divider?: boolean;
+}
+
+const navigation: NavigationItem[] = [
   {
     name: '대시보드',
     href: '/',
@@ -41,10 +51,44 @@ const navigation = [
       </svg>
     ),
   },
+  {
+    name: '설정',
+    href: '/settings',
+    divider: true,
+    icon: (
+      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    ),
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
+  const [expiringWithin7, setExpiringWithin7] = useState(0);
+  const [expiringWithin30, setExpiringWithin30] = useState(0);
+
+  const loadExpiringContracts = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      const [within7Data, within30Data] = await Promise.all([
+        contractsApi.expiring(7),
+        contractsApi.expiring(30),
+      ]);
+
+      setExpiringWithin7(Array.isArray(within7Data) ? within7Data.length : 0);
+      setExpiringWithin30(Array.isArray(within30Data) ? within30Data.length : 0);
+    } catch (error) {
+      console.error('Failed to load expiring contracts:', error);
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadExpiringContracts();
+  }, [loadExpiringContracts]);
 
   return (
     <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">
@@ -64,26 +108,41 @@ export function Sidebar() {
               ? pathname === '/'
               : pathname.startsWith(item.href);
 
+          const isContractMenu = item.href === '/contracts';
+          const badgeCount = expiringWithin7 > 0 ? expiringWithin7 : expiringWithin30;
+          const badgeColor = expiringWithin7 > 0 ? 'bg-red-500' : 'bg-yellow-500';
+          const showBadge = isContractMenu && badgeCount > 0;
+
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary-50 text-primary-700'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-              )}
-            >
-              {item.icon}
-              {item.name}
-            </Link>
+            <div key={item.name}>
+              {item.divider && <div className="border-t border-gray-200 my-2" />}
+              <Link
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary-50 text-primary-700'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                )}
+              >
+                {item.icon}
+                <span className="flex-1">{item.name}</span>
+                {showBadge && (
+                  <span className={cn(
+                    'w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center',
+                    badgeColor
+                  )}>
+                    {badgeCount}
+                  </span>
+                )}
+              </Link>
+            </div>
           );
         })}
       </nav>
 
       <div className="px-4 py-3 border-t border-gray-200">
-        <p className="text-xs text-gray-400">v0.1.0-alpha.5</p>
+        <p className="text-xs text-gray-400">v0.1.0-alpha.6</p>
       </div>
     </aside>
   );

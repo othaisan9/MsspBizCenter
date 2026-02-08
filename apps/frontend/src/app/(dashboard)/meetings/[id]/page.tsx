@@ -11,6 +11,7 @@ import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
+import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { getStatusColor, getStatusLabel, formatDateTime } from '@/lib/utils';
 
 function getMeetingTypeLabel(type: string): string {
@@ -156,6 +157,12 @@ export default function MeetingDetailPage() {
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
+      <Breadcrumb
+        items={[
+          { label: '회의록', href: '/meetings' },
+          { label: '회의록 상세' },
+        ]}
+      />
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">

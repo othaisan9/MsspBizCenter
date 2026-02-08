@@ -38,11 +38,25 @@ export class ContractsService {
       amountEncrypted = this.encryptionService.encrypt(dto.amount.toString());
     }
 
+    // 매입 단가 암호화
+    let purchasePriceEncrypted: string | null = null;
+    if (dto.purchasePrice !== undefined && dto.purchasePrice !== null) {
+      purchasePriceEncrypted = this.encryptionService.encrypt(dto.purchasePrice.toString());
+    }
+
+    // 판매 단가 암호화
+    let sellingPriceEncrypted: string | null = null;
+    if (dto.sellingPrice !== undefined && dto.sellingPrice !== null) {
+      sellingPriceEncrypted = this.encryptionService.encrypt(dto.sellingPrice.toString());
+    }
+
     const contract = this.contractRepository.create({
       ...dto,
       tenantId,
       createdBy: userId,
       amountEncrypted,
+      purchasePriceEncrypted,
+      sellingPriceEncrypted,
       status: dto.status || ContractStatus.DRAFT,
     });
 
@@ -118,8 +132,10 @@ export class ContractsService {
         });
     }
 
-    // 정렬
-    qb.orderBy(`contract.${sortBy}`, sortOrder as 'ASC' | 'DESC');
+    // 정렬 (SQL Injection 방지: 화이트리스트 검증)
+    const allowedSortFields = ['createdAt', 'updatedAt', 'startDate', 'endDate', 'title', 'contractNumber', 'status'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    qb.orderBy(`contract.${safeSortBy}`, sortOrder as 'ASC' | 'DESC');
 
     // 페이징
     const skip = (page - 1) * limit;
@@ -139,10 +155,10 @@ export class ContractsService {
   /**
    * 계약 상세 조회 (금액 복호화 포함)
    */
-  async findOne(id: string, tenantId: string): Promise<Contract & { amount?: number }> {
+  async findOne(id: string, tenantId: string): Promise<Contract & { amount?: number; purchasePrice?: number; sellingPrice?: number }> {
     const contract = await this.contractRepository.findOne({
       where: { id, tenantId },
-      relations: ['creator', 'parentContract', 'renewals'],
+      relations: ['creator', 'parentContract', 'renewals', 'internalManager'],
     });
 
     if (!contract) {
@@ -158,6 +174,26 @@ export class ContractsService {
       } catch (error) {
         // 복호화 실패 시 로그만 남기고 계속 진행
         console.error('Failed to decrypt contract amount:', error);
+      }
+    }
+
+    // 매입 단가 복호화
+    if (contract.purchasePriceEncrypted) {
+      try {
+        const decrypted = this.encryptionService.decrypt(contract.purchasePriceEncrypted);
+        result.purchasePrice = parseFloat(decrypted);
+      } catch (error) {
+        console.error('Failed to decrypt purchase price:', error);
+      }
+    }
+
+    // 판매 단가 복호화
+    if (contract.sellingPriceEncrypted) {
+      try {
+        const decrypted = this.encryptionService.decrypt(contract.sellingPriceEncrypted);
+        result.sellingPrice = parseFloat(decrypted);
+      } catch (error) {
+        console.error('Failed to decrypt selling price:', error);
       }
     }
 
@@ -191,10 +227,26 @@ export class ContractsService {
         : null;
     }
 
+    // 매입 단가 변경 시 암호화
+    if (dto.purchasePrice !== undefined) {
+      contract.purchasePriceEncrypted = dto.purchasePrice !== null
+        ? this.encryptionService.encrypt(dto.purchasePrice.toString())
+        : null;
+    }
+
+    // 판매 단가 변경 시 암호화
+    if (dto.sellingPrice !== undefined) {
+      contract.sellingPriceEncrypted = dto.sellingPrice !== null
+        ? this.encryptionService.encrypt(dto.sellingPrice.toString())
+        : null;
+    }
+
     // 나머지 필드 업데이트
     Object.assign(contract, {
       ...dto,
       amountEncrypted: contract.amountEncrypted, // 이미 설정됨
+      purchasePriceEncrypted: contract.purchasePriceEncrypted, // 이미 설정됨
+      sellingPriceEncrypted: contract.sellingPriceEncrypted, // 이미 설정됨
     });
 
     const updatedContract = await this.contractRepository.save(contract);
@@ -427,7 +479,7 @@ export class ContractsService {
    * 계약 데이터 정리 (히스토리용, 민감정보 제외)
    */
   private sanitizeContractData(contract: Contract): Record<string, any> {
-    const { amountEncrypted, ...rest } = contract;
+    const { amountEncrypted, purchasePriceEncrypted, sellingPriceEncrypted, ...rest } = contract;
     return rest;
   }
 }
