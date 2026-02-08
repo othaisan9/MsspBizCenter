@@ -13,6 +13,7 @@ interface Task {
   priority: string;
   assignee?: { id: string; name: string };
   dueDate?: string;
+  tags?: string[];
 }
 
 interface KanbanCardProps {
@@ -79,6 +80,21 @@ export function KanbanCard({ task }: KanbanCardProps) {
             </div>
           )}
         </div>
+
+        {task.tags && task.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {task.tags.slice(0, 3).map((tag, idx) => (
+              <span key={idx} className="px-1.5 py-0.5 text-[10px] font-medium bg-blue-50 text-blue-700 rounded border border-blue-200">
+                {tag}
+              </span>
+            ))}
+            {task.tags.length > 3 && (
+              <span className="px-1.5 py-0.5 text-[10px] text-gray-500">
+                +{task.tags.length - 3}
+              </span>
+            )}
+          </div>
+        )}
 
         {task.dueDate && (
           <div className="flex items-center text-xs text-gray-500">

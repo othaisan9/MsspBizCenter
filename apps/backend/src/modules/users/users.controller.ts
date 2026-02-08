@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Delete,
   Body,
@@ -8,6 +9,8 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +20,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -31,6 +35,22 @@ import { UserRole } from '@msspbiz/shared';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Post()
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: '팀원 추가 (OWNER, ADMIN만)' })
+  @ApiResponse({ status: 201, description: '사용자 추가 성공' })
+  @ApiResponse({ status: 409, description: '이미 등록된 이메일' })
+  create(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser('tenantId') tenantId: string,
+    @CurrentUser() currentUser: any,
+  ) {
+    return this.usersService.create(createUserDto, tenantId, {
+      role: currentUser.role,
+    });
+  }
 
   @Get()
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)

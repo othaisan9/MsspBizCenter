@@ -3,13 +3,18 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 import { User } from '../auth/entities/user.entity';
+import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserRole } from '@msspbiz/shared';
+
+const BCRYPT_SALT_ROUNDS = 12;
 
 @Injectable()
 export class UsersService {
@@ -17,6 +22,46 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
+
+  /**
+   * 팀원 추가 (같은 테넌트에 새 사용자 생성)
+   */
+  async create(
+    dto: CreateUserDto,
+    tenantId: string,
+    currentUser: { role: UserRole },
+  ) {
+    // 이메일 중복 체크
+    const existing = await this.userRepository.findOne({
+      where: { email: dto.email, tenantId },
+    });
+    if (existing) {
+      throw new ConflictException('이미 등록된 이메일입니다.');
+    }
+
+    // ADMIN 역할 부여는 OWNER만 가능
+    if (dto.role === UserRole.ADMIN && currentUser.role !== UserRole.OWNER) {
+      throw new ForbiddenException('ADMIN 역할은 OWNER만 부여할 수 있습니다.');
+    }
+    if (dto.role === UserRole.OWNER) {
+      throw new ForbiddenException('OWNER 역할은 부여할 수 없습니다.');
+    }
+
+    const passwordHash = await bcrypt.hash(dto.password, BCRYPT_SALT_ROUNDS);
+
+    const user = this.userRepository.create({
+      email: dto.email,
+      name: dto.name,
+      passwordHash,
+      role: dto.role || UserRole.VIEWER,
+      tenantId,
+      isActive: true,
+    });
+
+    const saved = await this.userRepository.save(user);
+    const { passwordHash: _, ...result } = saved;
+    return result;
+  }
 
   /**
    * 사용자 목록 조회 (페이지네이션 + 필터)

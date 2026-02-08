@@ -124,6 +124,20 @@ export default function TaskDetailPage() {
     }
   };
 
+  const handleRemoveTag = async (tagToRemove: string) => {
+    if (!task || !task.tags) return;
+
+    const newTags = task.tags.filter((t) => t !== tagToRemove);
+    try {
+      const updated = await tasksApi.update(task.id, { tags: newTags });
+      setTask(updated);
+      setEditForm((prev) => ({ ...prev, tags: newTags.join(', ') }));
+      toast.success(`태그 "${tagToRemove}"가 삭제되었습니다.`);
+    } catch (err: any) {
+      toast.error('태그 삭제에 실패했습니다.');
+    }
+  };
+
   const handleEdit = () => {
     setEditModalOpen(true);
   };
@@ -155,12 +169,9 @@ export default function TaskDetailPage() {
         payload.estimatedHours = parseFloat(editForm.estimatedHours);
       }
 
-      if (editForm.tags.trim()) {
-        payload.tags = editForm.tags
-          .split(',')
-          .map((t) => t.trim())
-          .filter((t) => t.length > 0);
-      }
+      payload.tags = editForm.tags.trim()
+        ? editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0)
+        : [];
 
       const updated = await tasksApi.update(task.id, payload);
       setTask(updated);
@@ -304,9 +315,22 @@ export default function TaskDetailPage() {
                 <span className="text-sm font-medium text-gray-700">태그</span>
                 <div className="flex flex-wrap gap-1">
                   {task.tags.map((tag, idx) => (
-                    <Badge key={idx} color="bg-blue-100 text-blue-800">
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300"
+                    >
                       {tag}
-                    </Badge>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveTag(tag); }}
+                        className="ml-0.5 hover:text-red-600 transition-colors"
+                        title={`"${tag}" 태그 삭제`}
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
                   ))}
                 </div>
               </div>
@@ -444,12 +468,38 @@ export default function TaskDetailPage() {
               />
             </div>
 
-            <Input
-              label="태그"
-              placeholder="태그를 쉼표로 구분하여 입력하세요"
-              value={editForm.tags}
-              onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
-            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">태그</label>
+              {editForm.tags.trim() && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0).map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 border border-blue-300"
+                    >
+                      {tag}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const tags = editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0 && t !== tag);
+                          setEditForm({ ...editForm, tags: tags.join(', ') });
+                        }}
+                        className="ml-0.5 hover:text-red-600 transition-colors"
+                      >
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <Input
+                placeholder="태그를 쉼표로 구분하여 입력하세요"
+                value={editForm.tags}
+                onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })}
+              />
+            </div>
 
             <div className="flex gap-3 pt-4">
               <Button

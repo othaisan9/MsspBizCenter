@@ -319,6 +319,8 @@ export const usersApi = {
     return request<any>(`/users${query}`);
   },
   get: (id: string) => request<any>(`/users/${id}`),
+  create: (data: { email: string; name: string; password: string; role?: string }) =>
+    request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: any) =>
     request<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>

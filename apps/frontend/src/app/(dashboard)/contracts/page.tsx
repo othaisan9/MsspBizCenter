@@ -474,32 +474,43 @@ export default function ContractsPage() {
                 </table>
               </div>
 
-              <div className="flex items-center justify-between border-t-2 border-gray-800 pt-4">
-                <div className="text-sm text-gray-700">
-                  전체 {total}건 중 {(page - 1) * limit + 1}-{Math.min(page * limit, total)}건 표시
-                </div>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    이전
-                  </Button>
-                  <div className="flex items-center px-4 py-2 text-sm text-gray-700">
-                    {page} / {totalPages}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between border-t-2 border-gray-800 px-6 py-4">
+                  <div className="text-sm text-gray-700">
+                    전체 {total}개 중 {(page - 1) * limit + 1}-{Math.min(page * limit, total)}개 표시
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page === totalPages}
-                  >
-                    다음
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                    >
+                      이전
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                        <Button
+                          key={p}
+                          variant={p === page ? 'primary' : 'ghost'}
+                          size="sm"
+                          onClick={() => setPage(p)}
+                        >
+                          {p}
+                        </Button>
+                      ))}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                    >
+                      다음
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           )}
         </div>

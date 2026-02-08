@@ -1,6 +1,6 @@
 {
   "name": "@msspbiz/frontend",
-  "version": "0.1.0-alpha.7",
+  "version": "0.1.0-alpha.8",
   "private": true,
   "scripts": {
     "dev": "next dev --port 3001",
@@ -16,6 +16,11 @@
     "@dnd-kit/sortable": "^8.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@msspbiz/shared": "workspace:*",
+    "@tiptap/extension-link": "^3.19.0",
+    "@tiptap/extension-placeholder": "^3.19.0",
+    "@tiptap/pm": "^3.19.0",
+    "@tiptap/react": "^3.19.0",
+    "@tiptap/starter-kit": "^3.19.0",
     "iconoir-react": "^7.9.0",
     "next": "^15.1.0",
     "react": "^19.0.0",

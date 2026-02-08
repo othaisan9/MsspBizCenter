@@ -25,6 +25,7 @@ interface Task {
   priority: string;
   assignee?: { id: string; name: string };
   dueDate?: string;
+  tags?: string[];
 }
 
 interface KanbanBoardProps {

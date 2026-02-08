@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { tasksApi } from '@/lib/api';
+import { tasksApi, usersApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -56,11 +56,14 @@ export default function TasksPage() {
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
 
+  const [members, setMembers] = useState<Array<{ id: string; name: string }>>([]);
+
   const [filters, setFilters] = useState({
     year: currentYear,
     weekNumber: currentWeek,
     status: '',
     priority: '',
+    assigneeId: '',
     search: '',
     page: 1,
     limit: 20,
@@ -90,6 +93,19 @@ export default function TasksPage() {
     { value: 'low', label: '낮음' },
   ];
 
+  useEffect(() => {
+    async function loadMembers() {
+      try {
+        const result = await usersApi.list();
+        const items = result.items || result || [];
+        setMembers(items.map((u: any) => ({ id: u.id, name: u.name })));
+      } catch {
+        // 팀원 로드 실패는 무시 (필터만 비활성화)
+      }
+    }
+    loadMembers();
+  }, []);
+
   const fetchTasks = useCallback(async () => {
     try {
       setLoading(true);
@@ -104,6 +120,7 @@ export default function TasksPage() {
 
       if (filters.status) params.status = filters.status;
       if (filters.priority) params.priority = filters.priority;
+      if (filters.assigneeId) params.assigneeId = filters.assigneeId;
       if (filters.search) params.search = filters.search;
 
       const response: TasksResponse = await tasksApi.list(params);
@@ -116,7 +133,7 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.year, filters.weekNumber, filters.page, filters.limit, filters.status, filters.priority, filters.search]);
+  }, [filters.year, filters.weekNumber, filters.page, filters.limit, filters.status, filters.priority, filters.assigneeId, filters.search]);
 
   useEffect(() => {
     fetchTasks();
@@ -178,7 +195,7 @@ export default function TasksPage() {
         </div>
 
         <Card>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
             <Input
               type="number"
               label="년도"
@@ -206,6 +223,15 @@ export default function TasksPage() {
               options={priorityOptions}
               value={filters.priority}
               onChange={(e) => handleFilterChange('priority', e.target.value)}
+            />
+            <Select
+              label="담당자"
+              options={[
+                { value: '', label: '전체 담당자' },
+                ...members.map((m) => ({ value: m.id, label: m.name })),
+              ]}
+              value={filters.assigneeId}
+              onChange={(e) => handleFilterChange('assigneeId', e.target.value)}
             />
             <Input
               type="text"

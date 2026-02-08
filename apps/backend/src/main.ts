@@ -44,7 +44,7 @@ async function bootstrap() {
     const config = new DocumentBuilder()
       .setTitle('MsspBizCenter API')
       .setDescription('MSSP 비즈니스 센터 Backend API 문서')
-      .setVersion('0.1.0-alpha.7')
+      .setVersion('0.1.0-alpha.8')
       .addBearerAuth()
       .addTag('auth', '인증 및 권한')
       .addTag('tasks', '주차별 업무 일지')

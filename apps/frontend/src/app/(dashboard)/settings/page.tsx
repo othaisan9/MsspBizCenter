@@ -180,6 +180,16 @@ export default function SettingsPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [newRole, setNewRole] = useState('');
 
+  // Add user modal
+  const [addUserModalOpen, setAddUserModalOpen] = useState(false);
+  const [addUserSaving, setAddUserSaving] = useState(false);
+  const [addUserForm, setAddUserForm] = useState({
+    email: '',
+    name: '',
+    password: '',
+    role: 'viewer',
+  });
+
   // Partner modal
   const [partnerModalOpen, setPartnerModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
@@ -398,6 +408,31 @@ export default function SettingsPage() {
   const handleDeleteOption = (productId: string, optionId: string) => {
     setDeleteTarget({ type: 'option', productId, optionId });
     setDeleteModalOpen(true);
+  };
+
+  const handleAddUser = async () => {
+    if (!addUserForm.email || !addUserForm.name || !addUserForm.password) {
+      toast.error('이메일, 이름, 비밀번호를 모두 입력하세요');
+      return;
+    }
+    if (addUserForm.password.length < 8) {
+      toast.error('비밀번호는 8자 이상이어야 합니다');
+      return;
+    }
+
+    try {
+      setAddUserSaving(true);
+      await usersApi.create(addUserForm);
+      toast.success('팀원이 추가되었습니다');
+      setAddUserModalOpen(false);
+      setAddUserForm({ email: '', name: '', password: '', role: 'viewer' });
+      fetchUsers();
+    } catch (err: any) {
+      const message = err.message || '팀원 추가에 실패했습니다';
+      toast.error(message);
+    } finally {
+      setAddUserSaving(false);
+    }
   };
 
   const handleEditUserRole = (user: User) => {
@@ -920,7 +955,19 @@ export default function SettingsPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
             </div>
           ) : (
-            <Card>
+            <>
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-gray-600">
+                  총 {users.length}명의 사용자
+                </p>
+                <Button onClick={() => setAddUserModalOpen(true)}>
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  팀원 추가
+                </Button>
+              </div>
+              <Card>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y-2 divide-gray-800">
                   <thead className="bg-gray-100">
@@ -984,6 +1031,7 @@ export default function SettingsPage() {
                 </table>
               </div>
             </Card>
+            </>
           )}
         </div>
       )}
@@ -1106,6 +1154,54 @@ export default function SettingsPage() {
             </Button>
             <Button onClick={handleSaveUserRole}>
               변경
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Add User Modal */}
+      <Modal
+        open={addUserModalOpen}
+        onClose={() => setAddUserModalOpen(false)}
+        title="팀원 추가"
+      >
+        <div className="space-y-4">
+          <Input
+            label="이메일"
+            type="email"
+            value={addUserForm.email}
+            onChange={(e) => setAddUserForm({ ...addUserForm, email: e.target.value })}
+            placeholder="user@example.com"
+            required
+          />
+          <Input
+            label="이름"
+            value={addUserForm.name}
+            onChange={(e) => setAddUserForm({ ...addUserForm, name: e.target.value })}
+            placeholder="홍길동"
+            required
+          />
+          <Input
+            label="임시 비밀번호"
+            type="password"
+            value={addUserForm.password}
+            onChange={(e) => setAddUserForm({ ...addUserForm, password: e.target.value })}
+            placeholder="8자 이상"
+            required
+          />
+          <Select
+            label="역할"
+            value={addUserForm.role}
+            onChange={(e) => setAddUserForm({ ...addUserForm, role: e.target.value })}
+            options={ROLE_OPTIONS}
+            required
+          />
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="secondary" onClick={() => setAddUserModalOpen(false)}>
+              취소
+            </Button>
+            <Button onClick={handleAddUser} disabled={addUserSaving}>
+              {addUserSaving ? '추가 중...' : '추가'}
             </Button>
           </div>
         </div>

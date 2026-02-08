@@ -324,26 +324,41 @@ export default function MeetingsPage() {
           )}
 
           {meta.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={filters.page === 1}
-                onClick={() => handlePageChange(filters.page - 1)}
-              >
-                이전
-              </Button>
-              <span className="text-sm text-gray-600">
-                {filters.page} / {meta.totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={filters.page === meta.totalPages}
-                onClick={() => handlePageChange(filters.page + 1)}
-              >
-                다음
-              </Button>
+            <div className="flex items-center justify-between px-6 py-4 border-t-2 border-gray-800">
+              <div className="text-sm text-gray-700">
+                전체 {meta.total}개 중 {(filters.page - 1) * filters.limit + 1}-
+                {Math.min(filters.page * filters.limit, meta.total)}개 표시
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={filters.page === 1}
+                  onClick={() => handlePageChange(filters.page - 1)}
+                >
+                  이전
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: meta.totalPages }, (_, i) => i + 1).map((p) => (
+                    <Button
+                      key={p}
+                      variant={p === filters.page ? 'primary' : 'ghost'}
+                      size="sm"
+                      onClick={() => handlePageChange(p)}
+                    >
+                      {p}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={filters.page === meta.totalPages}
+                  onClick={() => handlePageChange(filters.page + 1)}
+                >
+                  다음
+                </Button>
+              </div>
             </div>
           )}
         </>
