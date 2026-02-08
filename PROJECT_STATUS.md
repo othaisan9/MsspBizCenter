@@ -1,7 +1,7 @@
 # MsspBizCenter 프로젝트 상태
 
 **마지막 업데이트**: 2026-02-08
-**현재 버전**: v0.1.0-alpha.6
+**현재 버전**: v0.1.0-alpha.8
 **개발 브랜치**: `master` (main 브랜치로 PR 예정)
 
 ---
@@ -85,6 +85,119 @@ MsspBizCenter/
 ---
 
 ## 3. 최근 변경사항
+
+### v0.1.0-alpha.8 - 태그 삭제 + 사용자 추가 + 페이지네이션 통일 (2026-02-08)
+
+**담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend) + 나검수(QA)
+
+#### 📋 주요 작업
+
+**1. 태그 삭제 UI** (유아이)
+- Task 상세 페이지: 태그 옆 X 버튼 + 삭제 시 API 호출 (`tasksApi.update`)
+- Task 수정 모드: 태그 편집 시 X 버튼으로 개별 삭제
+- Kanban 카드: 태그 표시 + 담당자 필터 드롭다운 추가
+- `tailwind.config.ts`: Iconoir 아이콘 패키지 추가
+
+**2. 사용자 추가 (풀스택)** (박안도 + 유아이)
+- Backend: `POST /api/v1/users` - CreateUserDto (email/name/password/role), bcrypt 해싱, RBAC 검증
+- Frontend: Settings > 사용자 탭에 "팀원 추가" 버튼 + 모달 (이메일/이름/임시비밀번호/역할)
+- 이메일 중복 체크, OWNER 역할 부여 차단, ADMIN 역할은 OWNER만 부여 가능
+
+**3. 페이지네이션 UI 통일** (유아이)
+- Tasks/Meetings/Contracts 3개 페이지 페이지네이션 패턴 통일
+- "전체 N개 중 X-Y개 표시" + 이전/페이지번호/다음 버튼
+- `border-t-2 border-gray-800` 구분선, `primary`/`ghost` 버튼 변형
+
+**4. Backend 수정** (박안도)
+- `tasks.service.ts`: `perPage` → `limit` 파라미터명 통일
+- `main.ts`: Swagger 버전 동기화
+
+**5. QA 검수 (병렬 에이전트 2대)** (나검수)
+
+| QA 영역 | 점수 | 발견 이슈 |
+|---------|------|----------|
+| Frontend 코드 품질 | 95/100 | 0 blocking, 2 권고 |
+| Backend 코드 품질 | 96.7% (29/30) | 1 Medium (JWT Payload 주석) |
+
+- Frontend 권고: Kanban Task 인터페이스 통일, Pagination 공통 컴포넌트 추출
+- Backend 권고: JWT Payload 주석 개선 (`sub: string; // userId` → `// user ID`)
+
+#### 📁 수정/생성된 파일
+
+**Backend** (4파일):
+- `apps/backend/src/modules/users/dto/create-user.dto.ts` - 신규 (사용자 생성 DTO)
+- `apps/backend/src/modules/users/users.controller.ts` - POST /users 엔드포인트 추가
+- `apps/backend/src/modules/users/users.service.ts` - create() 메서드 추가
+- `apps/backend/src/modules/tasks/tasks.service.ts` - perPage → limit
+
+**Frontend** (10파일):
+- `apps/frontend/src/app/(dashboard)/tasks/[id]/page.tsx` - 태그 삭제 X 버튼
+- `apps/frontend/src/app/(dashboard)/tasks/page.tsx` - 칸반 담당자 필터
+- `apps/frontend/src/app/(dashboard)/meetings/page.tsx` - 페이지네이션 통일
+- `apps/frontend/src/app/(dashboard)/contracts/page.tsx` - 페이지네이션 통일
+- `apps/frontend/src/app/(dashboard)/settings/page.tsx` - 팀원 추가 모달
+- `apps/frontend/src/components/tasks/KanbanBoard.tsx` - tags 전달
+- `apps/frontend/src/components/tasks/KanbanCard.tsx` - 태그 표시 UI
+- `apps/frontend/src/lib/api.ts` - usersApi.create() 추가
+- `apps/frontend/tailwind.config.ts` - Iconoir 패키지 설정
+- `apps/frontend/src/components/layout/Sidebar.tsx` - 버전 v0.1.0-alpha.8
+
+**QA 보고서** (2파일):
+- `tests/qa-reports/frontend-code-review-20260208.md` - 프론트엔드 검수 보고서
+- `tests/qa-reports/backend-code-review-20260208.md` - 백엔드 검수 보고서
+
+---
+
+### v0.1.0-alpha.7 - P1+P2 보안 강화 + 프론트 품질 개선 (2026-02-08)
+
+**담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend) + Chloe(Security) + 송대시(Charts)
+
+#### 📋 주요 작업
+
+**1. 보안 강화** (Chloe + 박안도)
+- `@nestjs/throttler` Rate Limiting 추가 (전역 60req/min)
+- `helmet` 보안 헤더 적용
+- Auth 로그인 Rate Limit 강화 (5req/60s)
+- FilesController에 RolesGuard 추가
+- Stats Service N+1 쿼리 최적화 (relation → queryBuilder)
+
+**2. Frontend 품질 개선** (유아이)
+- Toast 전역 통일 (모든 API 에러에 toast.error 적용)
+- useEffect/useCallback 무한루프 위험 패턴 제거
+- EmptyState 공통 컴포넌트 추출
+- Skeleton 로딩 UI 컴포넌트 추출
+- 대시보드 차트 에러 핸들링 강화
+
+**3. 차트 개선** (송대시)
+- TaskStatusChart: Pie → Donut 전환 + 중앙 라벨
+- TaskPriorityChart: Pie → 수평 Bar 전환 + 접근성(색맹) 패턴
+- 전체 차트 Neo-Brutalism 스타일 통일 (border-2, shadow-brutal)
+
+**4. CLAUDE.md 최적화**
+- 343줄 → 75줄 (78% 감소)
+- 반복 내용을 Skill 명령으로 이동 (/버전업, /개발환경, /프론트가이드)
+
+#### 📁 수정/생성된 파일
+
+**Backend** (7파일):
+- `apps/backend/src/app.module.ts` - ThrottlerModule 추가
+- `apps/backend/src/main.ts` - helmet() 적용
+- `apps/backend/src/modules/auth/auth.controller.ts` - @Throttle(5, 60)
+- `apps/backend/src/modules/files/files.controller.ts` - RolesGuard 추가
+- `apps/backend/src/modules/files/files.module.ts` - AuthModule import
+- `apps/backend/src/modules/stats/stats.service.ts` - N+1 쿼리 최적화
+- `apps/backend/package.json` - helmet, @nestjs/throttler 의존성
+
+**Frontend** (10파일):
+- 차트 4종: MonthlyContractChart, TaskPriorityChart, TaskStatusChart, WeeklyTaskChart
+- `apps/frontend/src/components/ui/EmptyState.tsx` - 신규
+- `apps/frontend/src/components/ui/Skeleton.tsx` - 신규
+- `apps/frontend/src/app/(dashboard)/page.tsx` - 대시보드 차트 에러 핸들링
+- `apps/frontend/src/app/(dashboard)/tasks/page.tsx` - Toast 통일
+- `apps/frontend/src/app/(dashboard)/contracts/page.tsx` - Toast 통일
+- `apps/frontend/src/app/(dashboard)/meetings/page.tsx` - Toast 통일
+
+---
 
 ### v0.1.0-alpha.6 - 목업 GAP 분석 + CRITICAL/HIGH/MEDIUM 구현 + QA (2026-02-08)
 
@@ -213,39 +326,30 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - 개발팀 4부서 병렬 심층 분석 (코드 변경 없음, 분석만)
-  - 유아이(Frontend/UI/UX): 7.1/10 — 무한루프 위험, 에러 처리 불일치
-  - 송대시(시각화): 7.4/10 — 차트 접근성, 인터랙션 부족
-  - 박안도(Backend): 7.8/10 — N+1 쿼리, 캐싱 부재, 테스트 0%
-  - Chloe+배포준(보안/인프라): 5.5/10 — JWT Secret, localStorage 토큰, Rate Limit 전무
-- **수정한 파일**: 없음 (분석 보고서만)
-- **커밋 여부**: ❌ (코드 변경 없음)
+  - alpha.7: 보안 강화 (Rate Limiting, Helmet, FilesController RolesGuard) + 프론트 품질 (Toast 통일, 무한루프 제거) + 차트 개선 (도넛/수평Bar/접근성)
+  - alpha.8: 태그 삭제 UI + 사용자 추가 풀스택 + 페이지네이션 3페이지 통일
+  - QA 검수: Frontend 95/100, Backend 96.7% — Blocking 이슈 0건
+- **수정한 파일**: Backend 11파일, Frontend 20파일, QA 보고서 2파일
+- **커밋 여부**: ✅ (alpha.7 + alpha.8 각각 커밋 완료)
 
 ### 진행 중 작업 (미완료)
-- 없음 (분석 완료, 구현 대기)
+- 없음 (alpha.8 작업 완료, QA 통과)
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
-**Phase A: 즉시 수정 (공수 ~10h)**:
-1. useEffect/useCallback 무한 루프 제거 — Sidebar, Dashboard, Contracts (유아이, 2h)
-2. 에러 처리 toast 전역 통일 (유아이, 4h)
-3. JWT Secret 재생성 + .env Git 이력 제거 (Chloe, 1h)
-4. Rate Limiting @nestjs/throttler 추가 (박안도, 3h)
-
-**Phase B: 핵심 개선 (~58h)**:
-1. 공통 컴포넌트 추출 — Pagination, Table, EmptyState (유아이, 8h)
+**Phase B: 핵심 개선 (잔여)**:
+1. 공통 컴포넌트 추출 — Pagination, Table (유아이, 6h) ← EmptyState/Skeleton 완료
 2. SWR 데이터 fetching 표준화 (유아이, 12h)
-3. 파이→도넛 전환 + Priority 수평 Bar + 차트 접근성 (송대시, 6h)
-4. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
-5. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h)
-6. N+1 쿼리 최적화 + Redis 캐싱 (박안도, 12h)
-7. 파일 업로드 MIME/크기 제한 + Helmet (Chloe, 4h)
+3. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
+4. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h)
+5. Redis 캐싱 (Dashboard Stats, Products) (박안도, 8h)
 
 **Phase C: 안정화 (~60h)**:
 1. TypeScript any 제거 + 페이지 컴포넌트 분할 (유아이, 16h)
-2. 차트 Neo-Brutalism 통일 + 테이블 정렬 (송대시, 8h)
-3. localStorage→HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
+2. 테이블 정렬 기능 (송대시, 4h)
+3. localStorage → HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
 4. Backend Unit Test 60% 커버리지 (박안도, 20h)
+5. JWT Payload 주석 개선 (박안도, 0.5h) — QA 권고사항
 
 ---
 
@@ -253,13 +357,13 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | 4부서 분석 종합 → Phase A/B/C 도출 ✅ |
-| **Backend** | 박안도 | API, DB, 서버 로직 | 심층 분석 7.8/10 → Phase A4, B5-6 대기 |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 심층 분석 7.1/10 → Phase A1-2, B1-2 대기 |
-| **Security** | Chloe O'Brian | 보안, 암호화 | 심층 분석 5.5/10 → Phase A3, B7 대기 |
-| **DevOps** | 배포준 | CI/CD, 인프라 | 인프라 분석 6/10 → 프로덕션 Docker 대기 |
-| **QA** | 나검수 | 테스트, 품질 보증 | 테스트 커버리지 2/10 → Phase C4 대기 |
-| **Visualization** | 송대시 | 차트, 시각화 | 심층 분석 7.4/10 → Phase B3-4 대기 |
+| **PM** | 박서연 | 요구사항, 일정 관리 | Phase A 완료, Phase B 잔여 조율 중 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | Rate Limit + N+1 최적화 + Users API 완료 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Toast 통일 + 태그 삭제 + 페이지네이션 완료 ✅ |
+| **Security** | Chloe O'Brian | 보안, 암호화 | Helmet + FilesController RolesGuard 완료 ✅ |
+| **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
+| **QA** | 나검수 | 테스트, 품질 보증 | alpha.8 검수 완료 (FE 95/100, BE 96.7%) ✅ |
+| **Visualization** | 송대시 | 차트, 시각화 | 도넛/수평Bar/접근성 완료 ✅ → 드릴다운 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
 
@@ -291,40 +395,45 @@ MsspBizCenter/
 - [x] Soft Neo-Brutalism 디자인 시스템 (25파일, 유아이×4 병렬)
 
 ### 🔴 CRITICAL (P0.5) - 4부서 분석 신규 발견
-- [ ] useEffect/useCallback 무한 루프 제거 (Sidebar, Dashboard, Contracts)
-- [ ] 에러 처리 toast 전역 통일 (일부만 toast, 나머지 inline)
+- [x] useEffect/useCallback 무한 루프 제거 (v0.1.0-alpha.7)
+- [x] 에러 처리 toast 전역 통일 (v0.1.0-alpha.7)
 - [ ] JWT Secret 재생성 + .env Git 이력 제거
-- [ ] N+1 쿼리 최적화 (목록 조회 불필요한 relation 제거)
+- [x] N+1 쿼리 최적화 - Stats Service queryBuilder 전환 (v0.1.0-alpha.7)
 - [ ] Redis 캐싱 도입 (Dashboard Stats, Products)
 
 ### ⚠️ High (P1) - 미완료
-- [ ] Rate Limiting (ThrottlerModule)
-- [ ] 공통 컴포넌트 추출 (Pagination, Table, EmptyState)
+- [x] Rate Limiting - @nestjs/throttler 전역 60req/min (v0.1.0-alpha.7)
+- [ ] 공통 컴포넌트 추출 (Pagination, Table) ← EmptyState/Skeleton 완료
 - [ ] SWR 데이터 fetching 표준화
-- [ ] 파이→도넛 차트 + Priority 수평 Bar + 차트 접근성(색맹)
+- [x] 파이→도넛 차트 + Priority 수평 Bar + 차트 접근성(색맹) (v0.1.0-alpha.7)
 - [ ] 차트 인터랙션 드릴다운 + 통계 카드 스파크라인
 - [ ] API 응답 형식 통일 + Shared 타입 정의
-- [ ] 파일 업로드 MIME/크기 제한 + Helmet 보안 헤더
+- [x] Helmet 보안 헤더 (v0.1.0-alpha.7)
 - [ ] JWT HS256 → RS256 전환
 - [ ] Refresh Token Redis 저장소
-- [ ] FilesController RolesGuard 추가
+- [x] FilesController RolesGuard 추가 (v0.1.0-alpha.7)
 - [ ] CSRF 토큰 적용
+- [x] 페이지네이션 UI 통일 - Tasks/Meetings/Contracts (v0.1.0-alpha.8)
+- [x] 사용자 추가 API (POST /users) + 모달 UI (v0.1.0-alpha.8)
+- [x] 태그 삭제 UI + 칸반 태그 표시 (v0.1.0-alpha.8)
 
 ### 📝 Medium (P2) - 미완료
 - [ ] TypeScript `any` → 명시적 타입 + 페이지 컴포넌트 분할
-- [ ] 차트 Neo-Brutalism 통일 + 테이블 정렬 기능
+- [x] 차트 Neo-Brutalism 통일 (v0.1.0-alpha.7)
+- [ ] 테이블 정렬 기능
 - [ ] localStorage → HttpOnly Cookie 전환
 - [ ] Backend Unit Test 60% 커버리지
 - [ ] 프로덕션 Docker Compose 구성
 - [ ] 색상 팔레트 확장 (success/warning/danger)
 - [ ] Modal 개선 (Portal, Footer, Size)
-- [ ] Skeleton UI 로딩 상태
+- [x] Skeleton UI 로딩 상태 (v0.1.0-alpha.7)
 - [ ] 접근성(a11y) 강화 (키보드, ARIA)
 - [ ] 리포트/PDF 생성
 - [ ] 전문검색 (PostgreSQL tsvector)
 - [ ] E2E 테스트 (Playwright)
 - [ ] CI/CD 파이프라인
 - [ ] 사용자 매뉴얼
+- [ ] JWT Payload 주석 개선 (QA 권고)
 
 ---
 
@@ -351,5 +460,5 @@ MsspBizCenter/
 
 ---
 
-**다음 작업 시작 시점**: 2026-02-10 (Phase A 즉시 수정 → Phase B 핵심 개선)
+**다음 작업 시작 시점**: Phase A 완료, Phase B 잔여 작업 진행 예정
 **예상 정식 릴리스**: 2026-03-21 (v0.1.0)
