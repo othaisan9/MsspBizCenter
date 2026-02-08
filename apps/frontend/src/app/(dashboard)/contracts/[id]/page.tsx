@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 
 interface Contract {
   id: string;
@@ -778,7 +779,7 @@ export default function ContractDetailPage() {
           {contract.description && (
             <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">계약 내용</h3>
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">{contract.description}</p>
+              <MarkdownViewer content={contract.description} />
             </div>
           )}
 
@@ -786,7 +787,7 @@ export default function ContractDetailPage() {
             <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">메모</h3>
               <div className="bg-yellow-50 border-2 border-yellow-700 rounded-md p-4">
-                <p className="text-sm text-gray-800 whitespace-pre-wrap">{contract.memo}</p>
+                <MarkdownViewer content={contract.memo} />
               </div>
             </div>
           )}

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { Textarea } from '@/components/ui/Textarea';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 
 const API_BASE =
@@ -377,13 +378,11 @@ export default function NewMeetingPage() {
           />
 
           {/* 회의 내용 */}
-          <Textarea
+          <MarkdownEditor
             label="회의 내용 / 논의 사항"
-            name="content"
-            rows={8}
-            placeholder={`회의에서 논의된 내용을 상세히 기록하세요\n\n• 주요 결정사항\n• 논의된 의견\n• 추가 검토가 필요한 사항 등`}
+            placeholder="회의에서 논의된 내용을 상세히 기록하세요"
             value={formData.content}
-            onChange={handleChange}
+            onChange={(val) => setFormData((prev) => ({ ...prev, content: val }))}
           />
 
           {/* Action Items */}

@@ -12,6 +12,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { getStatusColor, getStatusLabel, formatDateTime } from '@/lib/utils';
 
 function getMeetingTypeLabel(type: string): string {
@@ -226,9 +227,7 @@ export default function MeetingDetailPage() {
 
       {meeting.content && (
         <Card title="회의 내용">
-          <div className="prose prose-sm max-w-none whitespace-pre-wrap text-gray-700">
-            {meeting.content}
-          </div>
+          <MarkdownViewer content={meeting.content} />
         </Card>
       )}
 

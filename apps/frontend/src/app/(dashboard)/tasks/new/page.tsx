@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { getWeekNumber } from '@/lib/utils';
 
 interface User {
@@ -240,18 +241,13 @@ export default function NewTaskPage() {
               required
             />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
-              <textarea
-                rows={4}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                placeholder="업무 내용을 상세히 입력하세요"
-                value={formData.description}
-                onChange={(e) => handleChange('description', e.target.value)}
-              />
-            </div>
+            <MarkdownEditor
+              label="설명"
+              placeholder="업무 내용을 상세히 입력하세요"
+              value={formData.description}
+              onChange={(val) => handleChange('description', val)}
+              minHeight="150px"
+            />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Input

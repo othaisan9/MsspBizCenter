@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
+import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import {
   getStatusColor,
   getStatusLabel,
@@ -340,7 +342,7 @@ export default function TaskDetailPage() {
 
         {task.description && (
           <Card title="설명">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{task.description}</p>
+            <MarkdownViewer content={task.description} />
           </Card>
         )}
 
@@ -401,17 +403,13 @@ export default function TaskDetailPage() {
               required
             />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                설명
-              </label>
-              <textarea
-                rows={4}
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                value={editForm.description}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-              />
-            </div>
+            <MarkdownEditor
+              label="설명"
+              placeholder="업무 내용을 상세히 입력하세요"
+              value={editForm.description}
+              onChange={(val) => setEditForm({ ...editForm, description: val })}
+              minHeight="150px"
+            />
 
             <div className="grid grid-cols-2 gap-4">
               <Input

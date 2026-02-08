@@ -1,7 +1,7 @@
 # MsspBizCenter 프로젝트 상태
 
 **마지막 업데이트**: 2026-02-08
-**현재 버전**: v0.1.0-alpha.8
+**현재 버전**: v0.1.0-alpha.9
 **개발 브랜치**: `master` (main 브랜치로 PR 예정)
 
 ---
@@ -64,7 +64,7 @@ MsspBizCenter/
 │           │       ├── contracts/# 계약 목록/생성/상세
 │           │       └── settings/ # 설정 (마스터데이터/재무관리/사용자관리/파트너사)
 │           ├── components/
-│           │   ├── ui/           # Button, Input, Select, Badge, Modal, Card, FileUpload, FileList, Breadcrumb
+│           │   ├── ui/           # Button, Input, Select, Badge, Modal, Card, FileUpload, FileList, Breadcrumb, MarkdownEditor, MarkdownViewer
 │           │   ├── layout/       # Sidebar (알림 뱃지), Header
 │           │   ├── charts/       # WeeklyTask, TaskStatus, TaskPriority, MonthlyContract
 │           │   └── tasks/        # KanbanBoard, KanbanColumn, KanbanCard
@@ -85,6 +85,58 @@ MsspBizCenter/
 ---
 
 ## 3. 최근 변경사항
+
+### v0.1.0-alpha.9 - tiptap 리치텍스트 에디터 적용 (2026-02-08)
+
+**담당**: PM 박서연 + 유아이(Frontend) + 송대시(Visualization)
+
+#### 📋 주요 작업
+
+**1. tiptap 에디터 컴포넌트 구축** (유아이)
+- `@tiptap/react` + `@tiptap/starter-kit` + `@tiptap/extension-link` + `@tiptap/extension-placeholder` + `@tiptap/pm` (v3.19.0) 설치
+- `MarkdownEditor.tsx` (210줄) — 리치텍스트 에디터 (9버튼 툴바: B/I/H2/H3/•/1./>/\<\>/Link)
+- `MarkdownViewer.tsx` (53줄) — 읽기 전용 뷰어 (editable:false, prose 클래스)
+- Neo-Brutalism 디자인: border-2 border-gray-800, shadow-brutal-sm, hover:-translate-y-0.5, active 토글(primary-600)
+
+**2. prose Neo-Brutalism 타이포그래피** (송대시)
+- `tailwind.config.ts` typography.DEFAULT.css 커스텀
+- 인라인 코드: 2px border, gray-100 bg, rounded
+- 코드 블록: 2px border, dark bg, brutal-sm shadow
+- 블록인용: 4px left border primary-600, blue-50 bg
+- 테이블: 2px borders, bold headers
+- 링크: primary-600, semibold
+- 이미지: 2px border, brutal-sm shadow
+
+**3. 3개 모듈 에디터 적용** (유아이)
+
+| 모듈 | 생성(new) | 상세([id]) |
+|------|-----------|-----------|
+| Meeting | `content` → MarkdownEditor | `content` → MarkdownViewer |
+| Task | `description` → MarkdownEditor | 표시 → MarkdownViewer, 수정 모달 → MarkdownEditor |
+| Contract | `description` + `memo` → MarkdownEditor ×2 | `description` + `memo` → MarkdownViewer ×2 |
+
+**4. 보안 검증**
+- ProseMirror 스키마 기반 화이트리스트 → script/iframe/img-onerror 자동 제거
+- 별도 DOMPurify 불필요 (StarterKit + Link 스키마만 허용)
+- 빌드: 13/13 페이지 정상 컴파일
+
+#### 📁 수정/생성된 파일
+
+**Frontend** (9파일):
+- `apps/frontend/src/components/ui/MarkdownEditor.tsx` — 신규 (tiptap 에디터)
+- `apps/frontend/src/components/ui/MarkdownViewer.tsx` — 신규 (tiptap 뷰어)
+- `apps/frontend/tailwind.config.ts` — prose typography Neo-Brutalism
+- `apps/frontend/src/app/(dashboard)/meetings/new/page.tsx` — content → MarkdownEditor
+- `apps/frontend/src/app/(dashboard)/meetings/[id]/page.tsx` — content → MarkdownViewer
+- `apps/frontend/src/app/(dashboard)/tasks/new/page.tsx` — description → MarkdownEditor
+- `apps/frontend/src/app/(dashboard)/tasks/[id]/page.tsx` — description → MarkdownViewer + 수정 모달 MarkdownEditor
+- `apps/frontend/src/app/(dashboard)/contracts/new/page.tsx` — description + memo → MarkdownEditor ×2
+- `apps/frontend/src/app/(dashboard)/contracts/[id]/page.tsx` — description + memo → MarkdownViewer ×2
+
+**버전 동기화** (5파일):
+- `VERSION`, `package.json` ×4, `Sidebar.tsx`
+
+---
 
 ### v0.1.0-alpha.8 - 태그 삭제 + 사용자 추가 + 페이지네이션 통일 (2026-02-08)
 
@@ -326,14 +378,15 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - alpha.7: 보안 강화 (Rate Limiting, Helmet, FilesController RolesGuard) + 프론트 품질 (Toast 통일, 무한루프 제거) + 차트 개선 (도넛/수평Bar/접근성)
-  - alpha.8: 태그 삭제 UI + 사용자 추가 풀스택 + 페이지네이션 3페이지 통일
-  - QA 검수: Frontend 95/100, Backend 96.7% — Blocking 이슈 0건
-- **수정한 파일**: Backend 11파일, Frontend 20파일, QA 보고서 2파일
-- **커밋 여부**: ✅ (alpha.7 + alpha.8 각각 커밋 완료)
+  - alpha.9: tiptap 리치텍스트 에디터 도입 (3개 모듈 × 생성/상세 = 6페이지 적용)
+  - MarkdownEditor/Viewer 컴포넌트 + prose Neo-Brutalism 타이포그래피
+  - XSS 보안 검증 완료 (ProseMirror 스키마 화이트리스트)
+  - 빌드 13/13 정상
+- **수정한 파일**: Frontend 9파일 + 버전 5파일 = 14파일
+- **커밋 여부**: ✅
 
 ### 진행 중 작업 (미완료)
-- 없음 (alpha.8 작업 완료, QA 통과)
+- 없음 (alpha.9 tiptap 에디터 적용 완료)
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
@@ -359,11 +412,11 @@ MsspBizCenter/
 |------|------|-----------|----------|
 | **PM** | 박서연 | 요구사항, 일정 관리 | Phase A 완료, Phase B 잔여 조율 중 |
 | **Backend** | 박안도 | API, DB, 서버 로직 | Rate Limit + N+1 최적화 + Users API 완료 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Toast 통일 + 태그 삭제 + 페이지네이션 완료 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | tiptap 에디터 3모듈 적용 완료 ✅ |
 | **Security** | Chloe O'Brian | 보안, 암호화 | Helmet + FilesController RolesGuard 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
 | **QA** | 나검수 | 테스트, 품질 보증 | alpha.8 검수 완료 (FE 95/100, BE 96.7%) ✅ |
-| **Visualization** | 송대시 | 차트, 시각화 | 도넛/수평Bar/접근성 완료 ✅ → 드릴다운 대기 |
+| **Visualization** | 송대시 | 차트, 시각화 | prose Neo-Brutalism 타이포 완료 ✅ → 드릴다운 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
 

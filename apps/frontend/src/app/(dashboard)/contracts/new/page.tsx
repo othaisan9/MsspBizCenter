@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Card } from '@/components/ui/Card';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 
 export default function NewContractPage() {
   const router = useRouter();
@@ -721,31 +722,20 @@ export default function NewContractPage() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              계약 내용
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              rows={6}
-              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-              placeholder="계약 내용을 입력하세요."
-            />
-          </div>
+          <MarkdownEditor
+            label="계약 내용"
+            placeholder="계약 내용을 입력하세요."
+            value={formData.description}
+            onChange={(val) => handleChange('description', val)}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              메모
-            </label>
-            <textarea
-              value={formData.memo}
-              onChange={(e) => handleChange('memo', e.target.value)}
-              rows={3}
-              className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-              placeholder="내부 메모를 입력하세요."
-            />
-          </div>
+          <MarkdownEditor
+            label="메모"
+            placeholder="내부 메모를 입력하세요."
+            value={formData.memo}
+            onChange={(val) => handleChange('memo', val)}
+            minHeight="120px"
+          />
 
           <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">첨부 파일</h3>
