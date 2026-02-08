@@ -147,7 +147,7 @@ export default function MeetingDetailPage() {
   if (error || !meeting) {
     return (
       <div className="space-y-6 max-w-3xl mx-auto">
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-red-50 border-2 border-red-700 text-red-800 px-4 py-3 rounded-md shadow-brutal-sm">
           {error || '회의록을 찾을 수 없습니다.'}
         </div>
         <Button onClick={() => router.back()}>돌아가기</Button>
@@ -243,7 +243,7 @@ export default function MeetingDetailPage() {
         {!meeting.actionItems || meeting.actionItems.length === 0 ? (
           <p className="text-sm text-gray-400">등록된 Action Item이 없습니다.</p>
         ) : (
-          <ul className="divide-y divide-gray-100">
+          <ul className="divide-y-2 divide-gray-800">
             {meeting.actionItems.map((item: any) => (
               <li key={item.id} className="py-3 first:pt-0 last:pb-0">
                 <div className="flex items-start justify-between gap-4">
@@ -262,7 +262,7 @@ export default function MeetingDetailPage() {
                     <select
                       value={item.status}
                       onChange={(e) => handleUpdateActionItemStatus(item.id, e.target.value)}
-                      className="text-xs rounded border-gray-300 focus:border-primary-500 focus:ring-primary-500"
+                      className="text-xs rounded-md border-2 border-gray-800 focus:border-primary-500 focus:ring-primary-500 shadow-brutal-sm"
                     >
                       {ACTION_ITEM_STATUS_OPTIONS.map((opt) => (
                         <option key={opt.value} value={opt.value}>

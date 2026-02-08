@@ -266,7 +266,7 @@ export default function NewMeetingPage() {
       <Card>
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+            <div className="bg-red-50 border-2 border-red-700 text-red-800 px-4 py-3 rounded-md shadow-brutal-sm">
               {error}
             </div>
           )}
@@ -337,10 +337,10 @@ export default function NewMeetingPage() {
                   {activeUsers.map((user) => (
                     <label
                       key={user.id}
-                      className={`flex items-start gap-2 p-3 border rounded cursor-pointer transition-colors ${
+                      className={`flex items-start gap-2 p-3 border-2 rounded-md cursor-pointer transition-all duration-150 ${
                         attendeeIds.includes(user.id)
-                          ? 'border-primary-500 bg-primary-50'
-                          : 'border-gray-300 hover:bg-gray-50'
+                          ? 'border-primary-700 bg-primary-50 shadow-brutal-sm'
+                          : 'border-gray-800 hover:bg-gray-50'
                       }`}
                     >
                       <input
@@ -396,7 +396,7 @@ export default function NewMeetingPage() {
                 <div key={index} className="flex gap-2">
                   <input
                     type="text"
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+                    className="flex-1 border-2 border-gray-800 rounded-md px-4 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm shadow-brutal-sm"
                     placeholder="할 일을 입력하세요"
                     value={item.title}
                     onChange={(e) =>
@@ -404,7 +404,7 @@ export default function NewMeetingPage() {
                     }
                   />
                   <select
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 text-sm"
+                    className="border-2 border-gray-800 rounded-md px-3 py-2 focus:ring-2 focus:ring-primary-500 text-sm shadow-brutal-sm"
                     value={item.assigneeId}
                     onChange={(e) =>
                       handleActionItemChange(index, 'assigneeId', e.target.value)
@@ -419,7 +419,7 @@ export default function NewMeetingPage() {
                   </select>
                   <input
                     type="date"
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 text-sm"
+                    className="border-2 border-gray-800 rounded-md px-3 py-2 focus:ring-2 focus:ring-primary-500 text-sm shadow-brutal-sm"
                     value={item.dueDate}
                     onChange={(e) =>
                       handleActionItemChange(index, 'dueDate', e.target.value)
@@ -462,10 +462,10 @@ export default function NewMeetingPage() {
             </label>
             <div className="flex gap-4">
               <label
-                className={`flex items-center gap-2 p-4 border-2 rounded cursor-pointer transition-colors ${
+                className={`flex items-center gap-2 p-4 border-2 rounded-md cursor-pointer transition-all duration-150 shadow-brutal-sm ${
                   formData.status === 'draft'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-300 hover:bg-gray-50'
+                    ? 'border-primary-700 bg-primary-50'
+                    : 'border-gray-800 hover:bg-gray-50'
                 }`}
               >
                 <input
@@ -482,10 +482,10 @@ export default function NewMeetingPage() {
                 </div>
               </label>
               <label
-                className={`flex items-center gap-2 p-4 border-2 rounded cursor-pointer transition-colors ${
+                className={`flex items-center gap-2 p-4 border-2 rounded-md cursor-pointer transition-all duration-150 shadow-brutal-sm ${
                   formData.status === 'published'
-                    ? 'border-primary-500 bg-primary-50'
-                    : 'border-gray-300 hover:bg-gray-50'
+                    ? 'border-primary-700 bg-primary-50'
+                    : 'border-gray-800 hover:bg-gray-50'
                 }`}
               >
                 <input
@@ -505,7 +505,7 @@ export default function NewMeetingPage() {
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t-2 border-gray-800">
             <Button type="submit" loading={loading}>
               {formData.status === 'draft' ? '초안 저장' : '저장 및 발행'}
             </Button>

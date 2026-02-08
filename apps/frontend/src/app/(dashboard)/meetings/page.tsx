@@ -120,12 +120,12 @@ export default function MeetingsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex bg-gray-100 rounded-lg p-1">
+          <div className="flex bg-gray-100 rounded-md p-1 border-2 border-gray-800">
             <button
               onClick={() => handleViewModeChange('card')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                 viewMode === 'card'
-                  ? 'bg-white text-gray-900 shadow-sm'
+                  ? 'bg-white text-gray-900 shadow-brutal-sm border-2 border-gray-800'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
               title="카드 뷰"
@@ -136,9 +136,9 @@ export default function MeetingsPage() {
             </button>
             <button
               onClick={() => handleViewModeChange('table')}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-150 ${
                 viewMode === 'table'
-                  ? 'bg-white text-gray-900 shadow-sm'
+                  ? 'bg-white text-gray-900 shadow-brutal-sm border-2 border-gray-800'
                   : 'text-gray-600 hover:text-gray-900'
               }`}
               title="테이블 뷰"
@@ -210,7 +210,7 @@ export default function MeetingsPage() {
               {meetings.map((meeting) => (
                 <Card
                   key={meeting.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className="cursor-pointer hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
                   onClick={() => router.push(`/meetings/${meeting.id}`)}
                 >
                   <div className="space-y-3">
@@ -259,8 +259,8 @@ export default function MeetingsPage() {
           ) : (
             <Card>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y-2 divide-gray-800">
+                  <thead className="bg-gray-100">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         제목
@@ -282,12 +282,12 @@ export default function MeetingsPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y-2 divide-gray-800">
                     {meetings.map((meeting) => (
                       <tr
                         key={meeting.id}
                         onClick={() => router.push(`/meetings/${meeting.id}`)}
-                        className="hover:bg-gray-50 cursor-pointer transition-colors"
+                        className="hover:bg-gray-100 cursor-pointer transition-all duration-150"
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{meeting.title}</div>

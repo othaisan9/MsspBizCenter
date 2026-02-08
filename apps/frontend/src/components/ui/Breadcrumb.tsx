@@ -23,14 +23,14 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
         return (
           <div key={index} className="flex items-center space-x-2">
             {index > 0 && (
-              <span className="text-gray-400">/</span>
+              <span className="text-gray-600 font-bold">/</span>
             )}
             {isLast ? (
-              <span className="font-semibold text-gray-900">{item.label}</span>
+              <span className="font-bold text-gray-900 bg-gray-100 px-2 py-0.5 rounded-md border border-gray-800">{item.label}</span>
             ) : item.href ? (
               <button
                 onClick={() => router.push(item.href!)}
-                className="text-primary-600 hover:underline focus:outline-none"
+                className="text-primary-700 font-medium hover:bg-primary-50 px-2 py-0.5 rounded-md transition-colors focus:outline-none"
               >
                 {item.label}
               </button>

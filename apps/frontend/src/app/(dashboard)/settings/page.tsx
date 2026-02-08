@@ -547,15 +547,15 @@ export default function SettingsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
+      <div className="border-b-2 border-gray-800 mb-6">
         <nav className="flex space-x-8">
           <button
             onClick={() => setActiveTab('master-data')}
             className={`
               py-4 px-1 border-b-2 font-medium text-sm transition-colors
               ${activeTab === 'master-data'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-primary-600 text-primary-600 font-bold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-400'
               }
             `}
           >
@@ -566,8 +566,8 @@ export default function SettingsPage() {
             className={`
               py-4 px-1 border-b-2 font-medium text-sm transition-colors
               ${activeTab === 'finance'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-primary-600 text-primary-600 font-bold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-400'
               }
             `}
           >
@@ -578,8 +578,8 @@ export default function SettingsPage() {
             className={`
               py-4 px-1 border-b-2 font-medium text-sm transition-colors
               ${activeTab === 'users'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-primary-600 text-primary-600 font-bold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-400'
               }
             `}
           >
@@ -590,8 +590,8 @@ export default function SettingsPage() {
             className={`
               py-4 px-1 border-b-2 font-medium text-sm transition-colors
               ${activeTab === 'partners'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                ? 'border-primary-600 text-primary-600 font-bold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-400'
               }
             `}
           >
@@ -635,7 +635,7 @@ export default function SettingsPage() {
                 const isExpanded = expandedProducts.has(product.id);
 
                 return (
-                  <Card key={product.id} className="hover:shadow-md transition-shadow">
+                  <Card key={product.id} className="hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150">
                     <div className="space-y-3">
                       {/* Product Header */}
                       <div className="flex items-start justify-between">
@@ -697,7 +697,7 @@ export default function SettingsPage() {
 
                       {/* Expanded Options */}
                       {isExpanded && (
-                        <div className="border-t pt-3 mt-3">
+                        <div className="border-t-2 border-gray-800 pt-3 mt-3">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-sm font-medium text-gray-700">구성 옵션</h4>
                             <Button
@@ -810,7 +810,7 @@ export default function SettingsPage() {
                           <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
                         </tr>
                       </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
+                      <tbody className="bg-white divide-y-2 divide-gray-800">
                         {contracts.map((contract) => {
                           const totalPurchase = contract.contractProducts?.reduce((sum, cp) => sum + (cp.purchasePrice || 0), 0) || 0;
                           const totalSelling = contract.contractProducts?.reduce((sum, cp) => sum + (cp.sellingPrice || 0), 0) || 0;
@@ -818,7 +818,7 @@ export default function SettingsPage() {
                           const marginRate = totalSelling > 0 ? (margin / totalSelling) * 100 : 0;
 
                           return (
-                            <tr key={contract.id} className="hover:bg-gray-50">
+                            <tr key={contract.id} className="hover:bg-gray-100">
                               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{contract.partyB}</td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{contract.title}</td>
                               <td className="px-6 py-4 text-sm text-gray-900">
@@ -871,7 +871,7 @@ export default function SettingsPage() {
 
                   {/* Pagination */}
                   {contractsTotal > contractsPerPage && (
-                    <div className="flex items-center justify-between border-t border-gray-200 px-6 py-3">
+                    <div className="flex items-center justify-between border-t-2 border-gray-800 px-6 py-3">
                       <div className="text-sm text-gray-700">
                         총 {contractsTotal}개 중 {(contractsPage - 1) * contractsPerPage + 1}-{Math.min(contractsPage * contractsPerPage, contractsTotal)}개 표시
                       </div>
@@ -922,8 +922,8 @@ export default function SettingsPage() {
           ) : (
             <Card>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y-2 divide-gray-800">
+                  <thead className="bg-gray-100">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이메일</th>
@@ -933,12 +933,12 @@ export default function SettingsPage() {
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y-2 divide-gray-800">
                     {users.map((user) => {
                       const isSelf = currentUser?.id === user.id;
 
                       return (
-                        <tr key={user.id} className="hover:bg-gray-50">
+                        <tr key={user.id} className="hover:bg-gray-100">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {user.name}
                             {isSelf && <span className="ml-2 text-xs text-gray-500">(나)</span>}
@@ -1155,9 +1155,9 @@ export default function SettingsPage() {
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">액션</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y-2 divide-gray-800">
                       {partners.map((partner) => (
-                        <tr key={partner.id} className="hover:bg-gray-50">
+                        <tr key={partner.id} className="hover:bg-gray-100">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{partner.name}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{partner.contactName || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{partner.contactPhone || '-'}</td>

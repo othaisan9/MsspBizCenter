@@ -142,12 +142,12 @@ export default function TasksPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex bg-gray-100 rounded-md p-1 border-2 border-gray-800">
               <button
                 onClick={() => setViewMode('list')}
                 className={`
-                  px-3 py-1.5 text-sm font-medium rounded-md transition-colors
-                  ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}
+                  px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-150
+                  ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-brutal-sm border-2 border-gray-800' : 'text-gray-600 hover:text-gray-900'}
                 `}
               >
                 <svg className="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -158,8 +158,8 @@ export default function TasksPage() {
               <button
                 onClick={() => setViewMode('kanban')}
                 className={`
-                  px-3 py-1.5 text-sm font-medium rounded-md transition-colors
-                  ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'}
+                  px-3 py-1.5 text-sm font-medium rounded-md transition-all duration-150
+                  ${viewMode === 'kanban' ? 'bg-white text-gray-900 shadow-brutal-sm border-2 border-gray-800' : 'text-gray-600 hover:text-gray-900'}
                 `}
               >
                 <svg className="w-5 h-5 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -216,13 +216,13 @@ export default function TasksPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border-2 border-red-700 rounded-md shadow-brutal-sm">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
 
       {viewMode === 'kanban' ? (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-md shadow-brutal border-2 border-gray-800 p-6">
           {loading ? (
             <div className="text-center py-12">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
@@ -264,8 +264,8 @@ export default function TasksPage() {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y-2 divide-gray-800">
+                <thead className="bg-gray-100">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       제목
@@ -287,12 +287,12 @@ export default function TasksPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y-2 divide-gray-800">
                   {tasks.map((task) => (
                     <tr
                       key={task.id}
                       onClick={() => handleRowClick(task.id)}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                      className="hover:bg-gray-100 cursor-pointer transition-all duration-150"
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{task.title}</div>
@@ -328,7 +328,7 @@ export default function TasksPage() {
             </div>
 
             {meta.totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
+              <div className="flex items-center justify-between px-6 py-4 border-t-2 border-gray-800">
                 <div className="text-sm text-gray-700">
                   전체 {meta.total}개 중 {(meta.page - 1) * meta.limit + 1}-
                   {Math.min(meta.page * meta.limit, meta.total)}개 표시

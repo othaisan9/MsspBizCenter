@@ -223,7 +223,7 @@ export default function NewTaskPage() {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mb-4 p-4 bg-red-50 border-2 border-red-700 rounded-md shadow-brutal-sm">
           <p className="text-sm text-red-600">{error}</p>
         </div>
       )}
@@ -246,7 +246,7 @@ export default function NewTaskPage() {
               </label>
               <textarea
                 rows={4}
-                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                 placeholder="업무 내용을 상세히 입력하세요"
                 value={formData.description}
                 onChange={(e) => handleChange('description', e.target.value)}
@@ -334,10 +334,10 @@ export default function NewTaskPage() {
                     key={preset}
                     type="button"
                     onClick={() => handleTagPresetToggle(preset)}
-                    className={`px-3 py-1 rounded-full text-sm border cursor-pointer transition-colors ${
+                    className={`px-3 py-1 rounded-md text-sm border-2 cursor-pointer transition-all duration-150 ${
                       isPresetSelected(preset)
-                        ? 'bg-primary-100 text-primary-700 border-primary-300'
-                        : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                        ? 'bg-primary-100 text-primary-800 border-primary-700 shadow-brutal-sm'
+                        : 'bg-gray-100 text-gray-700 border-gray-800 hover:bg-gray-200'
                     }`}
                   >
                     {preset}

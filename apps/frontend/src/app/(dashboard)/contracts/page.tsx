@@ -170,7 +170,7 @@ export default function ContractsPage() {
       {dashboardStats && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card
-            className="bg-blue-50 border-blue-200 cursor-pointer hover:shadow-md transition-shadow"
+            className="bg-blue-50 border-2 border-blue-700 cursor-pointer hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
             onClick={() => {
               setStatusFilter('');
               setPage(1);
@@ -190,7 +190,7 @@ export default function ContractsPage() {
           </Card>
 
           <Card
-            className="bg-green-50 border-green-200 cursor-pointer hover:shadow-md transition-shadow"
+            className="bg-green-50 border-2 border-green-700 cursor-pointer hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
             onClick={() => {
               setStatusFilter('active');
               setPage(1);
@@ -211,10 +211,10 @@ export default function ContractsPage() {
 
           <Card
             className={cn(
-              'border-2 cursor-pointer hover:shadow-md transition-shadow',
+              'border-2 cursor-pointer hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150',
               dashboardStats.expiring.within7Days > 0
-                ? 'bg-red-50 border-red-200'
-                : 'bg-yellow-50 border-yellow-200'
+                ? 'bg-red-50 border-red-700'
+                : 'bg-yellow-50 border-yellow-700'
             )}
             onClick={() => {
               setStatusFilter('');
@@ -264,7 +264,7 @@ export default function ContractsPage() {
           </Card>
 
           <Card
-            className="bg-gray-50 border-gray-200 cursor-pointer hover:shadow-md transition-shadow"
+            className="bg-gray-50 border-2 border-gray-800 cursor-pointer hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150"
             onClick={() => {
               setStatusFilter('');
               setPage(1);
@@ -286,7 +286,7 @@ export default function ContractsPage() {
       )}
 
       {expiring.length > 0 && (
-        <Card className="bg-yellow-50 border-yellow-200">
+        <Card className="bg-yellow-50 border-2 border-yellow-700">
           <div className="flex items-start space-x-3">
             <svg className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -313,7 +313,7 @@ export default function ContractsPage() {
       )}
 
       {error && (
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-red-50 border-2 border-red-700">
           <p className="text-sm text-red-800">{error}</p>
         </Card>
       )}
@@ -371,8 +371,8 @@ export default function ContractsPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y-2 divide-gray-800">
+                  <thead className="bg-gray-100">
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         계약명
@@ -397,7 +397,7 @@ export default function ContractsPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y-2 divide-gray-800">
                     {contracts.map((contract) => {
                       const getRemainingDays = () => {
                         if (!contract.endDate) return null;
@@ -432,7 +432,7 @@ export default function ContractsPage() {
                         <tr
                           key={contract.id}
                           onClick={() => handleRowClick(contract.id)}
-                          className="hover:bg-gray-50 cursor-pointer transition-colors"
+                          className="hover:bg-gray-100 cursor-pointer transition-colors"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{contract.title}</div>
@@ -469,7 +469,7 @@ export default function ContractsPage() {
                 </table>
               </div>
 
-              <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+              <div className="flex items-center justify-between border-t-2 border-gray-800 pt-4">
                 <div className="text-sm text-gray-700">
                   전체 {total}건 중 {(page - 1) * limit + 1}-{Math.min(page * limit, total)}건 표시
                 </div>

@@ -116,9 +116,9 @@ export default function FileUpload({
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
+          border-2 border-dashed rounded-md p-8 text-center cursor-pointer
           transition-colors
-          ${isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
+          ${isDragOver ? 'border-primary-600 bg-primary-50' : 'border-gray-800 hover:border-gray-600 hover:bg-gray-50'}
         `}
       >
         <input
@@ -145,7 +145,7 @@ export default function FileUpload({
           {files.map((file, index) => (
             <div
               key={`${file.name}-${index}`}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              className="flex items-center justify-between p-3 bg-gray-50 rounded-md border-2 border-gray-800"
             >
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <span className="text-2xl">{getFileIcon(file)}</span>
@@ -157,9 +157,9 @@ export default function FileUpload({
                     {formatFileSize(file.size)}
                   </p>
                   {uploadProgress[file.name] !== undefined && (
-                    <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                    <div className="mt-1 w-full bg-gray-200 rounded-md border border-gray-800 h-1">
                       <div
-                        className="bg-blue-500 h-1 rounded-full transition-all"
+                        className="bg-primary-600 h-1 rounded-md transition-all"
                         style={{ width: `${uploadProgress[file.name]}%` }}
                       />
                     </div>
@@ -181,11 +181,11 @@ export default function FileUpload({
             onClick={uploadFiles}
             disabled={uploading}
             className={`
-              w-full py-2 px-4 rounded-lg font-medium transition-colors
+              w-full py-2 px-4 rounded-md border-2 font-bold transition-all
               ${
                 uploading
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed border-gray-400 shadow-none'
+                  : 'bg-primary-600 text-white hover:bg-primary-700 border-gray-800 shadow-brutal hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px]'
               }
             `}
           >

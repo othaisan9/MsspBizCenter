@@ -306,7 +306,7 @@ export default function NewContractPage() {
       </div>
 
       {error && (
-        <Card className="bg-red-50 border-red-200 mb-6">
+        <Card className="bg-red-50 border-2 border-red-700 mb-6">
           <p className="text-sm text-red-800">{error}</p>
         </Card>
       )}
@@ -456,10 +456,10 @@ export default function NewContractPage() {
           )}
 
           {isFinanceUser && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">재무 정보 (Admin 권한)</h3>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="bg-blue-50 border-2 border-blue-700 rounded-md p-4 mb-4">
                 <h4 className="text-sm font-semibold text-blue-900 mb-3">매입 정보</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
@@ -485,7 +485,7 @@ export default function NewContractPage() {
                 </div>
               </div>
 
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+              <div className="bg-green-50 border-2 border-green-700 rounded-md p-4 mb-4">
                 <h4 className="text-sm font-semibold text-green-900 mb-3">판매 정보</h4>
                 <div className="space-y-4">
                   <Input
@@ -507,7 +507,7 @@ export default function NewContractPage() {
                   </label>
 
                   {formData.hasPartner && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-6 border-l-2 border-green-300">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-6 border-l-2 border-green-700">
                       <Input
                         label="파트너사명"
                         value={formData.partnerName}
@@ -542,7 +542,7 @@ export default function NewContractPage() {
                 </div>
               </div>
 
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="bg-purple-50 border-2 border-purple-700 rounded-md p-4">
                 <h4 className="text-sm font-semibold text-purple-900 mb-3">마진 분석</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
@@ -576,7 +576,7 @@ export default function NewContractPage() {
             </div>
           )}
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">공급 제품 및 구성</h3>
             <p className="text-sm text-gray-600 mb-4">계약에 포함되는 제품과 구성(옵션)을 선택하세요.</p>
 
@@ -653,7 +653,7 @@ export default function NewContractPage() {
             </Button>
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">담당자 정보</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Select
@@ -688,7 +688,7 @@ export default function NewContractPage() {
             </div>
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">알림 설정</h3>
             <div className="space-y-2">
               <label className="flex items-center space-x-2">
@@ -747,7 +747,7 @@ export default function NewContractPage() {
             />
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">첨부 파일</h3>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">

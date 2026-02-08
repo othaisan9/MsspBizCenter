@@ -23,6 +23,18 @@ const config: Config = {
           950: '#172554',
         },
       },
+      boxShadow: {
+        'brutal': '4px 4px 0px 0px #d1d5db',
+        'brutal-sm': '2px 2px 0px 0px #d1d5db',
+        'brutal-md': '3px 3px 0px 0px #d1d5db',
+        'brutal-lg': '6px 6px 0px 0px #d1d5db',
+        'brutal-primary': '4px 4px 0px 0px #bfdbfe',
+        'brutal-hover': '2px 2px 0px 0px #d1d5db',
+        'brutal-none': '0px 0px 0px 0px #d1d5db',
+      },
+      borderWidth: {
+        '3': '3px',
+      },
     },
   },
   plugins: [

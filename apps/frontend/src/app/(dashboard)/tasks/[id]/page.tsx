@@ -209,7 +209,7 @@ export default function TaskDetailPage() {
   if (error && !task) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="p-4 bg-red-50 border-2 border-red-700 rounded-md shadow-brutal-sm">
           <p className="text-sm text-red-600">{error}</p>
           <Button
             variant="secondary"
@@ -252,7 +252,7 @@ export default function TaskDetailPage() {
         </div>
 
         {error && task && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 border-2 border-red-700 rounded-md shadow-brutal-sm">
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
@@ -383,7 +383,7 @@ export default function TaskDetailPage() {
               </label>
               <textarea
                 rows={4}
-                className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
                 value={editForm.description}
                 onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
               />

@@ -354,7 +354,7 @@ export default function ContractDetailPage() {
   if (error || !contract) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-red-50 border-2 border-red-700">
           <p className="text-sm text-red-800">{error || '계약을 찾을 수 없습니다.'}</p>
           <Button variant="secondary" size="sm" onClick={() => router.push('/contracts')} className="mt-4">
             목록으로
@@ -451,7 +451,7 @@ export default function ContractDetailPage() {
             )}
           </div>
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">계약 정보</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -526,12 +526,12 @@ export default function ContractDetailPage() {
           </div>
 
           {canViewAmount && (contract.purchasePrice !== undefined || contract.sellingPrice !== undefined) && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">재무 정보</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {contract.purchasePrice !== undefined && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="bg-blue-50 border-2 border-blue-700 rounded-md p-4">
                     <h4 className="text-sm font-semibold text-blue-900 mb-3">매입 정보</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -548,7 +548,7 @@ export default function ContractDetailPage() {
                               {contract.purchaseCommissionRate}%
                             </span>
                           </div>
-                          <div className="flex justify-between border-t border-blue-300 pt-2">
+                          <div className="flex justify-between border-t-2 border-blue-700 pt-2">
                             <span className="text-xs text-gray-600 font-semibold">실제 매입가</span>
                             <span className="text-sm font-bold text-blue-900">
                               {(contract.purchasePrice * (1 + contract.purchaseCommissionRate / 100)).toLocaleString()} 원
@@ -561,7 +561,7 @@ export default function ContractDetailPage() {
                 )}
 
                 {contract.sellingPrice !== undefined && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="bg-green-50 border-2 border-green-700 rounded-md p-4">
                     <h4 className="text-sm font-semibold text-green-900 mb-3">판매 정보</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -587,7 +587,7 @@ export default function ContractDetailPage() {
                           </span>
                         </div>
                       )}
-                      <div className="flex justify-between border-t border-green-300 pt-2">
+                      <div className="flex justify-between border-t-2 border-green-700 pt-2">
                         <span className="text-xs text-gray-600 font-semibold">실제 판매가</span>
                         <span className="text-sm font-bold text-green-900">
                           {(() => {
@@ -609,7 +609,7 @@ export default function ContractDetailPage() {
               </div>
 
               {contract.purchasePrice !== undefined && contract.sellingPrice !== undefined && (
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+                <div className="bg-purple-50 border-2 border-purple-700 rounded-md p-4 mt-4">
                   <h4 className="text-sm font-semibold text-purple-900 mb-3">마진 분석</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {(() => {
@@ -669,7 +669,7 @@ export default function ContractDetailPage() {
           )}
 
           {(contract.internalManager || contract.partyBContact) && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">담당자 정보</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {contract.internalManager && (
@@ -698,7 +698,7 @@ export default function ContractDetailPage() {
           )}
 
           {(contract.notifyBefore30Days || contract.notifyBefore7Days || contract.notifyOnExpiry) && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">알림 설정</h3>
               <div className="flex flex-wrap gap-2">
                 {contract.notifyBefore30Days && (
@@ -715,7 +715,7 @@ export default function ContractDetailPage() {
           )}
 
           {contract.contractProducts && contract.contractProducts.length > 0 && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">공급 제품</h3>
               <div className="space-y-4">
                 {(() => {
@@ -748,7 +748,7 @@ export default function ContractDetailPage() {
                         <div className={cn(colors.light, 'p-4')}>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {items.map((item) => (
-                              <div key={item.id} className={cn('bg-white rounded-lg p-4 border', colors.border)}>
+                              <div key={item.id} className={cn('bg-white rounded-md p-4 border-2', colors.border)}>
                                 <div className="text-xs text-gray-500 mb-1">
                                   {item.productOption?.name || '기본 구성'}
                                 </div>
@@ -769,29 +769,29 @@ export default function ContractDetailPage() {
           )}
 
           {!contract.contractProducts || contract.contractProducts.length === 0 && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">공급 제품</h3>
               <p className="text-sm text-gray-500">등록된 공급 제품이 없습니다.</p>
             </div>
           )}
 
           {contract.description && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">계약 내용</h3>
               <p className="text-sm text-gray-700 whitespace-pre-wrap">{contract.description}</p>
             </div>
           )}
 
           {contract.memo && (
-            <div className="border-t pt-6">
+            <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">메모</h3>
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="bg-yellow-50 border-2 border-yellow-700 rounded-md p-4">
                 <p className="text-sm text-gray-800 whitespace-pre-wrap">{contract.memo}</p>
               </div>
             </div>
           )}
 
-          <div className="border-t pt-6">
+          <div className="border-t-2 border-gray-800 pt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">메타데이터</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
               <div>
@@ -815,7 +815,7 @@ export default function ContractDetailPage() {
         <Card title="변경 이력">
           <div className="space-y-4">
             {history.map((entry) => (
-              <div key={entry.id} className="flex space-x-4 pb-4 border-b last:border-b-0">
+              <div key={entry.id} className="flex space-x-4 pb-4 border-b-2 border-gray-800 last:border-b-0">
                 <div className="flex-shrink-0">
                   <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                     <svg className="w-5 h-5 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -905,7 +905,7 @@ export default function ContractDetailPage() {
               {files.map((file) => (
                 <div
                   key={file.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors"
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-md border-2 border-gray-800 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
                     <span className="text-2xl flex-shrink-0">{getFileIcon(file.filename)}</span>

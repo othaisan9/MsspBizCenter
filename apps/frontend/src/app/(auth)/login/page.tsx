@@ -39,17 +39,17 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center mx-auto mb-4">
+          <div className="w-12 h-12 bg-primary-600 rounded-md flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-lg">M</span>
           </div>
           <h1 className="text-2xl font-bold text-gray-900">MsspBizCenter</h1>
           <p className="text-sm text-gray-500 mt-1">팀 업무포털에 로그인하세요</p>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-md shadow-brutal-lg border-2 border-gray-800 p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm">
+              <div className="p-3 rounded-md bg-red-50 border-2 border-red-700 text-red-700 text-sm">
                 {error}
               </div>
             )}

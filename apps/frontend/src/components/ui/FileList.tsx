@@ -128,7 +128,7 @@ export default function FileList({
         {files.map((file) => (
           <div
             key={file.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex items-center justify-between p-3 bg-gray-50 rounded-md border-2 border-gray-800 hover:bg-gray-100 hover:shadow-brutal-sm transition-all"
           >
             <div className="flex items-center space-x-3 flex-1 min-w-0">
               <span className="text-2xl">{getFileIcon(file.mimeType)}</span>
@@ -139,7 +139,7 @@ export default function FileList({
                       ? handlePreview(file)
                       : handleDownload(file)
                   }
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block text-left"
+                  className="text-sm font-medium text-gray-900 hover:text-primary-700 truncate block text-left"
                 >
                   {file.originalName}
                 </button>
@@ -151,14 +151,14 @@ export default function FileList({
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleDownload(file)}
-                className="text-blue-500 hover:text-blue-700 px-2 py-1 text-sm"
+                className="text-primary-700 hover:text-primary-900 font-bold px-2 py-1 text-sm"
                 title="다운로드"
               >
                 ⬇
               </button>
               <button
                 onClick={() => handleDelete(file.id)}
-                className="text-red-500 hover:text-red-700 px-2 py-1 text-sm"
+                className="text-red-700 hover:text-red-900 font-bold px-2 py-1 text-sm"
                 title="삭제"
               >
                 ✕
@@ -174,7 +174,7 @@ export default function FileList({
           onClick={() => setPreviewFile(null)}
         >
           <div className="max-w-4xl max-h-[90vh] p-4">
-            <div className="bg-white rounded-lg p-4">
+            <div className="bg-white rounded-md border-2 border-gray-800 shadow-brutal-lg p-4">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-semibold truncate">
                   {previewFile.originalName}

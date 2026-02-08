@@ -91,10 +91,10 @@ export function Sidebar() {
   }, [loadExpiringContracts]);
 
   return (
-    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r border-gray-200">
-      <div className="flex items-center h-16 px-6 border-b border-gray-200">
+    <aside className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 bg-white border-r-2 border-gray-800">
+      <div className="flex items-center h-16 px-6 border-b-2 border-gray-800">
         <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary-600 rounded-md border-2 border-gray-800 flex items-center justify-center">
             <span className="text-white font-bold text-sm">M</span>
           </div>
           <span className="text-lg font-bold text-gray-900">MsspBiz</span>
@@ -115,21 +115,21 @@ export function Sidebar() {
 
           return (
             <div key={item.name}>
-              {item.divider && <div className="border-t border-gray-200 my-2" />}
+              {item.divider && <div className="border-t-2 border-gray-800 my-2" />}
               <Link
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-primary-50 text-primary-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                    ? 'bg-primary-100 text-primary-800 border-2 border-gray-800 shadow-brutal-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
                 )}
               >
                 {item.icon}
                 <span className="flex-1">{item.name}</span>
                 {showBadge && (
                   <span className={cn(
-                    'w-5 h-5 text-xs font-bold text-white rounded-full flex items-center justify-center',
+                    'w-5 h-5 text-xs font-bold text-white rounded-md flex items-center justify-center',
                     badgeColor
                   )}>
                     {badgeCount}
@@ -141,7 +141,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="px-4 py-3 border-t border-gray-200">
+      <div className="px-4 py-3 border-t-2 border-gray-800">
         <p className="text-xs text-gray-400">v0.1.0-alpha.6</p>
       </div>
     </aside>
