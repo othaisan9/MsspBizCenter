@@ -213,37 +213,39 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - Soft Neo-Brutalism 디자인 시스템 전환 (유아이 × 4 병렬 에이전트)
-  - Foundation: tailwind.config.ts (brutal shadow 6종) + globals.css (@layer base)
-  - UI 컴포넌트 11종 + 페이지 12라우트 + 로그인 = 25파일 전환
-  - 빌드 검증 통과 (3/3)
-  - Docker 재기동 완료
-- **수정한 파일**: Frontend 25파일 (+228/-169)
-- **커밋 여부**: ✅ `ceb8268` + 푸시 완료
+  - 개발팀 4부서 병렬 심층 분석 (코드 변경 없음, 분석만)
+  - 유아이(Frontend/UI/UX): 7.1/10 — 무한루프 위험, 에러 처리 불일치
+  - 송대시(시각화): 7.4/10 — 차트 접근성, 인터랙션 부족
+  - 박안도(Backend): 7.8/10 — N+1 쿼리, 캐싱 부재, 테스트 0%
+  - Chloe+배포준(보안/인프라): 5.5/10 — JWT Secret, localStorage 토큰, Rate Limit 전무
+- **수정한 파일**: 없음 (분석 보고서만)
+- **커밋 여부**: ❌ (코드 변경 없음)
 
 ### 진행 중 작업 (미완료)
-- 없음
+- 없음 (분석 완료, 구현 대기)
 
-### 다음 세션 TODO
+### 다음 세션 TODO (PM 종합 우선순위)
 
-**우선순위 1 (보안 강화 - QA 권고)**:
-1. JWT HS256 → RS256 전환 (비대칭키)
-2. Refresh Token Redis 저장소 구현
-3. FilesController RolesGuard 추가 (DELETE 권한 제한)
-4. MIME 타입 화이트리스트 강화
-5. Rate Limiting (ThrottlerModule)
+**Phase A: 즉시 수정 (공수 ~10h)**:
+1. useEffect/useCallback 무한 루프 제거 — Sidebar, Dashboard, Contracts (유아이, 2h)
+2. 에러 처리 toast 전역 통일 (유아이, 4h)
+3. JWT Secret 재생성 + .env Git 이력 제거 (Chloe, 1h)
+4. Rate Limiting @nestjs/throttler 추가 (박안도, 3h)
 
-**우선순위 2 (고급 기능)**:
-1. 리포트/PDF 생성
-2. 전문검색 (PostgreSQL tsvector)
-3. Sub-Task 기능
-4. Excel 다운로드
+**Phase B: 핵심 개선 (~58h)**:
+1. 공통 컴포넌트 추출 — Pagination, Table, EmptyState (유아이, 8h)
+2. SWR 데이터 fetching 표준화 (유아이, 12h)
+3. 파이→도넛 전환 + Priority 수평 Bar + 차트 접근성 (송대시, 6h)
+4. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
+5. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h)
+6. N+1 쿼리 최적화 + Redis 캐싱 (박안도, 12h)
+7. 파일 업로드 MIME/크기 제한 + Helmet (Chloe, 4h)
 
-**우선순위 3 (인프라/QA)**:
-1. E2E 테스트 (Playwright)
-2. CI/CD 파이프라인 (GitHub Actions)
-3. API 문서 (Swagger 완성)
-4. 사용자 매뉴얼
+**Phase C: 안정화 (~60h)**:
+1. TypeScript any 제거 + 페이지 컴포넌트 분할 (유아이, 16h)
+2. 차트 Neo-Brutalism 통일 + 테이블 정렬 (송대시, 8h)
+3. localStorage→HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
+4. Backend Unit Test 60% 커버리지 (박안도, 20h)
 
 ---
 
@@ -251,13 +253,13 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | GAP 분석 + 전량 구현 완료 ✅ |
-| **Backend** | 박안도 | API, DB, 서버 로직 | Users모듈 + 재무확장 + SQL방어 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Neo-Brutalism 전환 완료 ✅ |
-| **Security** | Chloe O'Brian | 보안, 암호화 | SQL Injection + Swagger 수정 ✅ |
-| **DevOps** | 배포준 | CI/CD, 인프라 | Docker 핫리로드 유지 ✅ |
-| **QA** | 나검수 | 테스트, 품질 보증 | 5종 병렬 검수 완료 ✅ |
-| **Visualization** | 송대시 | 차트, 시각화 | Recharts 4개 차트 유지 ✅ |
+| **PM** | 박서연 | 요구사항, 일정 관리 | 4부서 분석 종합 → Phase A/B/C 도출 ✅ |
+| **Backend** | 박안도 | API, DB, 서버 로직 | 심층 분석 7.8/10 → Phase A4, B5-6 대기 |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 심층 분석 7.1/10 → Phase A1-2, B1-2 대기 |
+| **Security** | Chloe O'Brian | 보안, 암호화 | 심층 분석 5.5/10 → Phase A3, B7 대기 |
+| **DevOps** | 배포준 | CI/CD, 인프라 | 인프라 분석 6/10 → 프로덕션 Docker 대기 |
+| **QA** | 나검수 | 테스트, 품질 보증 | 테스트 커버리지 2/10 → Phase C4 대기 |
+| **Visualization** | 송대시 | 차트, 시각화 | 심층 분석 7.4/10 → Phase B3-4 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
 
@@ -288,24 +290,41 @@ MsspBizCenter/
 - [x] Swagger 프로덕션 비활성화
 - [x] Soft Neo-Brutalism 디자인 시스템 (25파일, 유아이×4 병렬)
 
+### 🔴 CRITICAL (P0.5) - 4부서 분석 신규 발견
+- [ ] useEffect/useCallback 무한 루프 제거 (Sidebar, Dashboard, Contracts)
+- [ ] 에러 처리 toast 전역 통일 (일부만 toast, 나머지 inline)
+- [ ] JWT Secret 재생성 + .env Git 이력 제거
+- [ ] N+1 쿼리 최적화 (목록 조회 불필요한 relation 제거)
+- [ ] Redis 캐싱 도입 (Dashboard Stats, Products)
+
 ### ⚠️ High (P1) - 미완료
+- [ ] Rate Limiting (ThrottlerModule)
+- [ ] 공통 컴포넌트 추출 (Pagination, Table, EmptyState)
+- [ ] SWR 데이터 fetching 표준화
+- [ ] 파이→도넛 차트 + Priority 수평 Bar + 차트 접근성(색맹)
+- [ ] 차트 인터랙션 드릴다운 + 통계 카드 스파크라인
+- [ ] API 응답 형식 통일 + Shared 타입 정의
+- [ ] 파일 업로드 MIME/크기 제한 + Helmet 보안 헤더
 - [ ] JWT HS256 → RS256 전환
 - [ ] Refresh Token Redis 저장소
 - [ ] FilesController RolesGuard 추가
-- [ ] MIME 타입 화이트리스트 강화
-- [ ] Rate Limiting (ThrottlerModule)
 - [ ] CSRF 토큰 적용
-- [ ] XSS 방지 (DOMPurify)
 
 ### 📝 Medium (P2) - 미완료
+- [ ] TypeScript `any` → 명시적 타입 + 페이지 컴포넌트 분할
+- [ ] 차트 Neo-Brutalism 통일 + 테이블 정렬 기능
+- [ ] localStorage → HttpOnly Cookie 전환
+- [ ] Backend Unit Test 60% 커버리지
+- [ ] 프로덕션 Docker Compose 구성
+- [ ] 색상 팔레트 확장 (success/warning/danger)
+- [ ] Modal 개선 (Portal, Footer, Size)
+- [ ] Skeleton UI 로딩 상태
+- [ ] 접근성(a11y) 강화 (키보드, ARIA)
 - [ ] 리포트/PDF 생성
 - [ ] 전문검색 (PostgreSQL tsvector)
-- [ ] Sub-Task 기능
-- [ ] Excel 다운로드
 - [ ] E2E 테스트 (Playwright)
 - [ ] CI/CD 파이프라인
 - [ ] 사용자 매뉴얼
-- [ ] `any` 타입 → 명시적 타입 정의
 
 ---
 
@@ -321,5 +340,16 @@ MsspBizCenter/
 
 ---
 
-**다음 작업 시작 시점**: 2026-02-10 (보안 강화 + Phase 2 고급 기능)
+### 📊 4부서 심층 분석 결과 요약 (2026-02-08)
+
+| 부서 | 담당 | 점수 | 핵심 키워드 |
+|------|------|------|-------------|
+| Frontend/UI/UX | 유아이 | 7.1/10 | 디자인 일관성 양호, 상태관리 취약 |
+| 데이터 시각화 | 송대시 | 7.4/10 | 차트 기본기 양호, 인터랙션/접근성 부족 |
+| Backend API | 박안도 | 7.8/10 | RESTful 우수, 캐싱/테스트 부재 |
+| 보안/인프라 | Chloe+배포준 | 5.5/10 | 기본 프레임워크 구축, 프로덕션 준비 미흡 |
+
+---
+
+**다음 작업 시작 시점**: 2026-02-10 (Phase A 즉시 수정 → Phase B 핵심 개선)
 **예상 정식 릴리스**: 2026-03-21 (v0.1.0)
