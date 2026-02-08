@@ -129,6 +129,13 @@ MsspBizCenter/
 - `Sidebar.tsx`: `[user]` → `[user?.id]` (무한루프 방지)
 - `main.ts`: Swagger 프로덕션 비활성화 (`NODE_ENV !== 'production'`)
 
+**7. Soft Neo-Brutalism 디자인 시스템 전환** (유아이 × 4 병렬)
+- **Foundation**: tailwind.config.ts (brutal shadow 6종 토큰) + globals.css (@layer base 폼 전역 오버라이드)
+- **UI 컴포넌트 11종**: Card, Button, Badge, Modal, Sidebar, Breadcrumb, Input, Select, Textarea, FileUpload, FileList
+- **페이지 12라우트 + 로그인**: 전체 두꺼운 테두리(2px) + 하드섀도우 + press 효과 적용
+- **디자인 원칙**: 두꺼운 테두리(border-2 border-gray-800), 하드 섀도우(no blur), rounded-md, hover translate + shadow 감소, focus ring → shadow-brutal-primary
+- 25개 파일, +228/-169 라인
+
 #### 📁 수정/생성된 파일
 
 **Backend**:
@@ -140,7 +147,7 @@ MsspBizCenter/
 - `apps/backend/src/modules/contracts/contracts.service.ts` - purchasePrice/sellingPrice 암호화 + sortBy 화이트리스트
 - `packages/shared/src/enums/index.ts` - PaymentCycle, CommissionType 추가
 
-**Frontend**:
+**Frontend (기능)**:
 - `apps/frontend/src/lib/api.ts` - usersApi + Audit 경로 수정
 - `apps/frontend/src/components/layout/Sidebar.tsx` - 만료 알림 뱃지 + user?.id 수정
 - `apps/frontend/src/components/ui/Breadcrumb.tsx` - 신규 생성
@@ -154,9 +161,16 @@ MsspBizCenter/
 - `apps/frontend/src/app/(dashboard)/settings/page.tsx` - 4탭 (마스터데이터/재무/사용자/파트너사)
 - 6개 하위 페이지에 Breadcrumb 적용
 
+**Frontend (Neo-Brutalism 디자인)**:
+- `apps/frontend/tailwind.config.ts` - brutal shadow 토큰 6종 + borderWidth
+- `apps/frontend/src/app/globals.css` - @layer base 폼 입력 전역 스타일
+- UI 컴포넌트 11종: Card, Button, Badge, Modal, Sidebar, Breadcrumb, Input, Select, Textarea, FileUpload, FileList
+- 페이지 12라우트 + 로그인: 전체 네오브루탈 스타일 적용
+
 #### 🎯 성과 지표
 - Backend: 10개 모듈 (auth, tasks, meetings, contracts, products, **users**, audit, common, stats, files)
 - Frontend: 13개 라우트 + 4개 차트 + 칸반 보드 + 파일 업로드 + 브레드크럼
+- **디자인**: Soft Neo-Brutalism 전환 완료 (25파일, 유아이 × 4 병렬)
 - 빌드: 3/3 패키지 성공
 - QA: 5종 병렬 검수, 4건 즉시 수정 완료
 
@@ -199,17 +213,16 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - 목업 vs 구현 GAP 분석 (병렬 에이전트 3대)
-  - CRITICAL 5건 + HIGH 4건 + MEDIUM 2건 = 총 11건 기능 구현 (병렬 에이전트)
-  - QA 5종 병렬 검수 (Frontend/Backend/API통합/UI·UX/보안)
-  - QA 발견 즉시 수정 4건 (SQL Injection, Audit경로, Sidebar루프, Swagger)
-  - 버전 업 v0.1.0-alpha.6
-  - 최종 빌드 검증 통과 (3/3)
-- **수정한 파일**: Backend 7파일, Frontend 12파일, Shared 1파일
-- **커밋 여부**: ✅ 커밋 예정
+  - Soft Neo-Brutalism 디자인 시스템 전환 (유아이 × 4 병렬 에이전트)
+  - Foundation: tailwind.config.ts (brutal shadow 6종) + globals.css (@layer base)
+  - UI 컴포넌트 11종 + 페이지 12라우트 + 로그인 = 25파일 전환
+  - 빌드 검증 통과 (3/3)
+  - Docker 재기동 완료
+- **수정한 파일**: Frontend 25파일 (+228/-169)
+- **커밋 여부**: ✅ `ceb8268` + 푸시 완료
 
 ### 진행 중 작업 (미완료)
-- 없음 (GAP 분석 항목 전량 완료)
+- 없음
 
 ### 다음 세션 TODO
 
@@ -240,7 +253,7 @@ MsspBizCenter/
 |------|------|-----------|----------|
 | **PM** | 박서연 | 요구사항, 일정 관리 | GAP 분석 + 전량 구현 완료 ✅ |
 | **Backend** | 박안도 | API, DB, 서버 로직 | Users모듈 + 재무확장 + SQL방어 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 11건 기능 + 브레드크럼 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | Neo-Brutalism 전환 완료 ✅ |
 | **Security** | Chloe O'Brian | 보안, 암호화 | SQL Injection + Swagger 수정 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | Docker 핫리로드 유지 ✅ |
 | **QA** | 나검수 | 테스트, 품질 보증 | 5종 병렬 검수 완료 ✅ |
@@ -273,6 +286,7 @@ MsspBizCenter/
 - [x] 브레드크럼 (6개 하위 페이지)
 - [x] SQL Injection 방어 (sortBy 화이트리스트)
 - [x] Swagger 프로덕션 비활성화
+- [x] Soft Neo-Brutalism 디자인 시스템 (25파일, 유아이×4 병렬)
 
 ### ⚠️ High (P1) - 미완료
 - [ ] JWT HS256 → RS256 전환
