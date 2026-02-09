@@ -62,6 +62,22 @@ export class WeeklyReportDto {
   weekNumber: number;
 }
 
+export class ListModelsDto {
+  @ApiProperty({ description: 'AI 프로바이더', example: 'anthropic' })
+  @IsString()
+  provider: string;
+
+  @ApiPropertyOptional({ description: 'API 키 (ollama 제외)' })
+  @IsOptional()
+  @IsString()
+  apiKey?: string;
+
+  @ApiPropertyOptional({ description: 'Ollama 서버 URL', example: 'http://localhost:11434' })
+  @IsOptional()
+  @IsString()
+  ollamaBaseUrl?: string;
+}
+
 export class ChatDto {
   @ApiProperty({ description: '사용자 메시지', example: '이번 주 내 업무 현황을 알려줘' })
   @IsString()

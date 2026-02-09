@@ -16,17 +16,10 @@ import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { KanbanColumn } from './KanbanColumn';
 import { KanbanCard } from './KanbanCard';
 import { tasksApi } from '@/lib/api';
+import type { TaskResponse } from '@msspbiz/shared';
+import { TaskStatus } from '@msspbiz/shared';
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  priority: string;
-  assignee?: { id: string; name: string };
-  dueDate?: string;
-  tags?: string[];
-}
+type Task = TaskResponse;
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -98,7 +91,7 @@ export function KanbanBoard({ tasks, onTasksUpdate }: KanbanBoardProps) {
 
     // 드롭된 위치가 컬럼인지 태스크인지 확인
     const overTask = localTasks.find((t) => t.id === over.id);
-    const newStatus = overTask ? overTask.status : over.id as string;
+    const newStatus = overTask ? overTask.status : over.id as TaskStatus;
 
     // 상태가 변경되지 않았으면 리턴
     if (activeTask.status === newStatus) {

@@ -15,6 +15,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { FilesModule } from './modules/files/files.module';
 import { AiModule } from './modules/ai/ai.module';
+import { TagsModule } from './modules/tags/tags.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { AiModule } from './modules/ai/ai.module';
     StatsModule,
     FilesModule,
     AiModule,
+    TagsModule,
   ],
   controllers: [AppController],
   providers: [

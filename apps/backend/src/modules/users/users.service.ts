@@ -70,7 +70,7 @@ export class UsersService {
     const { page = 1, limit = 20, search, role } = query;
     const skip = (page - 1) * limit;
 
-    const where: any = { tenantId };
+    const where: Record<string, unknown> = { tenantId };
 
     if (role) {
       where.role = role;

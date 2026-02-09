@@ -29,6 +29,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@msspbiz/shared';
+import type { RequestUser } from '@msspbiz/shared';
 
 @ApiTags('contracts')
 @ApiBearerAuth()
@@ -44,7 +45,7 @@ export class ContractsController {
   @ApiResponse({ status: 403, description: '권한 없음' })
   create(
     @Body() createContractDto: CreateContractDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.create(
       createContractDto,
@@ -59,7 +60,7 @@ export class ContractsController {
   @ApiResponse({ status: 200, description: '계약 목록 조회 성공' })
   findAll(
     @Query() query: QueryContractDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.findAll(query, user.tenantId);
   }
@@ -68,7 +69,7 @@ export class ContractsController {
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
   @ApiOperation({ summary: '계약 대시보드 (통계)' })
   @ApiResponse({ status: 200, description: '대시보드 조회 성공' })
-  getDashboard(@CurrentUser() user: any) {
+  getDashboard(@CurrentUser() user: RequestUser) {
     return this.contractsService.getDashboard(user.tenantId);
   }
 
@@ -79,7 +80,7 @@ export class ContractsController {
   @ApiResponse({ status: 200, description: '만료 예정 계약 조회 성공' })
   getExpiring(
     @Query('days', ParseIntPipe) days: number,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.getExpiring(days, user.tenantId);
   }
@@ -95,7 +96,7 @@ export class ContractsController {
   @ApiResponse({ status: 404, description: '계약을 찾을 수 없음' })
   async findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     const contract = await this.contractsService.findOne(id, user.tenantId);
 
@@ -117,7 +118,7 @@ export class ContractsController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateContractDto: UpdateContractDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.update(
       id,
@@ -136,7 +137,7 @@ export class ContractsController {
   @ApiResponse({ status: 404, description: '계약을 찾을 수 없음' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     await this.contractsService.remove(id, user.tenantId);
     return { message: 'Contract deleted successfully' };
@@ -150,7 +151,7 @@ export class ContractsController {
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateStatusDto: UpdateStatusDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.updateStatus(
       id,
@@ -171,7 +172,7 @@ export class ContractsController {
   @ApiResponse({ status: 400, description: '이미 갱신된 계약' })
   renew(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.renew(id, user.tenantId, user.id);
   }
@@ -183,7 +184,7 @@ export class ContractsController {
   @ApiResponse({ status: 200, description: '변경 이력 조회 성공' })
   getHistory(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ) {
     return this.contractsService.getHistory(id, user.tenantId);
   }

@@ -16,6 +16,7 @@ import {
   GenerateMeetingTemplateDto,
   WeeklyReportDto,
   ChatDto,
+  ListModelsDto,
 } from './dto/generate.dto';
 
 @Injectable()
@@ -28,7 +29,7 @@ export class AiService {
     private readonly statsService: StatsService,
   ) {}
 
-  private async getProvider(tenantId: string): Promise<{ provider: LlmProvider; settings: any }> {
+  private async getProvider(tenantId: string): Promise<{ provider: LlmProvider; settings: { provider: string; defaultModel: string; fastModel: string; apiKeyEncrypted: string | null; ollamaBaseUrl: string | null; isEnabled: boolean } }> {
     const settings = await this.aiSettingsService.getSettings(tenantId);
 
     if (!settings.isEnabled) {
@@ -57,6 +58,42 @@ export class AiService {
     }
 
     return { provider, settings };
+  }
+
+  async listModels(tenantId: string, dto: ListModelsDto): Promise<{ models: Array<{ id: string; name: string }> }> {
+    let provider: LlmProvider;
+    const providerName = dto.provider;
+
+    if (providerName === 'ollama') {
+      provider = new OllamaProvider(dto.ollamaBaseUrl || 'http://localhost:11434');
+    } else {
+      // dto에 apiKey가 있으면 사용, 없으면 DB에서 조회
+      let apiKey = dto.apiKey;
+      if (!apiKey) {
+        apiKey = (await this.aiSettingsService.getDecryptedApiKey(tenantId)) || undefined;
+      }
+      if (!apiKey) {
+        return { models: [] };
+      }
+
+      if (providerName === 'anthropic') {
+        provider = new AnthropicProvider(apiKey);
+      } else if (providerName === 'openai') {
+        provider = new OpenAiProvider(apiKey);
+      } else if (providerName === 'gemini') {
+        provider = new GeminiProvider(apiKey);
+      } else {
+        return { models: [] };
+      }
+    }
+
+    try {
+      const models = await provider.listModels();
+      return { models };
+    } catch (error) {
+      console.error('Failed to list models:', error?.message);
+      return { models: [] };
+    }
   }
 
   async generateTaskDescription(tenantId: string, dto: GenerateTaskDescDto): Promise<{ description: string }> {
@@ -143,7 +180,7 @@ export class AiService {
   async extractActionItems(
     tenantId: string,
     dto: ExtractActionItemsDto,
-  ): Promise<{ actionItems: any[] }> {
+  ): Promise<{ actionItems: { title: string; assignee: string | null; dueDate: string | null; priority: string }[] }> {
     const meeting = await this.meetingsService.findOne(dto.meetingId, tenantId);
     if (!meeting) {
       throw new NotFoundException('회의록을 찾을 수 없습니다.');
@@ -210,7 +247,7 @@ export class AiService {
   ): AsyncGenerator<string, void, unknown> {
     const { provider, settings } = await this.getProvider(tenantId);
 
-    let contextData: any = {};
+    let contextData: Record<string, unknown> = {};
 
     // 컨텍스트 타입에 따라 관련 데이터 조회
     if (dto.contextType === 'my-tasks') {

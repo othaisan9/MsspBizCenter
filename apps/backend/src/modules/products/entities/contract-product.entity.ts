@@ -26,11 +26,11 @@ export class ContractProduct extends TenantBaseEntity {
   @JoinColumn({ name: 'contract_id' })
   contract: Contract;
 
-  @ManyToOne(() => Product)
+  @ManyToOne(() => Product, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'product_id' })
   product: Product;
 
-  @ManyToOne(() => ProductOption, { nullable: true })
+  @ManyToOne(() => ProductOption, { nullable: true, onDelete: 'SET NULL' })
   @JoinColumn({ name: 'product_option_id' })
   productOption: ProductOption | null;
 }

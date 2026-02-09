@@ -44,7 +44,7 @@ export function TaskPriorityChart() {
       try {
         const result = await statsApi.tasksByPriority();
         if (result && Array.isArray(result)) {
-          const formatted = result.map((item: any) => ({
+          const formatted = result.map((item) => ({
             name: item.priority,
             value: item.count,
             label: PRIORITY_LABELS[item.priority] || item.priority,

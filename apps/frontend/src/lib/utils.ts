@@ -83,17 +83,15 @@ export function getPriorityLabel(priority: string): string {
 
 /**
  * HTML 문자열에서 위험한 태그와 속성을 제거합니다.
- * LLM 응답의 HTML을 안전하게 렌더링하기 위한 간이 새니타이저입니다.
+ * DOMPurify 화이트리스트 기반 sanitization으로 XSS를 방어합니다.
  */
-export function sanitizeHtml(html: string): string {
-  return html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
-    .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
-    .replace(/<embed\b[^>]*\/?>/gi, '')
-    .replace(/<form\b[^>]*>.*?<\/form>/gi, '')
-    .replace(/<link\b[^>]*\/?>/gi, '')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
-    .replace(/javascript\s*:/gi, '');
+export function sanitizeHtml(dirty: string): string {
+  // Lazy require: top-level import of isomorphic-dompurify initializes jsdom
+  // which conflicts with tiptap's SSR detection during static page generation
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const DOMPurify = require('isomorphic-dompurify').default;
+  return DOMPurify.sanitize(dirty, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'ul', 'ol', 'li', 'h2', 'h3', 'a', 'blockquote', 'code', 'pre'],
+    ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+  });
 }

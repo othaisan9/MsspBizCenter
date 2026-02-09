@@ -130,6 +130,37 @@ MsspBizCenter/
 - HTTP Exception Filter 강화
 - `jwt-auth.guard.ts` 토큰 검증 강화
 
+**6. P1 타입 안전성 리팩토링 (박안도 + 유아이 + 나검수)**
+
+- **T6. Backend `any` 제거** (34개소 → 2개 잔여)
+  - 11개 파일에서 `any` → 구체적 타입 변환
+  - `http-exception.filter.ts`: `any[]` → `string[]`, `any` → `Record<string, unknown>`
+  - `audit.service.ts`: `any` → `unknown` (timeline changes)
+  - `prompt-builder.service.ts`: `any[]` → 구체적 task/contextData 타입
+  - `ai.service.ts`: `any` → `Record<string, unknown>`, 반환 타입 명시
+  - `task.entity.ts`: `attachments: any` → `Record<string, unknown>[] | null`
+  - `contracts.service.ts`: `Record<string, unknown>` → `Contract & { amount?: number; ... }`
+  - `users.service.ts`: where 조건 `any` → `Record<string, unknown>`
+  - TS1272 fix: 3개 Controller에서 `import type { RequestUser }` 분리 (isolatedModules 대응)
+  - `RequestUser.role`을 `string` → `UserRole` enum으로 강화 (shared 패키지)
+  - 잔여 `any` 2건: `jwt-auth.guard.ts` handleRequest (Passport 제약), Recharts 콜백 (라이브러리 타입 한계)
+
+- **T7. Frontend API 타입 강화** (48개 함수)
+  - `api.ts` 전면 재작성: 48개 함수 모두 shared 타입 반환
+  - `QueryParams = Record<string, string | number | boolean>` 도입 + `toSearchParams()` 헬퍼
+  - 차트 4개 컴포넌트 데이터 매핑 추가 (API 응답 `{ year, month(number) }` → 차트 `{ month(string) }`)
+  - **실제 버그 발견**: 대시보드 필드명 오류 (`completedTasksThisWeek` → `completedThisWeek`, `meetingsThisMonth` → `totalMeetings`) - `any` 타입에 의해 숨겨져 있던 런타임 버그
+
+- **T9. Shared DTO 통합** (25+ 인터페이스)
+  - `packages/shared/src/types/api-responses.ts` 신규 생성 (340줄)
+  - 10개 도메인 25+ 인터페이스: TaskResponse, MeetingResponse, ContractResponse, ProductResponse, FileResponse, UserResponse, DashboardStatsResponse, WeeklyTaskStatsResponse, MonthlyContractStatsResponse, TasksByStatusResponse, TasksByPriorityResponse, ContractDashboardResponse, ContractHistoryResponse, AiSettingsResponse 등
+  - 프론트엔드 10+ 파일에서 로컬 인터페이스 → `type X = XResponse` 별칭 교체
+  - `settings/types.ts`: Product, User → shared 타입 별칭
+  - `null` vs `undefined` 불일치 전면 정리 (백엔드 `| null` 기준으로 통일)
+
+- **QA 검수 (나검수)**: Backend 20정상/3주의/0결함, Frontend 6/6카테고리 통과/0결함
+- **런타임 검증**: Docker 이미지 재빌드 + 3/3 패키지 빌드 성공 + Frontend 200 + Backend 정상 기동
+
 #### 📁 수정/생성된 파일
 
 **Backend** (15파일):
@@ -149,13 +180,29 @@ MsspBizCenter/
 - `apps/frontend/src/lib/utils.ts` - sanitizeHtml DOMPurify lazy require
 
 **Shared** (2파일):
-- `packages/shared/src/types/index.ts` - 타입 확장
-- `packages/shared/src/types/api-responses.ts` - API 응답 타입 정의 (신규)
+- `packages/shared/src/types/index.ts` - RequestUser.role `string` → `UserRole`, `api-responses` re-export
+- `packages/shared/src/types/api-responses.ts` - API 응답 타입 정의 (신규, 340줄, 25+ 인터페이스)
+
+**Frontend - P1 타입 리팩토링** (15파일):
+- `apps/frontend/src/lib/api.ts` - 48개 함수 shared 타입 적용 + QueryParams + toSearchParams
+- `apps/frontend/src/app/(dashboard)/page.tsx` - DashboardStatsResponse + 필드명 버그 수정
+- `apps/frontend/src/app/(dashboard)/contracts/[id]/page.tsx` - ContractResponse/HistoryResponse/FileResponse 별칭
+- `apps/frontend/src/app/(dashboard)/contracts/page.tsx` - ContractResponse + ContractDashboardResponse
+- `apps/frontend/src/app/(dashboard)/tasks/[id]/page.tsx` - TaskResponse + TaskStatus enum
+- `apps/frontend/src/app/(dashboard)/tasks/page.tsx` - TaskResponse 별칭
+- `apps/frontend/src/app/(dashboard)/tasks/new/page.tsx` - UserResponse 별칭
+- `apps/frontend/src/app/(dashboard)/meetings/new/page.tsx` - UserResponse 별칭
+- `apps/frontend/src/components/tasks/KanbanBoard.tsx` - TaskResponse + TaskStatus
+- `apps/frontend/src/components/tasks/KanbanColumn.tsx` - TaskResponse 별칭
+- `apps/frontend/src/components/tasks/KanbanCard.tsx` - TaskResponse 별칭
+- `apps/frontend/src/components/charts/*.tsx` (4개) - API 응답→차트 데이터 매핑, `any` 제거
+- `apps/frontend/src/components/settings/types.ts` - Product/User → shared 별칭
 
 #### 🎯 성과 지표
 - Backend: 11개 모듈 (auth, tasks, meetings, contracts, products, users, audit, common, stats, files, **ai**)
 - Frontend: 13개 라우트 + 4개 차트 + 칸반 + 파일 업로드 + 브레드크럼 + **AI 컴포넌트**
 - AI: 4 LLM 프로바이더 + 7 엔드포인트 + SSE 스트리밍
+- **타입 안전성**: Backend `any` 34→2개, Frontend API `any` 48→0개, Shared DTO 25+ 인터페이스
 - 빌드: 3/3 패키지 성공
 
 ---
@@ -452,38 +499,35 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - AI 모듈 구현: 4 LLM 프로바이더 + 7 엔드포인트 + SSE 스트리밍
-  - Gemini 프로바이더 추가 (`@google/genai` SDK)
-  - 동적 모델 조회: `POST /ai/models` (provider/apiKey body 전달)
-  - 계약-제품 관계 풀스택 수정 (entity, DTO, service, frontend)
-  - 대시보드 만료임박 카드 스타일 통일
-  - 설정 페이지 컴포넌트 분리 (5 탭 컴포넌트)
-  - `api.ts` 타입 리팩토링 (shared 타입 import)
-  - `isomorphic-dompurify` SSR 에러 해결 (lazy require)
-- **수정한 파일**: AI 모듈 전체, contracts 모듈, settings 컴포넌트, api.ts, utils.ts
-- **커밋 여부**: ❌ (미커밋 - 동작 확인 후 커밋 필요)
+  - P1 타입 안전성 리팩토링 (T6/T7/T9) 완료
+  - Backend `any` 34개소 제거 → 2개 잔여 (Passport + Recharts 라이브러리 제약)
+  - Frontend API 함수 48개 전부 shared 타입 적용, `any` 0개
+  - `api-responses.ts` 신규 생성: 25+ 공유 인터페이스
+  - 프론트엔드 10+ 파일에서 로컬 타입 → shared 별칭 교체
+  - 대시보드 필드명 런타임 버그 수정 (`completedThisWeek`, `totalMeetings`)
+  - 차트 4개 API→차트 데이터 매핑 추가
+  - QA 검수 완료 (Backend 20정상/3주의/0결함, Frontend 6/6 통과)
+  - Docker 이미지 재빌드 + 런타임 검증 완료
+- **수정한 파일**: Backend 11파일, Frontend 15파일, Shared 2파일 (총 43파일)
+- **커밋 여부**: ❌ (미커밋 - 상태 저장 후 커밋 예정)
 
 ### 진행 중 작업 (미완료)
-- **AI 모델 목록 조회 확인**: POST /ai/models 엔드포인트 구현 완료, 프론트엔드 연동 완료
-  - 사용자가 API 키 입력 후 "모델 목록 불러오기" 클릭 시 동작해야 함
-  - 백엔드/프론트엔드 컨테이너 재빌드 완료
-  - 동작 확인 대기 중
+- 없음 (P1 타입 리팩토링 완료)
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
-**즉시 (미커밋 작업 정리)**:
-1. AI 모델 조회 동작 확인 후 커밋 (박안도+유아이)
-2. 전체 빌드 확인 (3/3 패키지)
+**즉시**:
+1. 전체 변경사항 커밋 + 푸시
 
 **Phase B: 핵심 개선 (잔여)**:
 1. 공통 컴포넌트 추출 — Pagination, Table (유아이, 6h) ← EmptyState/Skeleton 완료
 2. SWR 데이터 fetching 표준화 (유아이, 12h)
 3. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
-4. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h) ← api.ts 리팩토링 진행 중
-5. Redis 캐싱 (Dashboard Stats, Products) (박안도, 8h)
+4. Redis 캐싱 (Dashboard Stats, Products) (박안도, 8h)
+5. meetings 페이지 `any` 제거 - MeetingResponse 적용 (유아이, 4h)
 
 **Phase C: 안정화 (~60h)**:
-1. TypeScript any 제거 + 페이지 컴포넌트 분할 (유아이, 16h) ← settings 분할 완료
+1. 나머지 Frontend `any` 정리 - catch(err:any), payload:any 등 (유아이, 8h)
 2. 테이블 정렬 기능 (송대시, 4h)
 3. localStorage → HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
 4. Backend Unit Test 60% 커버리지 (박안도, 20h)
@@ -495,12 +539,12 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | AI 모듈 + QA 완료, 커밋 대기 |
-| **Backend** | 박안도 | API, DB, 서버 로직 | AI 모듈 4 프로바이더 + 동적 모델 조회 구현 완료 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 설정 컴포넌트 분리 + AI 탭 + api.ts 타입 리팩토링 완료 ✅ |
+| **PM** | 박서연 | 요구사항, 일정 관리 | P1 타입 리팩토링 완료, 커밋 대기 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | Backend `any` 34→2개 제거 완료 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | API 48함수 타입 강화 + shared DTO 통합 완료 ✅ |
 | **Security** | Chloe O'Brian | 보안, 암호화 | XSS sanitizeHtml + HTTP Exception 강화 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
-| **QA** | 나검수 | 테스트, 품질 보증 | alpha.10 QA 수행 완료 ✅ |
+| **QA** | 나검수 | 테스트, 품질 보증 | P1 리팩토링 QA 완료 (Backend+Frontend 0결함) ✅ |
 | **Visualization** | 송대시 | 차트, 시각화 | 드릴다운 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
@@ -545,7 +589,7 @@ MsspBizCenter/
 - [ ] SWR 데이터 fetching 표준화
 - [x] 파이→도넛 차트 + Priority 수평 Bar + 차트 접근성(색맹) (v0.1.0-alpha.7)
 - [ ] 차트 인터랙션 드릴다운 + 통계 카드 스파크라인
-- [ ] API 응답 형식 통일 + Shared 타입 정의
+- [x] API 응답 형식 통일 + Shared 타입 정의 (v0.1.0-alpha.10 P1 리팩토링)
 - [x] Helmet 보안 헤더 (v0.1.0-alpha.7)
 - [ ] JWT HS256 → RS256 전환
 - [ ] Refresh Token Redis 저장소
@@ -556,7 +600,8 @@ MsspBizCenter/
 - [x] 태그 삭제 UI + 칸반 태그 표시 (v0.1.0-alpha.8)
 
 ### 📝 Medium (P2) - 미완료
-- [ ] TypeScript `any` → 명시적 타입 + 페이지 컴포넌트 분할
+- [x] TypeScript `any` → 명시적 타입 (v0.1.0-alpha.10 P1 리팩토링, Backend 34→2, Frontend API 48→0)
+- [ ] 나머지 Frontend `any` 정리 (meetings 페이지, catch/payload 패턴)
 - [x] 차트 Neo-Brutalism 통일 (v0.1.0-alpha.7)
 - [ ] 테이블 정렬 기능
 - [ ] localStorage → HttpOnly Cookie 전환
@@ -598,5 +643,5 @@ MsspBizCenter/
 
 ---
 
-**다음 작업 시작 시점**: AI 모듈 구현 완료, Phase B 잔여 작업 진행 예정
+**다음 작업 시작 시점**: P1 타입 리팩토링 완료, Phase B 잔여 작업 진행 예정
 **예상 정식 릴리스**: 2026-03-21 (v0.1.0)

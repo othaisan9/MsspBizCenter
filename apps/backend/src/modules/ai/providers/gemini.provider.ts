@@ -3,6 +3,7 @@ import {
   LlmProvider,
   LlmGenerateParams,
   LlmResponse,
+  LlmModelInfo,
 } from './llm-provider.interface';
 
 export class GeminiProvider implements LlmProvider {
@@ -31,6 +32,19 @@ export class GeminiProvider implements LlmProvider {
           }
         : undefined,
     };
+  }
+
+  async listModels(): Promise<LlmModelInfo[]> {
+    const pager = await this.client.models.list({ config: { pageSize: 100 } });
+    const models: LlmModelInfo[] = [];
+    for (const model of pager.page) {
+      // generateContent를 지원하는 모델만
+      if (model.supportedActions?.includes('generateContent')) {
+        const id = model.name?.replace('models/', '') || '';
+        models.push({ id, name: model.displayName || id });
+      }
+    }
+    return models.sort((a, b) => a.id.localeCompare(b.id));
   }
 
   async *stream(params: LlmGenerateParams): AsyncGenerator<string, void, unknown> {

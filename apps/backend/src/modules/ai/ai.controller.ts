@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   Post,
   Body,
   UseGuards,
@@ -21,6 +22,7 @@ import {
   GenerateMeetingTemplateDto,
   WeeklyReportDto,
   ChatDto,
+  ListModelsDto,
 } from './dto/generate.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -34,6 +36,17 @@ import { UserRole } from '@msspbiz/shared';
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
+
+  @Post('models')
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: '프로바이더 모델 목록 조회 (ADMIN 이상)' })
+  @ApiResponse({ status: 200, description: '모델 목록 조회 성공' })
+  listModels(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: ListModelsDto,
+  ) {
+    return this.aiService.listModels(tenantId, dto);
+  }
 
   @Post('generate-task-desc')
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)

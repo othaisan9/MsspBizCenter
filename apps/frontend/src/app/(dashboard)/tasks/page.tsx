@@ -20,23 +20,9 @@ import {
   formatDate,
   getWeekNumber,
 } from '@/lib/utils';
+import type { TaskResponse } from '@msspbiz/shared';
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  weekNumber: number;
-  year: number;
-  status: string;
-  priority: string;
-  assigneeId?: string;
-  assignee?: { id: string; name: string };
-  dueDate?: string;
-  estimatedHours?: number;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+type Task = TaskResponse;
 
 interface TasksResponse {
   data: Task[];

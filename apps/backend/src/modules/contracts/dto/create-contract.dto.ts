@@ -10,10 +10,32 @@ import {
   IsUUID,
   MaxLength,
   IsObject,
+  IsArray,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ContractType, ContractStatus } from '@msspbiz/shared';
+
+class ContractProductItemDto {
+  @ApiProperty({ description: '제품 ID' })
+  @IsUUID()
+  productId: string;
+
+  @ApiPropertyOptional({ description: '파생제품(옵션) ID' })
+  @IsOptional()
+  @IsUUID()
+  productOptionId?: string;
+
+  @ApiPropertyOptional({ description: '수량', example: 1 })
+  @IsOptional()
+  @IsInt()
+  quantity?: number;
+
+  @ApiPropertyOptional({ description: '비고' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
 
 class PartyBContactDto {
   @ApiPropertyOptional({ description: '담당자 이름' })
@@ -208,4 +230,12 @@ export class CreateContractDto {
   @IsOptional()
   @IsBoolean()
   notifyOnExpiry?: boolean;
+
+  // 공급 제품
+  @ApiPropertyOptional({ description: '계약 제품 목록', type: [ContractProductItemDto] })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContractProductItemDto)
+  products?: ContractProductItemDto[];
 }

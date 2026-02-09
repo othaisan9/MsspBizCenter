@@ -20,6 +20,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { FilesService } from './files.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@msspbiz/shared';
+import type { RequestUser } from '@msspbiz/shared';
 import { UploadFileDto } from './dto/upload-file.dto';
 import { FileResponseDto } from './dto/file-response.dto';
 import type { Response } from 'express';
@@ -64,7 +65,7 @@ export class FilesController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadFileDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ): Promise<FileResponseDto> {
     const uploadedFile = await this.filesService.upload(
       file,
@@ -94,7 +95,7 @@ export class FilesController {
   async getFiles(
     @Query('entityType') entityType: string,
     @Query('entityId') entityId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ): Promise<FileResponseDto[]> {
     const files = await this.filesService.findByEntity(
       entityType,
@@ -119,7 +120,7 @@ export class FilesController {
   @ApiResponse({ status: 200, description: '파일 정보 조회 성공', type: FileResponseDto })
   async getFile(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ): Promise<FileResponseDto> {
     const file = await this.filesService.findOne(id, user.tenantId);
 
@@ -140,7 +141,7 @@ export class FilesController {
   @ApiResponse({ status: 200, description: '파일 다운로드 성공' })
   async downloadFile(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     const file = await this.filesService.findOne(id, user.tenantId);
@@ -164,7 +165,7 @@ export class FilesController {
   @ApiResponse({ status: 204, description: '파일 삭제 성공' })
   async deleteFile(
     @Param('id') id: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: RequestUser,
   ): Promise<void> {
     await this.filesService.delete(id, user.id, user.tenantId);
   }

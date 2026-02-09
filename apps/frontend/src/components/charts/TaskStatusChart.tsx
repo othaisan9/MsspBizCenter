@@ -42,7 +42,7 @@ export function TaskStatusChart() {
       try {
         const result = await statsApi.tasksByStatus();
         if (result && Array.isArray(result)) {
-          const formatted = result.map((item: any) => ({
+          const formatted = result.map((item) => ({
             name: item.status,
             value: item.count,
             label: STATUS_LABELS[item.status] || item.status,
@@ -77,7 +77,7 @@ export function TaskStatusChart() {
 
   const total = data.reduce((sum, item) => sum + item.value, 0);
 
-  const renderLabel = (entry: any) => {
+  const renderLabel = (entry: StatusData) => {
     const percent = ((entry.value / total) * 100).toFixed(0);
     return `${percent}%`;
   };
@@ -107,11 +107,14 @@ export function TaskStatusChart() {
         </text>
         <Tooltip
           contentStyle={BRUTAL_TOOLTIP}
-          formatter={(value: number, name: string, props: any) => [`${value}건`, props.payload.label]}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          formatter={(value: number, _name: string, props: any) => [`${value}건`, props.payload.label]}
         />
         <Legend
           wrapperStyle={{ fontSize: '0.875rem' }}
-          formatter={(value: string, entry: any) => entry.payload.label}
+          iconType="rect"
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          formatter={(_value: string, entry: any) => entry.payload.label}
         />
       </PieChart>
     </ResponsiveContainer>

@@ -9,6 +9,7 @@ import {
 import { TenantBaseEntity } from '../../../common/entities/base.entity';
 import { ContractType, ContractStatus } from '@msspbiz/shared';
 import { User } from '../../auth/entities/user.entity';
+import { ContractProduct } from '../../products/entities/contract-product.entity';
 
 @Entity('contracts')
 @Index(['tenantId', 'status'])
@@ -149,4 +150,7 @@ export class Contract extends TenantBaseEntity {
 
   @OneToMany(() => Contract, (contract) => contract.parentContract)
   renewals: Contract[];
+
+  @OneToMany(() => ContractProduct, (cp) => cp.contract)
+  contractProducts: ContractProduct[];
 }

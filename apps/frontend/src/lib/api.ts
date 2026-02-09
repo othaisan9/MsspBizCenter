@@ -1,14 +1,45 @@
+import type {
+  TaskListResponse,
+  TaskResponse,
+  MeetingListResponse,
+  MeetingResponse,
+  MeetingActionItemResponse,
+  ContractListResponse,
+  ContractResponse,
+  ContractDashboardResponse,
+  ContractHistoryResponse,
+  AuditListResponse,
+  AuditLogResponse,
+  DashboardStatsResponse,
+  WeeklyTaskStatsResponse,
+  MonthlyContractStatsResponse,
+  TasksByStatusResponse,
+  TasksByPriorityResponse,
+  FileResponse,
+  ProductResponse,
+  ProductOptionResponse,
+  UserResponse,
+  AiSettingsResponse,
+} from '@msspbiz/shared';
+
 const API_BASE =
   typeof window !== 'undefined'
     ? `${window.location.protocol}//${window.location.hostname}:4001`
     : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4001');
 const API_PREFIX = '/api/v1';
 
+type QueryParams = Record<string, string | number | boolean>;
+
+function toSearchParams(params: QueryParams): string {
+  const entries = Object.entries(params).map(([k, v]) => [k, String(v)]);
+  return new URLSearchParams(entries).toString();
+}
+
 class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
-    public data?: any,
+    public data?: Record<string, unknown>,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -88,154 +119,149 @@ async function tryRefreshToken(): Promise<boolean> {
   }
 }
 
-// Auth
+// ─── Auth ─────────────────────────────────────────────────
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: { id: string; email: string; name: string; role: string };
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
-    request<{
-      accessToken: string;
-      refreshToken: string;
-      user: { id: string; email: string; name: string; role: string };
-    }>('/auth/login', {
+    request<AuthResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
 
   register: (data: { email: string; password: string; name: string; tenantName: string }) =>
-    request<{
-      accessToken: string;
-      refreshToken: string;
-      user: { id: string; email: string; name: string; role: string };
-    }>('/auth/register', {
+    request<AuthResponse>('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   getProfile: () =>
-    request<{
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-      tenantId: string;
-      isActive: boolean;
-      lastLoginAt: string | null;
-      createdAt: string;
-      updatedAt: string;
-    }>('/auth/profile'),
+    request<UserResponse>('/auth/profile'),
 };
 
-// Tasks
+// ─── Tasks ────────────────────────────────────────────────
+
 export const tasksApi = {
-  list: (params?: Record<string, any>) => {
-    const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request<any>(`/tasks${query}`);
+  list: (params?: QueryParams) => {
+    const query = params ? '?' + toSearchParams(params) : '';
+    return request<TaskListResponse>(`/tasks${query}`);
   },
-  get: (id: string) => request<any>(`/tasks/${id}`),
-  create: (data: any) =>
-    request<any>('/tasks', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request<any>(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  get: (id: string) => request<TaskResponse>(`/tasks/${id}`),
+  create: (data: Record<string, unknown>) =>
+    request<TaskResponse>('/tasks', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    request<TaskResponse>(`/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
-    request<any>(`/tasks/${id}`, { method: 'DELETE' }),
+    request<{ message: string }>(`/tasks/${id}`, { method: 'DELETE' }),
   updateStatus: (id: string, status: string) =>
-    request<any>(`/tasks/${id}/status`, {
+    request<TaskResponse>(`/tasks/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
   assign: (id: string, assigneeId: string) =>
-    request<any>(`/tasks/${id}/assign`, {
+    request<TaskResponse>(`/tasks/${id}/assign`, {
       method: 'PATCH',
       body: JSON.stringify({ assigneeId }),
     }),
   weekly: (year: number, week: number) =>
-    request<any>(`/tasks/weekly?year=${year}&week=${week}`),
+    request<TaskListResponse>(`/tasks/weekly?year=${year}&week=${week}`),
 };
 
-// Meetings
+// ─── Meetings ─────────────────────────────────────────────
+
 export const meetingsApi = {
-  list: (params?: Record<string, any>) => {
-    const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request<any>(`/meetings${query}`);
+  list: (params?: QueryParams) => {
+    const query = params ? '?' + toSearchParams(params) : '';
+    return request<MeetingListResponse>(`/meetings${query}`);
   },
-  get: (id: string) => request<any>(`/meetings/${id}`),
-  create: (data: any) =>
-    request<any>('/meetings', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request<any>(`/meetings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  get: (id: string) => request<MeetingResponse>(`/meetings/${id}`),
+  create: (data: Record<string, unknown>) =>
+    request<MeetingResponse>('/meetings', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    request<MeetingResponse>(`/meetings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
-    request<any>(`/meetings/${id}`, { method: 'DELETE' }),
+    request<{ message: string }>(`/meetings/${id}`, { method: 'DELETE' }),
   publish: (id: string) =>
-    request<any>(`/meetings/${id}/publish`, { method: 'PATCH' }),
-  addAttendee: (id: string, data: any) =>
-    request<any>(`/meetings/${id}/attendees`, {
+    request<MeetingResponse>(`/meetings/${id}/publish`, { method: 'PATCH' }),
+  addAttendee: (id: string, data: { userId: string; attendanceType?: string }) =>
+    request<MeetingResponse>(`/meetings/${id}/attendees`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
   removeAttendee: (id: string, userId: string) =>
-    request<any>(`/meetings/${id}/attendees/${userId}`, { method: 'DELETE' }),
-  createActionItem: (id: string, data: any) =>
-    request<any>(`/meetings/${id}/action-items`, {
+    request<MeetingResponse>(`/meetings/${id}/attendees/${userId}`, { method: 'DELETE' }),
+  createActionItem: (id: string, data: { title: string; assigneeId?: string; dueDate?: string }) =>
+    request<MeetingActionItemResponse>(`/meetings/${id}/action-items`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  updateActionItem: (id: string, itemId: string, data: any) =>
-    request<any>(`/meetings/${id}/action-items/${itemId}`, {
+  updateActionItem: (id: string, itemId: string, data: Record<string, unknown>) =>
+    request<MeetingActionItemResponse>(`/meetings/${id}/action-items/${itemId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
 };
 
-// Contracts
+// ─── Contracts ────────────────────────────────────────────
+
 export const contractsApi = {
-  list: (params?: Record<string, any>) => {
-    const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request<any>(`/contracts${query}`);
+  list: (params?: QueryParams) => {
+    const query = params ? '?' + toSearchParams(params) : '';
+    return request<ContractListResponse>(`/contracts${query}`);
   },
-  get: (id: string) => request<any>(`/contracts/${id}`),
-  create: (data: any) =>
-    request<any>('/contracts', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request<any>(`/contracts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  get: (id: string) => request<ContractResponse>(`/contracts/${id}`),
+  create: (data: Record<string, unknown>) =>
+    request<ContractResponse>('/contracts', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    request<ContractResponse>(`/contracts/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
-    request<any>(`/contracts/${id}`, { method: 'DELETE' }),
+    request<{ message: string }>(`/contracts/${id}`, { method: 'DELETE' }),
   updateStatus: (id: string, status: string) =>
-    request<any>(`/contracts/${id}/status`, {
+    request<ContractResponse>(`/contracts/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
   renew: (id: string) =>
-    request<any>(`/contracts/${id}/renew`, { method: 'POST' }),
-  dashboard: () => request<any>('/contracts/dashboard'),
-  expiring: (days: number) => request<any>(`/contracts/expiring?days=${days}`),
-  history: (id: string) => request<any>(`/contracts/${id}/history`),
+    request<ContractResponse>(`/contracts/${id}/renew`, { method: 'POST' }),
+  dashboard: () => request<ContractDashboardResponse>('/contracts/dashboard'),
+  expiring: (days: number) => request<ContractResponse[]>(`/contracts/expiring?days=${days}`),
+  history: (id: string) => request<ContractHistoryResponse[]>(`/contracts/${id}/history`),
 };
 
-// Audit
+// ─── Audit ────────────────────────────────────────────────
+
 export const auditApi = {
-  list: (params?: Record<string, any>) => {
-    const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request<any>(`/audit${query}`);
+  list: (params?: QueryParams) => {
+    const query = params ? '?' + toSearchParams(params) : '';
+    return request<AuditListResponse>(`/audit${query}`);
   },
   byEntity: (entityType: string, entityId: string) =>
-    request<any>(`/audit/entity/${entityType}/${entityId}`),
+    request<AuditLogResponse[]>(`/audit/entity/${entityType}/${entityId}`),
 };
 
-// Stats
+// ─── Stats ────────────────────────────────────────────────
+
 export const statsApi = {
-  dashboard: () => request<any>('/stats/dashboard'),
-  tasksWeekly: () => request<any>('/stats/tasks/weekly'),
-  contractsMonthly: () => request<any>('/stats/contracts/monthly'),
-  tasksByStatus: () => request<any>('/stats/tasks/by-status'),
-  tasksByPriority: () => request<any>('/stats/tasks/by-priority'),
+  dashboard: () => request<DashboardStatsResponse>('/stats/dashboard'),
+  tasksWeekly: () => request<WeeklyTaskStatsResponse[]>('/stats/tasks/weekly'),
+  contractsMonthly: () => request<MonthlyContractStatsResponse[]>('/stats/contracts/monthly'),
+  tasksByStatus: () => request<TasksByStatusResponse[]>('/stats/tasks/by-status'),
+  tasksByPriority: () => request<TasksByPriorityResponse[]>('/stats/tasks/by-priority'),
 };
 
-// Files
+// ─── Files ────────────────────────────────────────────────
+
 export const filesApi = {
   upload: async (
     file: File,
     entityType?: string,
     entityId?: string,
-  ): Promise<any> => {
+  ): Promise<FileResponse> => {
     const token =
       typeof window !== 'undefined'
         ? localStorage.getItem('accessToken')
@@ -268,10 +294,10 @@ export const filesApi = {
 
   list: (entityType: string, entityId: string) => {
     const query = new URLSearchParams({ entityType, entityId }).toString();
-    return request<any>(`/files?${query}`);
+    return request<FileResponse[]>(`/files?${query}`);
   },
 
-  getById: (id: string) => request<any>(`/files/${id}`),
+  getById: (id: string) => request<FileResponse>(`/files/${id}`),
 
   download: (id: string) => {
     const token =
@@ -285,57 +311,87 @@ export const filesApi = {
     });
   },
 
-  delete: (id: string) => request<any>(`/files/${id}`, { method: 'DELETE' }),
+  delete: (id: string) => request<{ message: string }>(`/files/${id}`, { method: 'DELETE' }),
 };
 
-// Products
+// ─── Products ─────────────────────────────────────────────
+
 export const productsApi = {
-  list: () => request<any>('/products'),
-  get: (id: string) => request<any>(`/products/${id}`),
-  create: (data: any) =>
-    request<any>('/products', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request<any>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  list: () => request<ProductResponse[]>('/products'),
+  get: (id: string) => request<ProductResponse>(`/products/${id}`),
+  create: (data: { code: string; name: string; description?: string; vendor?: string }) =>
+    request<ProductResponse>('/products', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    request<ProductResponse>(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
-    request<any>(`/products/${id}`, { method: 'DELETE' }),
-  addOption: (productId: string, data: any) =>
-    request<any>(`/products/${productId}/options`, {
+    request<{ message: string }>(`/products/${id}`, { method: 'DELETE' }),
+  addOption: (productId: string, data: { code: string; name: string; description?: string; type?: string }) =>
+    request<ProductOptionResponse>(`/products/${productId}/options`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
-  updateOption: (productId: string, optionId: string, data: any) =>
-    request<any>(`/products/${productId}/options/${optionId}`, {
+  updateOption: (productId: string, optionId: string, data: Record<string, unknown>) =>
+    request<ProductOptionResponse>(`/products/${productId}/options/${optionId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     }),
   deleteOption: (productId: string, optionId: string) =>
-    request<any>(`/products/${productId}/options/${optionId}`, { method: 'DELETE' }),
+    request<{ message: string }>(`/products/${productId}/options/${optionId}`, { method: 'DELETE' }),
   getDerivedProductTypes: () => request<string[]>('/products/derived-product-types'),
 };
 
-// Users
-export const usersApi = {
-  list: (params?: Record<string, any>) => {
-    const query = params ? '?' + new URLSearchParams(params).toString() : '';
-    return request<any>(`/users${query}`);
-  },
-  get: (id: string) => request<any>(`/users/${id}`),
-  create: (data: { email: string; name: string; password: string; role?: string }) =>
-    request<any>('/users', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id: string, data: any) =>
-    request<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+// ─── Tags ─────────────────────────────────────────────────
+
+export interface TagResponse {
+  id: string;
+  name: string;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export const tagsApi = {
+  list: () => request<TagResponse[]>('/tags'),
+  create: (data: { name: string }) =>
+    request<TagResponse>('/tags', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: { name: string }) =>
+    request<TagResponse>(`/tags/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
-    request<any>(`/users/${id}`, { method: 'DELETE' }),
+    request<{ message: string }>(`/tags/${id}`, { method: 'DELETE' }),
 };
 
-// AI Settings API
+// ─── Users ────────────────────────────────────────────────
+
+export const usersApi = {
+  list: (params?: QueryParams) => {
+    const query = params ? '?' + toSearchParams(params) : '';
+    return request<{ items: UserResponse[]; total: number; page: number; limit: number; totalPages: number }>(`/users${query}`);
+  },
+  get: (id: string) => request<UserResponse>(`/users/${id}`),
+  create: (data: { email: string; name: string; password: string; role?: string }) =>
+    request<UserResponse>('/users', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    request<UserResponse>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    request<{ message: string }>(`/users/${id}`, { method: 'DELETE' }),
+};
+
+// ─── AI Settings ──────────────────────────────────────────
+
 export const aiSettingsApi = {
-  get: () => request<any>('/ai/settings'),
-  update: (data: any) => request<any>('/ai/settings', { method: 'PATCH', body: JSON.stringify(data) }),
+  get: () => request<AiSettingsResponse>('/ai/settings'),
+  update: (data: Record<string, unknown>) => request<AiSettingsResponse>('/ai/settings', { method: 'PATCH', body: JSON.stringify(data) }),
 };
 
-// AI API (non-streaming)
+// ─── AI API (non-streaming) ──────────────────────────────
+
 export const aiApi = {
+  listModels: (data: { provider: string; apiKey?: string; ollamaBaseUrl?: string }) =>
+    request<{ models: Array<{ id: string; name: string }> }>('/ai/models', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
   generateTaskDesc: (data: { title: string; tags?: string[]; priority?: string }) =>
     request<{ text: string }>('/ai/generate-task-desc', { method: 'POST', body: JSON.stringify(data) }),
 

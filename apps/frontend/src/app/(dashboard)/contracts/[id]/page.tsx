@@ -13,68 +13,11 @@ import { Modal } from '@/components/ui/Modal';
 import { Select } from '@/components/ui/Select';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
+import type { ContractResponse, ContractHistoryResponse, FileResponse } from '@msspbiz/shared';
 
-interface Contract {
-  id: string;
-  title: string;
-  contractNumber?: string;
-  contractType: string;
-  partyA: string;
-  partyB: string;
-  partyBContact?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-  };
-  startDate: string;
-  endDate?: string;
-  amount?: number;
-  currency?: string;
-  paymentTerms?: string;
-  paymentCycle?: string;
-  vatIncluded?: boolean;
-  status: string;
-  autoRenewal?: boolean;
-  renewalNoticeDays?: number;
-  description?: string;
-  memo?: string;
-  // 재무 정보 (Owner/Admin만 포함됨)
-  purchasePrice?: number;
-  purchaseCommissionRate?: number;
-  sellingPrice?: number;
-  hasPartner?: boolean;
-  partnerName?: string;
-  commissionType?: string;
-  partnerCommission?: number;
-  // 담당자
-  internalManagerId?: string;
-  internalManager?: { id: string; name: string; email: string };
-  // 알림
-  notifyBefore30Days?: boolean;
-  notifyBefore7Days?: boolean;
-  notifyOnExpiry?: boolean;
-  contractProducts?: Array<{
-    id: string;
-    quantity: number;
-    notes?: string;
-    product: { id: string; name: string; code: string; description?: string };
-    productOption?: { id: string; name: string; code: string; description?: string; type?: string } | null;
-  }>;
-  createdAt: string;
-  updatedAt: string;
-  createdBy?: { id: string; name: string; email: string };
-  updatedBy?: { id: string; name: string; email: string };
-}
-
-interface HistoryEntry {
-  id: string;
-  action: string;
-  field: string;
-  oldValue?: string;
-  newValue?: string;
-  changedAt: string;
-  changedBy: { id: string; name: string; email: string };
-}
+type Contract = ContractResponse;
+type HistoryEntry = ContractHistoryResponse;
+type FileAttachment = FileResponse;
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   service: '서비스 계약',
@@ -99,16 +42,6 @@ const ACTION_LABELS: Record<string, string> = {
   renew: '갱신',
 };
 
-interface FileAttachment {
-  id: string;
-  filename: string;
-  mimeType: string;
-  size: number;
-  entityType: string;
-  entityId: string;
-  createdAt: string;
-  uploadedBy: { id: string; name: string; email: string };
-}
 
 
 export default function ContractDetailPage() {
@@ -140,7 +73,7 @@ export default function ContractDetailPage() {
   const canEdit = user && ['owner', 'admin', 'editor'].includes(user.role);
 
   // 남은 기간 계산
-  const getRemainingDays = (endDateStr?: string): number | null => {
+  const getRemainingDays = (endDateStr?: string | null): number | null => {
     if (!endDateStr) return null;
     const today = new Date();
     const endDate = new Date(endDateStr);
@@ -293,7 +226,7 @@ export default function ContractDetailPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = file.filename;
+      a.download = file.originalName;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -305,7 +238,7 @@ export default function ContractDetailPage() {
   };
 
   const handleFileDelete = async (file: FileAttachment) => {
-    if (!confirm(`"${file.filename}" 파일을 삭제하시겠습니까?`)) {
+    if (!confirm(`"${file.originalName}" 파일을 삭제하시겠습니까?`)) {
       return;
     }
     try {
@@ -546,7 +479,7 @@ export default function ContractDetailPage() {
                           <div className="flex justify-between border-t-2 border-blue-700 pt-2">
                             <span className="text-xs text-gray-600 font-semibold">실제 매입가</span>
                             <span className="text-sm font-bold text-blue-900">
-                              {(contract.purchasePrice * (1 + contract.purchaseCommissionRate / 100)).toLocaleString()} 원
+                              {((contract.purchasePrice ?? 0) * (1 + (contract.purchaseCommissionRate ?? 0) / 100)).toLocaleString()} 원
                             </span>
                           </div>
                         </>
@@ -577,7 +510,7 @@ export default function ContractDetailPage() {
                           <span className="text-sm font-medium text-gray-900">
                             {contract.commissionType === 'percentage'
                               ? `${contract.partnerCommission}%`
-                              : `${contract.partnerCommission.toLocaleString()} 원`
+                              : `${(contract.partnerCommission ?? 0).toLocaleString()} 원`
                             }
                           </span>
                         </div>
@@ -586,12 +519,13 @@ export default function ContractDetailPage() {
                         <span className="text-xs text-gray-600 font-semibold">실제 판매가</span>
                         <span className="text-sm font-bold text-green-900">
                           {(() => {
-                            let actualSellingPrice = contract.sellingPrice;
-                            if (contract.hasPartner && contract.partnerCommission !== undefined) {
+                            let actualSellingPrice = contract.sellingPrice ?? 0;
+                            const commission = contract.partnerCommission ?? 0;
+                            if (contract.hasPartner && commission) {
                               if (contract.commissionType === 'percentage') {
-                                actualSellingPrice = contract.sellingPrice * (1 - contract.partnerCommission / 100);
+                                actualSellingPrice = actualSellingPrice * (1 - commission / 100);
                               } else {
-                                actualSellingPrice = contract.sellingPrice - contract.partnerCommission;
+                                actualSellingPrice = actualSellingPrice - commission;
                               }
                             }
                             return `${actualSellingPrice.toLocaleString()} 원`;
@@ -608,22 +542,23 @@ export default function ContractDetailPage() {
                   <h4 className="text-sm font-semibold text-purple-900 mb-3">마진 분석</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {(() => {
-                      const purchasePrice = contract.purchasePrice;
-                      const purchaseCommissionRate = contract.purchaseCommissionRate || 0;
-                      const sellingPrice = contract.sellingPrice;
+                      const purchasePrice = contract.purchasePrice ?? 0;
+                      const purchaseCommissionRate = contract.purchaseCommissionRate ?? 0;
+                      const sellingPrice = contract.sellingPrice ?? 0;
+                      const commission = contract.partnerCommission ?? 0;
                       const actualPurchasePrice = purchasePrice * (1 + purchaseCommissionRate / 100);
 
                       let actualSellingPrice = sellingPrice;
-                      if (contract.hasPartner && contract.partnerCommission !== undefined) {
+                      if (contract.hasPartner && commission) {
                         if (contract.commissionType === 'percentage') {
-                          actualSellingPrice = sellingPrice * (1 - contract.partnerCommission / 100);
+                          actualSellingPrice = sellingPrice * (1 - commission / 100);
                         } else {
-                          actualSellingPrice = sellingPrice - contract.partnerCommission;
+                          actualSellingPrice = sellingPrice - commission;
                         }
                       }
 
-                      const baseMarginRate = (sellingPrice - purchasePrice) / sellingPrice * 100;
-                      const actualMarginRate = (actualSellingPrice - actualPurchasePrice) / actualSellingPrice * 100;
+                      const baseMarginRate = sellingPrice ? (sellingPrice - purchasePrice) / sellingPrice * 100 : 0;
+                      const actualMarginRate = actualSellingPrice ? (actualSellingPrice - actualPurchasePrice) / actualSellingPrice * 100 : 0;
                       const actualMarginAmount = actualSellingPrice - actualPurchasePrice;
 
                       return (
@@ -797,15 +732,12 @@ export default function ContractDetailPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-gray-600">
               <div>
                 <p className="mb-1">생성: {formatDateTime(contract.createdAt)}</p>
-                {contract.createdBy && (
-                  <p>생성자: {contract.createdBy.name} ({contract.createdBy.email})</p>
+                {contract.creator && (
+                  <p>생성자: {contract.creator.name} ({contract.creator.email})</p>
                 )}
               </div>
               <div>
                 <p className="mb-1">수정: {formatDateTime(contract.updatedAt)}</p>
-                {contract.updatedBy && (
-                  <p>수정자: {contract.updatedBy.name} ({contract.updatedBy.email})</p>
-                )}
               </div>
             </div>
           </div>
@@ -831,19 +763,10 @@ export default function ContractDetailPage() {
                     </p>
                     <p className="text-xs text-gray-500">{formatDateTime(entry.changedAt)}</p>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {entry.changedBy.name} ({entry.changedBy.email})
-                  </p>
-                  {entry.field && (
-                    <div className="mt-2 text-sm">
-                      <span className="text-gray-600">{entry.field}: </span>
-                      {entry.oldValue && (
-                        <span className="text-red-600 line-through mr-2">{entry.oldValue}</span>
-                      )}
-                      {entry.newValue && (
-                        <span className="text-green-600 font-medium">{entry.newValue}</span>
-                      )}
-                    </div>
+                  {entry.changer && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      {entry.changer.name} ({entry.changer.email})
+                    </p>
                   )}
                 </div>
               </div>
@@ -909,17 +832,17 @@ export default function ContractDetailPage() {
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-md border-2 border-gray-800 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <span className="text-2xl flex-shrink-0">{getFileIcon(file.filename)}</span>
+                    <span className="text-2xl flex-shrink-0">{getFileIcon(file.originalName)}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">
-                        {file.filename}
+                        {file.originalName}
                       </p>
                       <div className="flex items-center space-x-2 text-xs text-gray-500 mt-0.5">
                         <span>{formatFileSize(file.size)}</span>
                         <span>•</span>
                         <span>{formatDateTime(file.createdAt)}</span>
                         <span>•</span>
-                        <span>{file.uploadedBy.name}</span>
+                        <span>{file.uploadedBy?.name}</span>
                       </div>
                     </div>
                   </div>

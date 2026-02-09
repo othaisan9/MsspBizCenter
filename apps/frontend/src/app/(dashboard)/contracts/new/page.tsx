@@ -142,7 +142,7 @@ export default function NewContractPage() {
 
   const getProductOptions = (productId: string) => {
     const product = products.find(p => p.id === productId);
-    return product?.productOptions || [];
+    return product?.options || [];
   };
 
   const handleChange = (field: string, value: any) => {

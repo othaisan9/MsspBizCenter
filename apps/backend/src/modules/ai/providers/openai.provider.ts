@@ -3,6 +3,7 @@ import {
   LlmProvider,
   LlmGenerateParams,
   LlmResponse,
+  LlmModelInfo,
 } from './llm-provider.interface';
 
 export class OpenAiProvider implements LlmProvider {
@@ -38,6 +39,18 @@ export class OpenAiProvider implements LlmProvider {
           }
         : undefined,
     };
+  }
+
+  async listModels(): Promise<LlmModelInfo[]> {
+    const response = await this.client.models.list();
+    const models: LlmModelInfo[] = [];
+    for await (const model of response) {
+      models.push({ id: model.id, name: model.id });
+    }
+    // chat 모델만 필터링 (gpt, o1, o3, chatgpt 등)
+    return models
+      .filter((m) => /^(gpt-|o[0-9]|chatgpt)/.test(m.id))
+      .sort((a, b) => a.id.localeCompare(b.id));
   }
 
   async *stream(params: LlmGenerateParams): AsyncGenerator<string, void, unknown> {

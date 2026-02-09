@@ -5,16 +5,9 @@ import { CSS } from '@dnd-kit/utilities';
 import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/ui/Badge';
 import { getPriorityColor, getPriorityLabel, formatDate } from '@/lib/utils';
+import type { TaskResponse } from '@msspbiz/shared';
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  priority: string;
-  assignee?: { id: string; name: string };
-  dueDate?: string;
-  tags?: string[];
-}
+type Task = TaskResponse;
 
 interface KanbanCardProps {
   task: Task;

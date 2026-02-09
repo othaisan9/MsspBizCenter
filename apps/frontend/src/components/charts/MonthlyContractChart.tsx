@@ -19,7 +19,11 @@ export function MonthlyContractChart() {
       try {
         const result = await statsApi.contractsMonthly();
         if (result && Array.isArray(result)) {
-          setData(result);
+          setData(result.map((item) => ({
+            month: `${item.year}-${String(item.month).padStart(2, '0')}`,
+            new: item.newContracts,
+            renewed: item.renewals,
+          })));
         }
       } catch (error) {
         console.error('Failed to load monthly contract data:', error);

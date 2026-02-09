@@ -15,7 +15,13 @@ export interface LlmResponse {
   usage?: { inputTokens: number; outputTokens: number };
 }
 
+export interface LlmModelInfo {
+  id: string;
+  name: string;
+}
+
 export interface LlmProvider {
   generate(params: LlmGenerateParams): Promise<LlmResponse>;
   stream(params: LlmGenerateParams): AsyncGenerator<string, void, unknown>;
+  listModels(): Promise<LlmModelInfo[]>;
 }

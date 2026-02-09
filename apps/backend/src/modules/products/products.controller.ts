@@ -93,11 +93,11 @@ export class ProductsController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.OWNER)
-  @ApiOperation({ summary: '제품 삭제 (OWNER만 가능, 상태를 INACTIVE로 변경)' })
+  @Roles(UserRole.OWNER, UserRole.ADMIN)
+  @ApiOperation({ summary: '제품 삭제 (ADMIN 이상, 상태를 INACTIVE로 변경)' })
   @ApiParam({ name: 'id', description: '제품 ID' })
   @ApiResponse({ status: 200, description: '제품 삭제 성공' })
-  @ApiResponse({ status: 403, description: '권한 없음 (OWNER만 가능)' })
+  @ApiResponse({ status: 403, description: '권한 없음 (ADMIN 이상)' })
   @ApiResponse({ status: 404, description: '제품을 찾을 수 없음' })
   async remove(
     @Param('id', ParseUUIDPipe) id: string,

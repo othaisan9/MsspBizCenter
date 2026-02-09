@@ -28,6 +28,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '@msspbiz/shared';
+import type { RequestUser } from '@msspbiz/shared';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -45,7 +46,7 @@ export class UsersController {
   create(
     @Body() createUserDto: CreateUserDto,
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() currentUser: RequestUser,
   ) {
     return this.usersService.create(createUserDto, tenantId, {
       role: currentUser.role,
@@ -88,7 +89,7 @@ export class UsersController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
     @CurrentUser('tenantId') tenantId: string,
-    @CurrentUser() currentUser: any,
+    @CurrentUser() currentUser: RequestUser,
   ) {
     return this.usersService.update(id, tenantId, updateUserDto, {
       id: currentUser.id,

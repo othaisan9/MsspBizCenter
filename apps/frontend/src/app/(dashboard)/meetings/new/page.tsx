@@ -38,13 +38,9 @@ const LOCATION_OPTIONS = [
   { value: '기타', label: '🏢 기타' },
 ];
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  isActive: boolean;
-}
+import type { UserResponse } from '@msspbiz/shared';
+
+type User = UserResponse;
 
 interface ActionItem {
   title: string;

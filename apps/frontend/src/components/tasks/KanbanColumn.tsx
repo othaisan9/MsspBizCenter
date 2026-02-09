@@ -4,15 +4,9 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { KanbanCard } from './KanbanCard';
 import { Badge } from '@/components/ui/Badge';
+import type { TaskResponse } from '@msspbiz/shared';
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  priority: string;
-  assignee?: { id: string; name: string };
-  dueDate?: string;
-}
+type Task = TaskResponse;
 
 interface KanbanColumnProps {
   id: string;

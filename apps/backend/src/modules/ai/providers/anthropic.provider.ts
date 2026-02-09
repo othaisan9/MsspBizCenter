@@ -3,6 +3,7 @@ import {
   LlmProvider,
   LlmGenerateParams,
   LlmResponse,
+  LlmModelInfo,
 } from './llm-provider.interface';
 
 export class AnthropicProvider implements LlmProvider {
@@ -33,6 +34,15 @@ export class AnthropicProvider implements LlmProvider {
         outputTokens: response.usage.output_tokens,
       },
     };
+  }
+
+  async listModels(): Promise<LlmModelInfo[]> {
+    const response = await this.client.models.list({ limit: 100 });
+    const models: LlmModelInfo[] = [];
+    for await (const model of response) {
+      models.push({ id: model.id, name: model.display_name || model.id });
+    }
+    return models;
   }
 
   async *stream(params: LlmGenerateParams): AsyncGenerator<string, void, unknown> {

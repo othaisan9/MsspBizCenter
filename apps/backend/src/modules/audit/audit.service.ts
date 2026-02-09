@@ -29,8 +29,8 @@ export interface TimelineItem {
   description: string | null;
   changes?: {
     field: string;
-    oldValue: any;
-    newValue: any;
+    oldValue: unknown;
+    newValue: unknown;
   }[];
 }
 
@@ -179,7 +179,7 @@ export class AuditService {
 
       // 변경사항 추출 (previousValue와 newValue 비교)
       if (log.previousValue && log.newValue) {
-        const changes: { field: string; oldValue: any; newValue: any }[] = [];
+        const changes: { field: string; oldValue: unknown; newValue: unknown }[] = [];
 
         // newValue의 모든 키를 순회하며 변경사항 찾기
         for (const field of Object.keys(log.newValue)) {

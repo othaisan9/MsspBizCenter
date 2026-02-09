@@ -60,7 +60,7 @@ export class Task extends TenantBaseEntity {
   parentTaskId: string | null;
 
   @Column({ type: 'jsonb', nullable: true })
-  attachments: any | null;
+  attachments: Record<string, unknown>[] | null;
 
   @Column({ type: 'uuid', name: 'created_by' })
   createdBy: string;

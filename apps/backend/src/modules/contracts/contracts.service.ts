@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, LessThanOrEqual, MoreThanOrEqual, Like } from 'typeorm';
 import { Contract } from './entities/contract.entity';
 import { ContractHistory, ContractHistoryAction } from './entities/contract-history.entity';
+import { ContractProduct } from '../products/entities/contract-product.entity';
 import { EncryptionService } from './services/encryption.service';
 import { CreateContractDto } from './dto/create-contract.dto';
 import { UpdateContractDto } from './dto/update-contract.dto';
@@ -21,6 +22,8 @@ export class ContractsService {
     private contractRepository: Repository<Contract>,
     @InjectRepository(ContractHistory)
     private historyRepository: Repository<ContractHistory>,
+    @InjectRepository(ContractProduct)
+    private contractProductRepository: Repository<ContractProduct>,
     private encryptionService: EncryptionService,
   ) {}
 
@@ -50,8 +53,11 @@ export class ContractsService {
       sellingPriceEncrypted = this.encryptionService.encrypt(dto.sellingPrice.toString());
     }
 
+    // products는 별도 처리 → DTO spread에서 제외
+    const { products, ...contractFields } = dto;
+
     const contract = this.contractRepository.create({
-      ...dto,
+      ...contractFields,
       tenantId,
       createdBy: userId,
       amountEncrypted,
@@ -61,6 +67,21 @@ export class ContractsService {
     });
 
     const savedContract = await this.contractRepository.save(contract);
+
+    // 계약 제품 저장
+    if (products && products.length > 0) {
+      const contractProducts = products.map((p) =>
+        this.contractProductRepository.create({
+          contractId: savedContract.id,
+          productId: p.productId,
+          productOptionId: p.productOptionId || null,
+          quantity: p.quantity || 1,
+          notes: p.notes || null,
+          tenantId,
+        }),
+      );
+      await this.contractProductRepository.save(contractProducts);
+    }
 
     // 히스토리 기록
     await this.createHistory(
@@ -158,7 +179,7 @@ export class ContractsService {
   async findOne(id: string, tenantId: string): Promise<Contract & { amount?: number; purchasePrice?: number; sellingPrice?: number }> {
     const contract = await this.contractRepository.findOne({
       where: { id, tenantId },
-      relations: ['creator', 'parentContract', 'renewals', 'internalManager'],
+      relations: ['creator', 'parentContract', 'renewals', 'internalManager', 'contractProducts', 'contractProducts.product', 'contractProducts.productOption'],
     });
 
     if (!contract) {
@@ -166,7 +187,7 @@ export class ContractsService {
     }
 
     // 금액 복호화
-    const result: any = { ...contract };
+    const result: Contract & { amount?: number; purchasePrice?: number; sellingPrice?: number } = { ...contract };
     if (contract.amountEncrypted) {
       try {
         const decrypted = this.encryptionService.decrypt(contract.amountEncrypted);
@@ -241,15 +262,36 @@ export class ContractsService {
         : null;
     }
 
+    // products는 별도 처리 → DTO spread에서 제외
+    const { products, amount, purchasePrice, sellingPrice, ...restDto } = dto;
+
     // 나머지 필드 업데이트
     Object.assign(contract, {
-      ...dto,
-      amountEncrypted: contract.amountEncrypted, // 이미 설정됨
-      purchasePriceEncrypted: contract.purchasePriceEncrypted, // 이미 설정됨
-      sellingPriceEncrypted: contract.sellingPriceEncrypted, // 이미 설정됨
+      ...restDto,
+      amountEncrypted: contract.amountEncrypted,
+      purchasePriceEncrypted: contract.purchasePriceEncrypted,
+      sellingPriceEncrypted: contract.sellingPriceEncrypted,
     });
 
     const updatedContract = await this.contractRepository.save(contract);
+
+    // 계약 제품 업데이트 (기존 삭제 후 재생성)
+    if (products !== undefined) {
+      await this.contractProductRepository.delete({ contractId: id });
+      if (products && products.length > 0) {
+        const contractProducts = products.map((p) =>
+          this.contractProductRepository.create({
+            contractId: id,
+            productId: p.productId,
+            productOptionId: p.productOptionId || null,
+            quantity: p.quantity || 1,
+            notes: p.notes || null,
+            tenantId,
+          }),
+        );
+        await this.contractProductRepository.save(contractProducts);
+      }
+    }
 
     // 히스토리 기록
     await this.createHistory(

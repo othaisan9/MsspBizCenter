@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { tasksApi, usersApi } from '@/lib/api';
+import { tasksApi, usersApi, tagsApi } from '@/lib/api';
+import type { TagResponse } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -14,12 +15,9 @@ import { getWeekNumber } from '@/lib/utils';
 import { AiButton, AiStreamPanel } from '@/components/ai';
 import { useAiGenerate } from '@/hooks/useAiGenerate';
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
+import type { UserResponse } from '@msspbiz/shared';
+
+type User = UserResponse;
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -27,6 +25,7 @@ export default function NewTaskPage() {
   const [error, setError] = useState('');
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [tagPresets, setTagPresets] = useState<string[]>([]);
 
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
@@ -63,20 +62,14 @@ export default function NewTaskPage() {
     { value: 'low', label: '낮음' },
   ];
 
-  const tagPresets = [
-    '보안관제',
-    '취약점진단',
-    '모의해킹',
-    '컨설팅',
-    '인증심사',
-    '교육',
-    '보고서',
-    '영업',
-    '미팅',
-    '기술지원',
-    '유지보수',
-    '개발',
-  ];
+  const fetchTags = useCallback(async () => {
+    try {
+      const data = await tagsApi.list();
+      setTagPresets((data || []).map((t: TagResponse) => t.name));
+    } catch {
+      setTagPresets([]);
+    }
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -93,7 +86,8 @@ export default function NewTaskPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    fetchTags();
+  }, [fetchUsers, fetchTags]);
 
   const handleChange = useCallback((field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

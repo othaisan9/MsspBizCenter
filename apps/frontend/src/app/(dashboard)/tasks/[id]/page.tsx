@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { tasksApi } from '@/lib/api';
+import { tasksApi, tagsApi } from '@/lib/api';
+import type { TagResponse } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -21,23 +22,10 @@ import {
   formatDate,
   formatDateTime,
 } from '@/lib/utils';
+import type { TaskResponse } from '@msspbiz/shared';
+import { TaskStatus } from '@msspbiz/shared';
 
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  weekNumber: number;
-  year: number;
-  status: string;
-  priority: string;
-  assigneeId?: string;
-  assignee?: { id: string; name: string };
-  dueDate?: string;
-  estimatedHours?: number;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+type Task = TaskResponse;
 
 export default function TaskDetailPage() {
   const router = useRouter();
@@ -51,6 +39,7 @@ export default function TaskDetailPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [tagPresets, setTagPresets] = useState<string[]>([]);
 
   const [editForm, setEditForm] = useState({
     title: '',
@@ -79,9 +68,19 @@ export default function TaskDetailPage() {
     { value: 'low', label: '낮음' },
   ];
 
+  const fetchTagPresets = useCallback(async () => {
+    try {
+      const data = await tagsApi.list();
+      setTagPresets((data || []).map((t: TagResponse) => t.name));
+    } catch {
+      setTagPresets([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTask();
-  }, [taskId]);
+    fetchTagPresets();
+  }, [taskId, fetchTagPresets]);
 
   const fetchTask = async () => {
     try {
@@ -111,7 +110,7 @@ export default function TaskDetailPage() {
     }
   };
 
-  const handleStatusChange = async (newStatus: string) => {
+  const handleStatusChange = async (newStatus: TaskStatus) => {
     if (!task) return;
 
     try {
@@ -279,7 +278,7 @@ export default function TaskDetailPage() {
               <Select
                 options={statusOptions}
                 value={task.status}
-                onChange={(e) => handleStatusChange(e.target.value)}
+                onChange={(e) => handleStatusChange(e.target.value as TaskStatus)}
                 className="w-40"
               />
             </div>
@@ -468,6 +467,33 @@ export default function TaskDetailPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">태그</label>
+              {tagPresets.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tagPresets.map((preset) => {
+                    const currentTags = editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0);
+                    const isSelected = currentTags.includes(preset);
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          const newTags = isSelected
+                            ? currentTags.filter((t) => t !== preset)
+                            : [...currentTags, preset];
+                          setEditForm({ ...editForm, tags: newTags.join(', ') });
+                        }}
+                        className={`px-3 py-1 rounded-md text-xs border-2 cursor-pointer transition-all duration-150 ${
+                          isSelected
+                            ? 'bg-primary-100 text-primary-800 border-primary-700 shadow-brutal-sm'
+                            : 'bg-gray-100 text-gray-700 border-gray-800 hover:bg-gray-200'
+                        }`}
+                      >
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
               {editForm.tags.trim() && (
                 <div className="flex flex-wrap gap-1 mb-2">
                   {editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0).map((tag, idx) => (

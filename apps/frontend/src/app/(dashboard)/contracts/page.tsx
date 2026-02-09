@@ -11,37 +11,10 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import type { ContractResponse, ContractDashboardResponse } from '@msspbiz/shared';
 
-interface Contract {
-  id: string;
-  title: string;
-  contractNumber?: string;
-  contractType: string;
-  partyA: string;
-  partyB: string;
-  startDate: string;
-  endDate?: string;
-  status: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ExpiringContract {
-  id: string;
-  title: string;
-  endDate: string;
-  daysUntilExpiry: number;
-}
-
-interface DashboardStats {
-  total: number;
-  byStatus: Array<{ status: string; count: number }>;
-  byType: Array<{ contractType: string; count: number }>;
-  expiring: {
-    within30Days: number;
-    within7Days: number;
-  };
-}
+type Contract = ContractResponse;
+type DashboardStats = ContractDashboardResponse;
 
 const CONTRACT_TYPE_LABELS: Record<string, string> = {
   service: '서비스 계약',
@@ -56,7 +29,7 @@ export default function ContractsPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
-  const [expiring, setExpiring] = useState<ExpiringContract[]>([]);
+  const [expiring, setExpiring] = useState<ContractResponse[]>([]);
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -308,7 +281,7 @@ export default function ContractsPage() {
                       {c.title}
                     </button>
                     {' '}
-                    - {c.daysUntilExpiry}일 후 만료 ({formatDate(c.endDate)})
+                    - {c.endDate ? Math.ceil((new Date(c.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : '?'}일 후 만료 ({c.endDate ? formatDate(c.endDate) : '-'})
                   </p>
                 ))}
               </div>

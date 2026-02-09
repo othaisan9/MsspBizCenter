@@ -3,6 +3,7 @@ import {
   LlmProvider,
   LlmGenerateParams,
   LlmResponse,
+  LlmModelInfo,
 } from './llm-provider.interface';
 
 export class OllamaProvider implements LlmProvider {
@@ -26,6 +27,14 @@ export class OllamaProvider implements LlmProvider {
     return {
       text: response.message.content,
     };
+  }
+
+  async listModels(): Promise<LlmModelInfo[]> {
+    const response = await this.client.list();
+    return (response.models || []).map((m) => ({
+      id: m.name,
+      name: m.name,
+    }));
   }
 
   async *stream(params: LlmGenerateParams): AsyncGenerator<string, void, unknown> {

@@ -30,7 +30,7 @@ export class PromptBuilderService {
     };
   }
 
-  buildMyPerformancePrompt(tasks: any[]): { system: string; user: string } {
+  buildMyPerformancePrompt(tasks: { status: string; title: string; priority?: string }[]): { system: string; user: string } {
     const taskSummary = tasks.map(t => `- [${t.status}] ${t.title} (우선순위: ${t.priority || '없음'})`).join('\n');
 
     return {
@@ -46,7 +46,7 @@ export class PromptBuilderService {
     };
   }
 
-  buildWeeklyReportPrompt(tasks: any[], year: number, week: number): { system: string; user: string } {
+  buildWeeklyReportPrompt(tasks: { status: string; title: string; priority?: string; assignee?: { name: string } | null }[], year: number, week: number): { system: string; user: string } {
     const taskSummary = tasks.map(t =>
       `- [${t.status}] ${t.title} (담당: ${t.assignee?.name || '미정'}, 우선순위: ${t.priority || '없음'})`
     ).join('\n');
@@ -98,10 +98,10 @@ export class PromptBuilderService {
     };
   }
 
-  buildChatPrompt(message: string, contextData?: any, userName?: string): { system: string; user: string } {
+  buildChatPrompt(message: string, contextData?: { tasks?: { title: string; status: string }[] }, userName?: string): { system: string; user: string } {
     let contextStr = '';
     if (contextData?.tasks) {
-      contextStr = `\n\n참고할 업무 데이터:\n${contextData.tasks.map((t: any) => `- ${t.title} (${t.status})`).join('\n')}`;
+      contextStr = `\n\n참고할 업무 데이터:\n${contextData.tasks.map((t) => `- ${t.title} (${t.status})`).join('\n')}`;
     }
 
     return {

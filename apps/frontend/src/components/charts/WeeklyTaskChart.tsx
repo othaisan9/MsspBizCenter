@@ -20,7 +20,12 @@ export function WeeklyTaskChart() {
       try {
         const result = await statsApi.tasksWeekly();
         if (result && Array.isArray(result)) {
-          setData(result);
+          setData(result.map((item) => ({
+            week: `${item.year}-W${item.week}`,
+            total: item.total,
+            completed: item.completed,
+            inProgress: item.inProgress,
+          })));
         }
       } catch (error) {
         console.error('Failed to load weekly task data:', error);

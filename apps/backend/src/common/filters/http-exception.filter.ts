@@ -23,18 +23,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
       : HttpStatus.INTERNAL_SERVER_ERROR;
 
     let message = 'Internal server error';
-    let errors: any[] | undefined;
+    let errors: string[] | undefined;
 
     if (isHttpException) {
       const exceptionResponse = exception.getResponse();
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
-        const resp = exceptionResponse as any;
-        message = resp.message || exception.message;
+        const resp = exceptionResponse as Record<string, unknown>;
         if (Array.isArray(resp.message)) {
-          errors = resp.message;
+          errors = resp.message as string[];
           message = 'Validation failed';
+        } else {
+          message = (resp.message as string) || exception.message;
         }
       }
     } else {
