@@ -78,6 +78,24 @@ export class ListModelsDto {
   ollamaBaseUrl?: string;
 }
 
+export class ExtractWeeklyTasksDto {
+  @ApiProperty({ description: '주간 보고서 텍스트' })
+  @IsString()
+  reportText: string;
+
+  @ApiProperty({ description: '연도', example: 2026 })
+  @IsInt()
+  @Min(2020)
+  @Max(2100)
+  year: number;
+
+  @ApiProperty({ description: '주차', example: 6 })
+  @IsInt()
+  @Min(1)
+  @Max(53)
+  weekNumber: number;
+}
+
 export class ChatDto {
   @ApiProperty({ description: '사용자 메시지', example: '이번 주 내 업무 현황을 알려줘' })
   @IsString()

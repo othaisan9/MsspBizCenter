@@ -84,6 +84,30 @@ export class PromptBuilderService {
     };
   }
 
+  buildExtractWeeklyTasksPrompt(reportText: string, year: number, weekNumber: number): { system: string; user: string } {
+    const nextWeek = weekNumber >= 53 ? 1 : weekNumber + 1;
+    const nextYear = weekNumber >= 53 ? year + 1 : year;
+
+    return {
+      system: `당신은 주간 보고서에서 다음 주 실행 업무를 추출하는 전문가입니다.
+주간 보고서의 "다음 주 계획" 또는 "Next Week Plan" 섹션을 중심으로, 보고서 전체에서 후속 조치가 필요한 항목까지 포함하여 구체적인 업무 목록을 JSON 배열로 추출해주세요.
+
+각 업무는 다음 필드를 포함합니다:
+- title: 업무 제목 (간결하고 명확하게, 50자 이내)
+- description: 업무 설명 (1-2문장, 구체적인 실행 내용)
+- priority: 우선순위 (critical/high/medium/low)
+- tags: 관련 태그 배열 (예: ["보안관제", "개발"])
+
+반드시 다음 형식의 JSON 배열로만 응답하세요:
+[
+  { "title": "...", "description": "...", "priority": "medium", "tags": ["..."] }
+]
+
+업무가 없으면 빈 배열 []을 반환하세요. 최대 10개까지만 추출하세요.`,
+      user: `${year}년 ${weekNumber}주차 주간 보고서:\n\n${reportText}\n\n위 보고서에서 ${nextYear}년 ${nextWeek}주차에 수행할 업무를 JSON 배열로 추출해주세요.`,
+    };
+  }
+
   buildMeetingTemplatePrompt(title: string, type?: string, attendeeCount?: number): { system: string; user: string } {
     return {
       system: `당신은 회의 진행 전문가입니다. 효과적인 회의를 위한 템플릿을 작성해주세요.
@@ -98,20 +122,80 @@ export class PromptBuilderService {
     };
   }
 
-  buildChatPrompt(message: string, contextData?: { tasks?: { title: string; status: string }[] }, userName?: string): { system: string; user: string } {
-    let contextStr = '';
-    if (contextData?.tasks) {
-      contextStr = `\n\n참고할 업무 데이터:\n${contextData.tasks.map((t) => `- ${t.title} (${t.status})`).join('\n')}`;
+  buildChatPrompt(message: string, contextData?: {
+    myTasks?: any[];
+    allTasks?: any[];
+    meetings?: any[];
+    contracts?: any[];
+    stats?: any;
+  }): { system: string; user: string } {
+    const sections: string[] = [];
+
+    // 대시보드 통계
+    if (contextData?.stats) {
+      const s = contextData.stats;
+      sections.push(`[대시보드 통계]
+- 전체 업무: ${s.totalTasks ?? 0}개, 이번 주 완료: ${s.completedThisWeek ?? 0}개, 진행 중: ${s.inProgressTasks ?? 0}개
+- 전체 회의: ${s.totalMeetings ?? 0}개
+- 계약: 전체 ${s.totalContracts ?? 0}개, 활성 ${s.activeContracts ?? 0}개, 만료 임박 ${s.expiringContracts ?? 0}개`);
     }
 
-    return {
-      system: `당신은 MSSP 비즈니스 센터의 AI 어시스턴트입니다. 사용자의 업무를 돕기 위해 다음 역할을 수행합니다:
-- 업무(Task), 회의록(Meeting), 계약(Contract) 관련 정보 제공
-- 데이터 분석 및 인사이트 제공
-- 업무 관리 조언 및 제안
-- 질문에 대한 명확하고 실용적인 답변
+    // 내 업무
+    if (contextData?.myTasks && contextData.myTasks.length > 0) {
+      const taskLines = contextData.myTasks.map(t =>
+        `- [${t.status}] ${t.title} (우선순위: ${t.priority || '-'}, 주차: ${t.year}/${t.weekNumber}주${t.dueDate ? `, 완료예정: ${t.dueDate.split('T')[0]}` : ''}${t.tags?.length ? `, 태그: ${t.tags.join(',')}` : ''})`
+      );
+      sections.push(`[내 담당 업무 (${contextData.myTasks.length}개)]\n${taskLines.join('\n')}`);
+    }
 
-친절하고 전문적인 톤으로, 한국어로 답변해주세요.${userName ? `\n사용자 이름: ${userName}` : ''}`,
+    // 전체 업무 (내 업무와 다른 것만 요약)
+    if (contextData?.allTasks && contextData.allTasks.length > 0) {
+      const myIds = new Set((contextData.myTasks || []).map((t: any) => t.id));
+      const otherTasks = contextData.allTasks.filter((t: any) => !myIds.has(t.id));
+      if (otherTasks.length > 0) {
+        const taskLines = otherTasks.slice(0, 30).map((t: any) =>
+          `- [${t.status}] ${t.title} (담당: ${t.assignee?.name || '미정'}, 우선순위: ${t.priority || '-'})`
+        );
+        sections.push(`[팀 전체 업무 (${otherTasks.length}개)]\n${taskLines.join('\n')}`);
+      }
+    }
+
+    // 회의록
+    if (contextData?.meetings && contextData.meetings.length > 0) {
+      const meetingLines = contextData.meetings.map((m: any) =>
+        `- [${m.status}] ${m.title} (일시: ${m.meetingDate?.split('T')[0] || '-'}${m.attendees?.length ? `, 참석: ${m.attendees.length}명` : ''})`
+      );
+      sections.push(`[최근 회의 (${contextData.meetings.length}개)]\n${meetingLines.join('\n')}`);
+    }
+
+    // 계약
+    if (contextData?.contracts && contextData.contracts.length > 0) {
+      const contractLines = contextData.contracts.map((c: any) =>
+        `- [${c.status}] ${c.customerName} - ${c.title} (${c.contractType || '-'}, 기간: ${c.startDate?.split('T')[0] || '?'} ~ ${c.endDate?.split('T')[0] || '?'})`
+      );
+      sections.push(`[계약 현황 (${contextData.contracts.length}개)]\n${contractLines.join('\n')}`);
+    }
+
+    const contextStr = sections.length > 0
+      ? `\n\n--- 아래는 현재 시스템에 등록된 실제 데이터입니다. 이 데이터를 기반으로 답변해주세요. ---\n\n${sections.join('\n\n')}`
+      : '';
+
+    return {
+      system: `당신은 MSSP(Managed Security Service Provider) 비즈니스 센터의 AI 어시스턴트입니다.
+사용자가 질문하면 아래 제공되는 실제 프로젝트 데이터를 기반으로 정확하게 답변해야 합니다.
+
+역할:
+- 업무(Task) 현황 조회, 분석, 조언
+- 회의록(Meeting) 요약, 결정사항 안내
+- 계약(Contract) 현황, 만료 임박 계약 알림
+- 팀 성과 분석 및 업무 우선순위 제안
+- 데이터 기반 인사이트 제공
+
+규칙:
+- 반드시 제공된 데이터에 근거하여 답변하세요
+- 데이터에 없는 내용은 "현재 데이터에서 확인되지 않습니다"라고 명확히 알려주세요
+- 숫자나 통계를 말할 때는 실제 데이터를 인용하세요
+- 한국어로 친절하고 전문적으로 답변하세요`,
       user: `${message}${contextStr}`,
     };
   }

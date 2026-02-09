@@ -88,6 +88,65 @@ MsspBizCenter/
 
 ## 3. 최근 변경사항
 
+### v0.1.0-alpha.10 세션2 - AI 업무 추출 + 채팅 개선 + 담당자 편집 (2026-02-09)
+
+**담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend) + 나검수(QA)
+
+#### 📋 주요 작업
+
+**1. 주간보고서 AI → 업무 생성 기능 (박안도 + 유아이)**
+- Backend: `ExtractWeeklyTasksDto`, `buildExtractWeeklyTasksPrompt()`, `extractWeeklyTasks()` 메서드
+- Backend: `POST /ai/extract-weekly-tasks` 엔드포인트 (ANALYST+ 권한)
+- Frontend: `aiApi.extractWeeklyTasks()` API 함수 추가
+- Frontend: 보고서 완료 후 "다음 주 업무 추출" 버튼 → AI JSON 추출 → 미리보기 패널
+- Frontend: 체크박스 선택/해제, 삭제, "N개 업무 생성" 일괄 생성 → 다음 주차 자동 이동
+- 추출 프롬프트: 보고서 텍스트에서 title/description/priority/tags JSON 배열 추출 (최대 10개)
+
+**2. AI 어시스턴트 채팅 프롬프트 개선 (박안도)**
+- 문제: AI 채팅이 프로젝트 데이터를 참조하지 못하고 일반 답변만 생성
+- 원인: Frontend contextType 미전송, Backend 1가지 케이스만 처리, 프롬프트 빈약
+- 수정: `streamChat()`에서 5개 데이터 소스 병렬 조회 (Promise.all)
+  - myTasks (30개), allTasks (50개), meetings (10개), contracts (20개), dashboardStats
+- 수정: `buildChatPrompt()` 5개 구조화 섹션 ([대시보드 통계], [내 담당 업무], [팀 전체 업무], [최근 회의], [계약 현황])
+- 수정: Frontend AiChatDrawer `contextType: 'all'` 추가
+- AI ContractsService 주입 추가 (ai.service.ts)
+
+**3. 업무 수정 모달 담당자 변경 (유아이)**
+- tasks/[id]/page.tsx: usersApi import, users 상태 + fetchUsers()
+- editForm에 assigneeId 필드 추가
+- 수정 모달에 담당자 Select 드롭다운 (미지정 가능 → null 전송)
+
+**4. 기타 수정**
+- 태그 관리 개선: 태그 프리셋 API 연동
+- 기본 담당자 수정: createTaskDto assignee 처리 개선
+- HTML 태그 strip: 목록 description에서 `<[^>]*>` 제거
+
+**5. 개발팀 리뷰 진행 (박안도 + 유아이 + 나검수)**
+- 주간보고서 → 업무 생성 기능 전체 코드 리뷰
+- 발견 사항: Bulk API 필요, 부분 실패 처리 부재, 담당자 선택 불가, 53주차 경계 오류
+- QA: Critical 2건 (부분 실패 데이터 손실, 53주차 계산), High 3건 식별
+
+#### 📁 수정/생성된 파일
+
+**Backend** (6파일):
+- `apps/backend/src/modules/ai/ai.controller.ts` - extract-weekly-tasks 엔드포인트
+- `apps/backend/src/modules/ai/ai.service.ts` - extractWeeklyTasks(), streamChat() 개선, ContractsService 주입
+- `apps/backend/src/modules/ai/dto/generate.dto.ts` - ExtractWeeklyTasksDto
+- `apps/backend/src/modules/ai/services/prompt-builder.service.ts` - buildExtractWeeklyTasksPrompt(), buildChatPrompt() 개선
+- `apps/backend/src/modules/contracts/contracts.module.ts` - (ai.module에서 import 용)
+
+**Frontend** (5파일):
+- `apps/frontend/src/app/(dashboard)/tasks/page.tsx` - 업무 추출 UI (ExtractedTask, 미리보기 패널)
+- `apps/frontend/src/app/(dashboard)/tasks/[id]/page.tsx` - 담당자 편집 (Select + fetchUsers)
+- `apps/frontend/src/components/ai/AiChatDrawer.tsx` - contextType: 'all'
+- `apps/frontend/src/lib/api.ts` - aiApi.extractWeeklyTasks()
+
+**QA** (2파일):
+- `tests/qa-reports/weekly-tasks-ai-extraction-qa.md` - QA 상세 리포트
+- `tests/qa-reports/weekly-tasks-ai-extraction-summary.md` - QA 요약 리포트
+
+---
+
 ### v0.1.0-alpha.10 - AI 어시스턴트 모듈 + 제품 재설계 + QA (2026-02-08~09)
 
 **담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend) + 나검수(QA)
@@ -499,39 +558,41 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - P1 타입 안전성 리팩토링 (T6/T7/T9) 완료
-  - Backend `any` 34개소 제거 → 2개 잔여 (Passport + Recharts 라이브러리 제약)
-  - Frontend API 함수 48개 전부 shared 타입 적용, `any` 0개
-  - `api-responses.ts` 신규 생성: 25+ 공유 인터페이스
-  - 프론트엔드 10+ 파일에서 로컬 타입 → shared 별칭 교체
-  - 대시보드 필드명 런타임 버그 수정 (`completedThisWeek`, `totalMeetings`)
-  - 차트 4개 API→차트 데이터 매핑 추가
-  - QA 검수 완료 (Backend 20정상/3주의/0결함, Frontend 6/6 통과)
+  - 주간보고서 AI → 업무 생성 기능 풀스택 구현 (방안 C)
+  - AI 어시스턴트 채팅 프롬프트 개선 (5개 데이터 소스 병렬 조회)
+  - 업무 수정 모달 담당자 변경 기능 추가
+  - 개발팀 리뷰 진행 (박안도/유아이/나검수 - 총 8건 이슈 식별)
   - Docker 이미지 재빌드 + 런타임 검증 완료
-- **수정한 파일**: Backend 11파일, Frontend 15파일, Shared 2파일 (총 43파일)
-- **커밋 여부**: ❌ (미커밋 - 상태 저장 후 커밋 예정)
+- **수정한 파일**: Backend 6파일, Frontend 5파일, QA 2파일
+- **커밋 여부**: ❌ (미커밋 - 이번 세션 변경사항 전체)
 
 ### 진행 중 작업 (미완료)
-- 없음 (P1 타입 리팩토링 완료)
+- 개발팀 리뷰 결과 반영 대기 (캡틴 결정 필요)
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
-**즉시**:
-1. 전체 변경사항 커밋 + 푸시
+**즉시 (리뷰 결과 Critical)**:
+1. Bulk Create API 추가 (`POST /tasks/bulk`) — N+1 호출 + 부분 실패 해결 (박안도, 2h)
+2. 53주차 경계 계산 수정 — ISO 8601 정확한 주차 계산 (박안도+유아이, 1h)
+3. 추출 데이터 DTO 검증 — AI 반환 JSON 검증 후 DB 저장 (박안도, 1h)
+
+**다음 스프린트 (리뷰 결과 High)**:
+1. 추출 업무 인라인 편집 — 제목/설명/우선순위/태그 수정 (유아이, 3h)
+2. 추출 업무 담당자 선택 — 팀원별 업무 분배 드롭다운 (유아이, 2h)
+3. 생성 진행률 표시 — "3/10 생성 중..." (유아이, 1h)
+4. 전체 선택/해제 버튼 (유아이, 0.5h)
+5. AI Rate Limiting — /ai/* 엔드포인트 Throttle (박안도, 1h)
 
 **Phase B: 핵심 개선 (잔여)**:
-1. 공통 컴포넌트 추출 — Pagination, Table (유아이, 6h) ← EmptyState/Skeleton 완료
+1. 공통 컴포넌트 추출 — Pagination, Table, ExtractedTaskCard (유아이, 6h)
 2. SWR 데이터 fetching 표준화 (유아이, 12h)
 3. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
 4. Redis 캐싱 (Dashboard Stats, Products) (박안도, 8h)
-5. meetings 페이지 `any` 제거 - MeetingResponse 적용 (유아이, 4h)
 
 **Phase C: 안정화 (~60h)**:
-1. 나머지 Frontend `any` 정리 - catch(err:any), payload:any 등 (유아이, 8h)
-2. 테이블 정렬 기능 (송대시, 4h)
-3. localStorage → HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
-4. Backend Unit Test 60% 커버리지 (박안도, 20h)
-5. JWT Payload 주석 개선 (박안도, 0.5h) — QA 권고사항
+1. 나머지 Frontend `any` 정리 (유아이, 8h)
+2. localStorage → HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
+3. Backend Unit Test 60% 커버리지 (박안도, 20h)
 
 ---
 
@@ -539,12 +600,12 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | P1 타입 리팩토링 완료, 커밋 대기 |
-| **Backend** | 박안도 | API, DB, 서버 로직 | Backend `any` 34→2개 제거 완료 ✅ |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | API 48함수 타입 강화 + shared DTO 통합 완료 ✅ |
-| **Security** | Chloe O'Brian | 보안, 암호화 | XSS sanitizeHtml + HTTP Exception 강화 완료 ✅ |
+| **PM** | 박서연 | 요구사항, 일정 관리 | 리뷰 결과 정리 → 캡틴 결정 대기 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | AI 업무 추출 + 채팅 개선 완료, Bulk API 대기 |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 업무 추출 UI + 담당자 편집 완료, 인라인 편집 대기 |
+| **Security** | Chloe O'Brian | 보안, 암호화 | XSS sanitizeHtml 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
-| **QA** | 나검수 | 테스트, 품질 보증 | P1 리팩토링 QA 완료 (Backend+Frontend 0결함) ✅ |
+| **QA** | 나검수 | 테스트, 품질 보증 | AI 업무 추출 QA 완료 (Critical 2건 + High 3건 발견) |
 | **Visualization** | 송대시 | 차트, 시각화 | 드릴다운 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
@@ -643,5 +704,5 @@ MsspBizCenter/
 
 ---
 
-**다음 작업 시작 시점**: P1 타입 리팩토링 완료, Phase B 잔여 작업 진행 예정
+**다음 작업 시작 시점**: AI 업무 추출 리뷰 결과 Critical 수정 → 커밋 → Phase B 잔여 작업
 **예상 정식 릴리스**: 2026-03-21 (v0.1.0)

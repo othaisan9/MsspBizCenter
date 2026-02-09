@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { tasksApi, tagsApi } from '@/lib/api';
+import { tasksApi, tagsApi, usersApi } from '@/lib/api';
 import type { TagResponse } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -40,6 +40,7 @@ export default function TaskDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [tagPresets, setTagPresets] = useState<string[]>([]);
+  const [users, setUsers] = useState<Array<{ id: string; name: string; role: string }>>([]);
 
   const [editForm, setEditForm] = useState({
     title: '',
@@ -51,6 +52,7 @@ export default function TaskDetailPage() {
     dueDate: '',
     estimatedHours: '',
     tags: '',
+    assigneeId: '',
   });
 
   const statusOptions = [
@@ -77,10 +79,21 @@ export default function TaskDetailPage() {
     }
   }, []);
 
+  const fetchUsers = useCallback(async () => {
+    try {
+      const data = await usersApi.list();
+      const items = data.items || data || [];
+      setUsers(items.map((u: any) => ({ id: u.id, name: u.name, role: u.role })));
+    } catch {
+      setUsers([]);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTask();
     fetchTagPresets();
-  }, [taskId, fetchTagPresets]);
+    fetchUsers();
+  }, [taskId, fetchTagPresets, fetchUsers]);
 
   const fetchTask = async () => {
     try {
@@ -99,6 +112,7 @@ export default function TaskDetailPage() {
         dueDate: data.dueDate ? data.dueDate.split('T')[0] : '',
         estimatedHours: data.estimatedHours?.toString() || '',
         tags: data.tags?.join(', ') || '',
+        assigneeId: data.assignee?.id || '',
       });
     } catch (err: any) {
       console.error('Task fetch error:', err);
@@ -173,6 +187,12 @@ export default function TaskDetailPage() {
       payload.tags = editForm.tags.trim()
         ? editForm.tags.split(',').map((t) => t.trim()).filter((t) => t.length > 0)
         : [];
+
+      if (editForm.assigneeId) {
+        payload.assigneeId = editForm.assigneeId;
+      } else {
+        payload.assigneeId = null;
+      }
 
       const updated = await tasksApi.update(task.id, payload);
       setTask(updated);
@@ -299,7 +319,7 @@ export default function TaskDetailPage() {
 
             {task.dueDate && (
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">마감일</span>
+                <span className="text-sm font-medium text-gray-700">완료 예정일</span>
                 <span className="text-sm text-gray-900">{formatDate(task.dueDate)}</span>
               </div>
             )}
@@ -448,10 +468,20 @@ export default function TaskDetailPage() {
               />
             </div>
 
+            <Select
+              label="담당자"
+              options={[
+                { value: '', label: '담당자 선택 (선택사항)' },
+                ...users.map((u) => ({ value: u.id, label: `${u.name} (${u.role})` })),
+              ]}
+              value={editForm.assigneeId}
+              onChange={(e) => setEditForm({ ...editForm, assigneeId: e.target.value })}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <Input
                 type="date"
-                label="마감일"
+                label="완료 예정일"
                 value={editForm.dueDate}
                 onChange={(e) => setEditForm({ ...editForm, dueDate: e.target.value })}
               />

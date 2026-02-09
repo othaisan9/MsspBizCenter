@@ -21,6 +21,7 @@ import {
   ExtractActionItemsDto,
   GenerateMeetingTemplateDto,
   WeeklyReportDto,
+  ExtractWeeklyTasksDto,
   ChatDto,
   ListModelsDto,
 } from './dto/generate.dto';
@@ -138,6 +139,17 @@ export class AiController {
       res.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       res.end();
     }
+  }
+
+  @Post('extract-weekly-tasks')
+  @Roles(UserRole.ANALYST, UserRole.ADMIN, UserRole.OWNER)
+  @ApiOperation({ summary: '주간 보고서에서 다음 주 업무 추출 (AI)' })
+  @ApiResponse({ status: 200, description: '업무 추출 성공' })
+  async extractWeeklyTasks(
+    @CurrentUser('tenantId') tenantId: string,
+    @Body() dto: ExtractWeeklyTasksDto,
+  ) {
+    return await this.aiService.extractWeeklyTasks(tenantId, dto);
   }
 
   @Post('extract-actions')

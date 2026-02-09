@@ -35,7 +35,7 @@ export function AiChatDrawer() {
 
     setMessages(prev => [...prev, { role: 'user', content: trimmed }]);
     setInput('');
-    start('/ai/chat', { message: trimmed });
+    start('/ai/chat', { message: trimmed, contextType: 'all' });
   }, [input, loading, start]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

@@ -403,6 +403,9 @@ export const aiApi = {
 
   extractActions: (data: { meetingId: string }) =>
     request<{ actionItems: Array<{ title: string; assigneeName?: string; dueDescription?: string }> }>('/ai/extract-actions', { method: 'POST', body: JSON.stringify(data) }),
+
+  extractWeeklyTasks: (data: { reportText: string; year: number; weekNumber: number }) =>
+    request<{ tasks: Array<{ title: string; description: string; priority: string; tags: string[] }> }>('/ai/extract-weekly-tasks', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export { ApiError };

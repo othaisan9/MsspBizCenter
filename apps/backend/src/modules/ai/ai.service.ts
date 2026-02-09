@@ -3,6 +3,7 @@ import { AiSettingsService } from './services/ai-settings.service';
 import { PromptBuilderService } from './services/prompt-builder.service';
 import { TasksService } from '../tasks/tasks.service';
 import { MeetingsService } from '../meetings/meetings.service';
+import { ContractsService } from '../contracts/contracts.service';
 import { StatsService } from '../stats/stats.service';
 import { LlmProvider } from './providers/llm-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
@@ -15,6 +16,7 @@ import {
   ExtractActionItemsDto,
   GenerateMeetingTemplateDto,
   WeeklyReportDto,
+  ExtractWeeklyTasksDto,
   ChatDto,
   ListModelsDto,
 } from './dto/generate.dto';
@@ -26,6 +28,7 @@ export class AiService {
     private readonly promptBuilderService: PromptBuilderService,
     private readonly tasksService: TasksService,
     private readonly meetingsService: MeetingsService,
+    private readonly contractsService: ContractsService,
     private readonly statsService: StatsService,
   ) {}
 
@@ -218,6 +221,37 @@ export class AiService {
     }
   }
 
+  async extractWeeklyTasks(
+    tenantId: string,
+    dto: ExtractWeeklyTasksDto,
+  ): Promise<{ tasks: { title: string; description: string; priority: string; tags: string[] }[] }> {
+    const { provider, settings } = await this.getProvider(tenantId);
+
+    const prompt = this.promptBuilderService.buildExtractWeeklyTasksPrompt(
+      dto.reportText,
+      dto.year,
+      dto.weekNumber,
+    );
+
+    const response = await provider.generate({
+      model: settings.fastModel,
+      system: prompt.system,
+      messages: [{ role: 'user', content: prompt.user }],
+      maxTokens: 3000,
+    });
+
+    try {
+      const jsonMatch = response.text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        return { tasks: [] };
+      }
+      const tasks = JSON.parse(jsonMatch[0]);
+      return { tasks: Array.isArray(tasks) ? tasks : [] };
+    } catch {
+      throw new BadRequestException('업무 추출에 실패했습니다. 응답 형식이 올바르지 않습니다.');
+    }
+  }
+
   async generateMeetingTemplate(
     tenantId: string,
     dto: GenerateMeetingTemplateDto,
@@ -247,24 +281,30 @@ export class AiService {
   ): AsyncGenerator<string, void, unknown> {
     const { provider, settings } = await this.getProvider(tenantId);
 
-    let contextData: Record<string, unknown> = {};
+    // 병렬로 프로젝트 데이터 조회
+    const [myTasks, allTasks, meetingsData, contractsData, dashboardStats] = await Promise.all([
+      this.tasksService.findAll({ page: 1, limit: 30, assigneeId: userId }, tenantId).catch(() => ({ data: [] })),
+      this.tasksService.findAll({ page: 1, limit: 50 }, tenantId).catch(() => ({ data: [] })),
+      this.meetingsService.findAll({ page: 1, limit: 10, sortOrder: 'DESC' }, tenantId).catch(() => ({ data: [] })),
+      this.contractsService.findAll({ page: 1, limit: 20 }, tenantId).catch(() => ({ items: [] })),
+      this.statsService.getDashboardStats(tenantId).catch(() => null),
+    ]);
 
-    // 컨텍스트 타입에 따라 관련 데이터 조회
-    if (dto.contextType === 'my-tasks') {
-      const tasksData = await this.tasksService.findAll(
-        { page: 1, limit: 20, assigneeId: userId },
-        tenantId,
-      );
-      contextData.tasks = tasksData.data;
-    }
+    const contextData = {
+      myTasks: myTasks.data,
+      allTasks: allTasks.data,
+      meetings: meetingsData.data,
+      contracts: contractsData.items,
+      stats: dashboardStats,
+    };
 
     const prompt = this.promptBuilderService.buildChatPrompt(dto.message, contextData);
 
     const stream = provider.stream({
-      model: settings.fastModel,
+      model: settings.defaultModel,
       system: prompt.system,
       messages: [{ role: 'user', content: prompt.user }],
-      maxTokens: 3000,
+      maxTokens: 4000,
     });
 
     for await (const chunk of stream) {
