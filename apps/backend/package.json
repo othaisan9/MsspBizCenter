@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.74.0",
+    "@google/genai": "^1.40.0",
     "@msspbiz/shared": "workspace:*",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^10.4.0",

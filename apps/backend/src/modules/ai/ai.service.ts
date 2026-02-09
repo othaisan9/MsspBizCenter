@@ -8,6 +8,7 @@ import { LlmProvider } from './providers/llm-provider.interface';
 import { AnthropicProvider } from './providers/anthropic.provider';
 import { OpenAiProvider } from './providers/openai.provider';
 import { OllamaProvider } from './providers/ollama.provider';
+import { GeminiProvider } from './providers/gemini.provider';
 import {
   GenerateTaskDescDto,
   SummarizeMeetingDto,
@@ -48,6 +49,8 @@ export class AiService {
         provider = new AnthropicProvider(apiKey);
       } else if (settings.provider === 'openai') {
         provider = new OpenAiProvider(apiKey);
+      } else if (settings.provider === 'gemini') {
+        provider = new GeminiProvider(apiKey);
       } else {
         throw new BadRequestException(`지원하지 않는 AI 제공자입니다: ${settings.provider}`);
       }

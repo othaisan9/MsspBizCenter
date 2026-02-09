@@ -80,3 +80,20 @@ export function getPriorityLabel(priority: string): string {
   };
   return labels[priority] || priority;
 }
+
+/**
+ * HTML 문자열에서 위험한 태그와 속성을 제거합니다.
+ * LLM 응답의 HTML을 안전하게 렌더링하기 위한 간이 새니타이저입니다.
+ */
+export function sanitizeHtml(html: string): string {
+  return html
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^>]*>.*?<\/iframe>/gi, '')
+    .replace(/<object\b[^>]*>.*?<\/object>/gi, '')
+    .replace(/<embed\b[^>]*\/?>/gi, '')
+    .replace(/<form\b[^>]*>.*?<\/form>/gi, '')
+    .replace(/<link\b[^>]*\/?>/gi, '')
+    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+    .replace(/\bon\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/javascript\s*:/gi, '');
+}

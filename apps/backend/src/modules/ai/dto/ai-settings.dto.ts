@@ -4,11 +4,11 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 export class UpdateAiSettingsDto {
   @ApiPropertyOptional({
     description: 'AI 제공자',
-    enum: ['anthropic', 'openai', 'ollama'],
+    enum: ['anthropic', 'openai', 'ollama', 'gemini'],
     example: 'anthropic'
   })
   @IsOptional()
-  @IsIn(['anthropic', 'openai', 'ollama'])
+  @IsIn(['anthropic', 'openai', 'ollama', 'gemini'])
   provider?: string;
 
   @ApiPropertyOptional({

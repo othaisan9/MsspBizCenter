@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn, sanitizeHtml } from '@/lib/utils';
 
 interface AiSummaryPanelProps {
   content: string;
@@ -66,7 +66,7 @@ export function AiSummaryPanel({
         </div>
       ) : (
         <div className="prose prose-sm max-w-none text-gray-900">
-          <div dangerouslySetInnerHTML={{ __html: content }} />
+          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
           {loading && (
             <span className="inline-block w-2 h-4 bg-violet-600 animate-pulse ml-1" />
           )}

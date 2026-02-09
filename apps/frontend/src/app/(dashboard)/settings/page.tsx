@@ -107,6 +107,7 @@ const COMMISSION_TYPE_LABELS: Record<CommissionType, string> = {
 const PROVIDER_OPTIONS = [
   { value: 'anthropic', label: 'Anthropic Claude' },
   { value: 'openai', label: 'OpenAI GPT' },
+  { value: 'gemini', label: 'Google Gemini' },
   { value: 'ollama', label: 'Ollama (로컬)' },
 ];
 
@@ -131,6 +132,16 @@ function getModelOptions(provider: string, tier: 'default' | 'fast') {
       fast: [
         { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
         { value: 'gpt-4o', label: 'GPT-4o' },
+      ],
+    },
+    gemini: {
+      default: [
+        { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+      ],
+      fast: [
+        { value: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash' },
+        { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash Lite' },
       ],
     },
     ollama: {
@@ -1540,7 +1551,17 @@ export default function SettingsPage() {
                 <Select
                   label="LLM 프로바이더"
                   value={aiSettings.provider}
-                  onChange={(e) => setAiSettings({ ...aiSettings, provider: e.target.value })}
+                  onChange={(e) => {
+                    const newProvider = e.target.value;
+                    const defaultModels = getModelOptions(newProvider, 'default');
+                    const fastModels = getModelOptions(newProvider, 'fast');
+                    setAiSettings({
+                      ...aiSettings,
+                      provider: newProvider,
+                      defaultModel: defaultModels[0]?.value || '',
+                      fastModel: fastModels[0]?.value || '',
+                    });
+                  }}
                   options={PROVIDER_OPTIONS}
                 />
 
@@ -1550,7 +1571,7 @@ export default function SettingsPage() {
                     type="password"
                     value={aiSettings.apiKey}
                     onChange={(e) => setAiSettings({ ...aiSettings, apiKey: e.target.value })}
-                    placeholder={aiSettings.provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
+                    placeholder={aiSettings.provider === 'anthropic' ? 'sk-ant-...' : aiSettings.provider === 'gemini' ? 'AIza...' : 'sk-...'}
                   />
                 )}
 
