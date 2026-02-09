@@ -11,6 +11,8 @@ import { Card } from '@/components/ui/Card';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { getWeekNumber } from '@/lib/utils';
+import { AiButton, AiStreamPanel } from '@/components/ai';
+import { useAiGenerate } from '@/hooks/useAiGenerate';
 
 interface User {
   id: string;
@@ -43,6 +45,8 @@ export default function NewTaskPage() {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const { result: aiResult, loading: aiLoading, error: aiError, generate: aiGenerate, reset: aiReset } = useAiGenerate();
 
   const statusOptions = [
     { value: 'pending', label: '대기' },
@@ -91,16 +95,15 @@ export default function NewTaskPage() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleChange = (field: string, value: any) => {
+  const handleChange = useCallback((field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => {
-        const next = { ...prev };
-        delete next[field];
-        return next;
-      });
-    }
-  };
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }, []);
 
   const handleTagPresetToggle = (preset: string) => {
     const currentTags = formData.tags
@@ -124,6 +127,30 @@ export default function NewTaskPage() {
       .filter((t) => t.length > 0);
     return currentTags.includes(preset);
   };
+
+  const handleAiGenerate = useCallback(async () => {
+    if (!formData.title.trim()) {
+      toast.error('제목을 먼저 입력해주세요.');
+      return;
+    }
+    const tags = formData.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+    try {
+      await aiGenerate('/ai/generate-task-desc', {
+        title: formData.title.trim(),
+        tags: tags.length > 0 ? tags : undefined,
+        priority: formData.priority,
+      });
+    } catch {
+      // Error handled by hook
+    }
+  }, [formData.title, formData.tags, formData.priority, aiGenerate]);
+
+  const handleAiAccept = useCallback(() => {
+    if (aiResult?.text) {
+      handleChange('description', aiResult.text);
+      aiReset();
+    }
+  }, [aiResult, aiReset, handleChange]);
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -241,13 +268,33 @@ export default function NewTaskPage() {
               required
             />
 
-            <MarkdownEditor
-              label="설명"
-              placeholder="업무 내용을 상세히 입력하세요"
-              value={formData.description}
-              onChange={(val) => handleChange('description', val)}
-              minHeight="150px"
-            />
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-sm font-medium text-gray-700">설명</label>
+                <AiButton onClick={handleAiGenerate} loading={aiLoading} label="AI 생성" size="sm" />
+              </div>
+
+              {aiResult?.text || aiError ? (
+                <div className="mb-3">
+                  <AiStreamPanel
+                    content={aiResult?.text || ''}
+                    loading={aiLoading}
+                    error={aiError}
+                    onAccept={handleAiAccept}
+                    onRegenerate={handleAiGenerate}
+                    onClose={aiReset}
+                    title="AI 생성 결과"
+                  />
+                </div>
+              ) : null}
+
+              <MarkdownEditor
+                placeholder="업무 내용을 상세히 입력하세요"
+                value={formData.description}
+                onChange={(val) => handleChange('description', val)}
+                minHeight="150px"
+              />
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Input

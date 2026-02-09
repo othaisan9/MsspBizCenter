@@ -11,6 +11,8 @@ import { Card } from '@/components/ui/Card';
 import { Textarea } from '@/components/ui/Textarea';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
+import { AiButton, AiStreamPanel } from '@/components/ai';
+import { useAiGenerate } from '@/hooks/useAiGenerate';
 
 const API_BASE =
   typeof window !== 'undefined'
@@ -74,6 +76,9 @@ export default function NewMeetingPage() {
     { title: '', assigneeId: '', dueDate: '' },
   ]);
 
+  // AI hook
+  const { result: templateResult, loading: templateLoading, error: templateError, generate: generateTemplate, reset: resetTemplate } = useAiGenerate();
+
   // Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
@@ -135,6 +140,28 @@ export default function NewMeetingPage() {
   const removeActionItem = useCallback((index: number) => {
     setActionItems((prev) => prev.filter((_, i) => i !== index));
   }, []);
+
+  const handleGenerateTemplate = useCallback(async () => {
+    if (!formData.title.trim()) {
+      toast.error('제목을 먼저 입력해주세요.');
+      return;
+    }
+
+    try {
+      await generateTemplate('/ai/generate-meeting-template', {
+        title: formData.title.trim(),
+        type: formData.meetingType,
+        attendeeCount: attendeeIds.length || undefined,
+      });
+    } catch { /* error handled by hook */ }
+  }, [formData.title, formData.meetingType, attendeeIds, generateTemplate]);
+
+  const handleAcceptTemplate = useCallback(() => {
+    if (templateResult?.text) {
+      setFormData(prev => ({ ...prev, content: templateResult.text }));
+      resetTemplate();
+    }
+  }, [templateResult, resetTemplate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -378,12 +405,32 @@ export default function NewMeetingPage() {
           />
 
           {/* 회의 내용 */}
-          <MarkdownEditor
-            label="회의 내용 / 논의 사항"
-            placeholder="회의에서 논의된 내용을 상세히 기록하세요"
-            value={formData.content}
-            onChange={(val) => setFormData((prev) => ({ ...prev, content: val }))}
-          />
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">회의 내용 / 논의 사항</label>
+              <AiButton onClick={handleGenerateTemplate} loading={templateLoading} label="AI 템플릿" size="sm" />
+            </div>
+
+            {templateResult?.text || templateError ? (
+              <div className="mb-3">
+                <AiStreamPanel
+                  content={templateResult?.text || ''}
+                  loading={templateLoading}
+                  error={templateError}
+                  onAccept={handleAcceptTemplate}
+                  onRegenerate={handleGenerateTemplate}
+                  onClose={resetTemplate}
+                  title="AI 템플릿"
+                />
+              </div>
+            ) : null}
+
+            <MarkdownEditor
+              placeholder="회의에서 논의된 내용을 상세히 기록하세요"
+              value={formData.content}
+              onChange={(val) => setFormData((prev) => ({ ...prev, content: val }))}
+            />
+          </div>
 
           {/* Action Items */}
           <div>

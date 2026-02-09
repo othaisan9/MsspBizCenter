@@ -17,6 +17,9 @@ export class ProductOption extends TenantBaseEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  type: string | null;
+
   @Column({ type: 'boolean', default: true, name: 'is_active' })
   isActive: boolean;
 

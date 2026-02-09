@@ -226,4 +226,20 @@ export class ProductsService {
 
     await this.optionRepository.remove(option);
   }
+
+  /**
+   * 사용 중인 파생제품 유형 목록 조회
+   */
+  async getDistinctDerivedProductTypes(tenantId: string): Promise<string[]> {
+    const result = await this.optionRepository
+      .createQueryBuilder('option')
+      .select('DISTINCT option.type', 'type')
+      .where('option.tenant_id = :tenantId', { tenantId })
+      .andWhere('option.type IS NOT NULL')
+      .andWhere('option.type != :empty', { empty: '' })
+      .orderBy('option.type', 'ASC')
+      .getRawMany();
+
+    return result.map((r) => r.type);
+  }
 }

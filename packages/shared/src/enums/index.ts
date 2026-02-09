@@ -76,13 +76,6 @@ export enum AuditAction {
 }
 
 // Product 관련
-export enum ProductType {
-  PLATFORM = 'platform',
-  REPORT = 'report',
-  CONSULTING = 'consulting',
-  OTHER = 'other',
-}
-
 export enum ProductStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',

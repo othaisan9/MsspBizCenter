@@ -1,6 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, IsInt, Min, MaxLength } from 'class-validator';
-import { ProductType } from '@msspbiz/shared';
+import { IsString, IsOptional, IsInt, Min, MaxLength } from 'class-validator';
 
 export class CreateProductDto {
   @ApiProperty({ example: 'stealthmole', description: '제품 코드 (고유)' })
@@ -17,10 +16,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @ApiProperty({ enum: ProductType, example: ProductType.PLATFORM, description: '제품 유형' })
-  @IsEnum(ProductType)
-  productType: ProductType;
 
   @ApiPropertyOptional({ example: 'StealthMole Inc.', description: '제조사/공급사' })
   @IsOptional()

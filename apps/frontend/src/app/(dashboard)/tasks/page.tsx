@@ -10,6 +10,8 @@ import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { KanbanBoard } from '@/components/tasks/KanbanBoard';
+import { AiButton, AiStreamPanel } from '@/components/ai';
+import { useAiStream } from '@/hooks/useAiStream';
 import {
   getStatusColor,
   getStatusLabel,
@@ -52,6 +54,9 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+
+  // AI 주간 보고서
+  const { content: reportContent, loading: reportLoading, error: reportError, start: startReport, reset: resetReport } = useAiStream();
 
   const currentYear = new Date().getFullYear();
   const currentWeek = getWeekNumber(new Date());
@@ -151,6 +156,13 @@ export default function TasksPage() {
     router.push(`/tasks/${id}`);
   };
 
+  const handleWeeklyReport = useCallback(() => {
+    startReport('/ai/weekly-report', {
+      year: filters.year,
+      weekNumber: filters.weekNumber,
+    });
+  }, [startReport, filters.year, filters.weekNumber]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
@@ -188,6 +200,7 @@ export default function TasksPage() {
                 칸반
               </button>
             </div>
+            <AiButton onClick={handleWeeklyReport} loading={reportLoading} label="주간 보고서" size="md" />
             <Button onClick={() => router.push('/tasks/new')}>
               새 업무
             </Button>
@@ -243,6 +256,20 @@ export default function TasksPage() {
           </div>
         </Card>
       </div>
+
+      {/* 주간 보고서 */}
+      {(reportContent || reportLoading || reportError) && (
+        <div className="mb-4">
+          <AiStreamPanel
+            content={reportContent}
+            loading={reportLoading}
+            error={reportError}
+            onRegenerate={handleWeeklyReport}
+            onClose={resetReport}
+            title={`${filters.year}년 ${filters.weekNumber}주차 주간 보고서`}
+          />
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 p-4 bg-red-50 border-2 border-red-700 rounded-md shadow-brutal-sm">

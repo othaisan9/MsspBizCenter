@@ -55,6 +55,14 @@ export class ProductsController {
     return this.productsService.create(createProductDto, tenantId);
   }
 
+  @Get('derived-product-types')
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @ApiOperation({ summary: '사용 중인 파생제품 유형 목록 조회' })
+  @ApiResponse({ status: 200, description: '파생제품 유형 목록 반환' })
+  getDerivedProductTypes(@CurrentUser('tenantId') tenantId: string) {
+    return this.productsService.getDistinctDerivedProductTypes(tenantId);
+  }
+
   @Get(':id')
   @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
   @ApiOperation({ summary: '제품 상세 조회 (모든 사용자)' })
@@ -101,7 +109,7 @@ export class ProductsController {
 
   @Post(':id/options')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
-  @ApiOperation({ summary: '제품에 옵션 추가 (ADMIN 이상)' })
+  @ApiOperation({ summary: '파생제품 추가 (ADMIN 이상)' })
   @ApiParam({ name: 'id', description: '제품 ID' })
   @ApiResponse({ status: 201, description: '옵션 추가 성공' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -121,7 +129,7 @@ export class ProductsController {
 
   @Patch(':id/options/:optionId')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
-  @ApiOperation({ summary: '제품 옵션 수정 (ADMIN 이상)' })
+  @ApiOperation({ summary: '파생제품 수정 (ADMIN 이상)' })
   @ApiParam({ name: 'id', description: '제품 ID' })
   @ApiParam({ name: 'optionId', description: '옵션 ID' })
   @ApiResponse({ status: 200, description: '옵션 수정 성공' })
@@ -144,7 +152,7 @@ export class ProductsController {
 
   @Delete(':id/options/:optionId')
   @Roles(UserRole.OWNER, UserRole.ADMIN)
-  @ApiOperation({ summary: '제품 옵션 삭제 (ADMIN 이상)' })
+  @ApiOperation({ summary: '파생제품 삭제 (ADMIN 이상)' })
   @ApiParam({ name: 'id', description: '제품 ID' })
   @ApiParam({ name: 'optionId', description: '옵션 ID' })
   @ApiResponse({ status: 200, description: '옵션 삭제 성공' })

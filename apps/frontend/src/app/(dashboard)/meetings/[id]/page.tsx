@@ -14,6 +14,8 @@ import { Select } from '@/components/ui/Select';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { MarkdownViewer } from '@/components/ui/MarkdownViewer';
 import { getStatusColor, getStatusLabel, formatDateTime } from '@/lib/utils';
+import { AiButton, AiSummaryPanel } from '@/components/ai';
+import { useAiGenerate } from '@/hooks/useAiGenerate';
 
 function getMeetingTypeLabel(type: string): string {
   const labels: Record<string, string> = {
@@ -51,6 +53,10 @@ export default function MeetingDetailPage() {
     dueDate: '',
   });
   const [submittingAction, setSubmittingAction] = useState(false);
+
+  // AI hooks
+  const { result: summaryResult, loading: summaryLoading, error: summaryError, generate: generateSummary, reset: resetSummary } = useAiGenerate();
+  const { result: extractResult, loading: extractLoading, error: extractError, generate: generateExtract, reset: resetExtract } = useAiGenerate();
 
   const loadMeeting = useCallback(async () => {
     setLoading(true);
@@ -136,6 +142,28 @@ export default function MeetingDetailPage() {
       toast.error(err.message || '상태 변경에 실패했습니다.');
     }
   };
+
+  const handleSummarize = useCallback(async () => {
+    try {
+      await generateSummary('/ai/summarize-meeting', { meetingId });
+    } catch { /* error handled by hook */ }
+  }, [generateSummary, meetingId]);
+
+  const handleExtractActions = useCallback(async () => {
+    try {
+      await generateExtract('/ai/extract-actions', { meetingId });
+    } catch { /* error handled by hook */ }
+  }, [generateExtract, meetingId]);
+
+  const handleAddExtractedAction = useCallback(async (item: { title: string }) => {
+    try {
+      await meetingsApi.createActionItem(meetingId, { title: item.title });
+      await loadMeeting();
+      toast.success(`"${item.title}" Action Item이 추가되었습니다.`);
+    } catch (err: any) {
+      toast.error(err.message || 'Action Item 추가에 실패했습니다.');
+    }
+  }, [meetingId, loadMeeting]);
 
   if (loading) {
     return (
@@ -225,8 +253,18 @@ export default function MeetingDetailPage() {
         </Card>
       )}
 
+      {/* AI 요약 */}
+      {(summaryResult?.text || summaryLoading || summaryError) && (
+        <AiSummaryPanel
+          content={summaryResult?.text || ''}
+          loading={summaryLoading}
+          error={summaryError}
+          onClose={resetSummary}
+        />
+      )}
+
       {meeting.content && (
-        <Card title="회의 내용">
+        <Card title="회의 내용" action={<AiButton onClick={handleSummarize} loading={summaryLoading} label="AI 요약" size="sm" />}>
           <MarkdownViewer content={meeting.content} />
         </Card>
       )}
@@ -234,11 +272,42 @@ export default function MeetingDetailPage() {
       <Card
         title="Action Items"
         action={
-          <Button size="sm" onClick={() => setActionItemModalOpen(true)}>
-            + 추가
-          </Button>
+          <div className="flex gap-2">
+            <AiButton onClick={handleExtractActions} loading={extractLoading} label="AI 추출" size="sm" />
+            <Button size="sm" onClick={() => setActionItemModalOpen(true)}>
+              + 추가
+            </Button>
+          </div>
         }
       >
+        {/* AI 추출 결과 패널 */}
+        {extractResult?.actionItems && extractResult.actionItems.length > 0 && (
+          <div className="mb-4 bg-violet-50 border-2 border-violet-300 rounded-md p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="text-sm font-bold text-violet-900">AI 추출 결과</h4>
+              <button onClick={resetExtract} className="text-violet-600 hover:text-violet-800 text-xs">닫기</button>
+            </div>
+            <ul className="space-y-2">
+              {extractResult.actionItems.map((item: any, idx: number) => (
+                <li key={idx} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-900">{item.title}</span>
+                  <button
+                    onClick={() => handleAddExtractedAction(item)}
+                    className="text-violet-600 hover:text-violet-800 text-xs font-medium border border-violet-300 rounded px-2 py-0.5"
+                  >
+                    추가
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {extractError && (
+          <div className="mb-4 bg-red-50 border-2 border-red-300 rounded-md p-3">
+            <p className="text-sm text-red-800">{extractError}</p>
+          </div>
+        )}
+
         {!meeting.actionItems || meeting.actionItems.length === 0 ? (
           <p className="text-sm text-gray-400">등록된 Action Item이 없습니다.</p>
         ) : (

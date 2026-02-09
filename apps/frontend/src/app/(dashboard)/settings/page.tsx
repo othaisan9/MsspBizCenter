@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { productsApi, contractsApi, usersApi, authApi } from '@/lib/api';
+import { productsApi, contractsApi, usersApi, authApi, aiSettingsApi } from '@/lib/api';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -12,13 +12,12 @@ import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 
-type ProductType = 'platform' | 'report' | 'consulting' | 'other';
-
 interface ProductOption {
   id: string;
   code: string;
   name: string;
   description?: string;
+  type?: string;
 }
 
 interface Product {
@@ -26,11 +25,12 @@ interface Product {
   code: string;
   name: string;
   description?: string;
-  productType: ProductType;
   vendor?: string;
   displayOrder: number;
   options: ProductOption[];
 }
+
+const DERIVED_TYPE_PRESETS = ['플랫폼', '서비스', '리포트', 'API', '컨설팅', '라이선스', '기타'];
 
 interface Contract {
   id: string;
@@ -70,27 +70,6 @@ interface Partner {
   notes: string;
 }
 
-const PRODUCT_TYPE_OPTIONS = [
-  { value: 'platform', label: '플랫폼' },
-  { value: 'report', label: '리포트' },
-  { value: 'consulting', label: '컨설팅' },
-  { value: 'other', label: '기타' },
-];
-
-const PRODUCT_TYPE_COLORS: Record<ProductType, string> = {
-  platform: 'bg-purple-100 text-purple-800',
-  report: 'bg-red-100 text-red-800',
-  consulting: 'bg-green-100 text-green-800',
-  other: 'bg-gray-100 text-gray-800',
-};
-
-const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {
-  platform: '플랫폼',
-  report: '리포트',
-  consulting: '컨설팅',
-  other: '기타',
-};
-
 const ROLE_COLORS: Record<string, string> = {
   owner: 'bg-purple-100 text-purple-800',
   admin: 'bg-red-100 text-red-800',
@@ -125,6 +104,52 @@ const COMMISSION_TYPE_LABELS: Record<CommissionType, string> = {
   fixed: '고정금액',
 };
 
+const PROVIDER_OPTIONS = [
+  { value: 'anthropic', label: 'Anthropic Claude' },
+  { value: 'openai', label: 'OpenAI GPT' },
+  { value: 'ollama', label: 'Ollama (로컬)' },
+];
+
+// 프로바이더별 모델 목록
+function getModelOptions(provider: string, tier: 'default' | 'fast') {
+  const models: Record<string, Record<string, Array<{ value: string; label: string }>>> = {
+    anthropic: {
+      default: [
+        { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
+        { value: 'claude-opus-4-6', label: 'Claude Opus 4.6' },
+      ],
+      fast: [
+        { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+        { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
+      ],
+    },
+    openai: {
+      default: [
+        { value: 'gpt-4o', label: 'GPT-4o' },
+        { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+      ],
+      fast: [
+        { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
+        { value: 'gpt-4o', label: 'GPT-4o' },
+      ],
+    },
+    ollama: {
+      default: [
+        { value: 'llama3.1:8b', label: 'Llama 3.1 8B' },
+        { value: 'llama3.1:70b', label: 'Llama 3.1 70B' },
+        { value: 'gemma2:9b', label: 'Gemma 2 9B' },
+        { value: 'mistral:7b', label: 'Mistral 7B' },
+      ],
+      fast: [
+        { value: 'llama3.1:8b', label: 'Llama 3.1 8B' },
+        { value: 'gemma2:9b', label: 'Gemma 2 9B' },
+        { value: 'phi3:mini', label: 'Phi-3 Mini' },
+      ],
+    },
+  };
+  return models[provider]?.[tier] || [];
+}
+
 export default function SettingsPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('master-data');
@@ -150,6 +175,19 @@ export default function SettingsPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [salesReps, setSalesReps] = useState<Set<string>>(new Set());
 
+  // AI Settings
+  const [aiSettings, setAiSettings] = useState({
+    provider: 'anthropic',
+    apiKey: '',
+    defaultModel: 'claude-sonnet-4-5-20250929',
+    fastModel: 'claude-haiku-4-5-20251001',
+    isEnabled: false,
+    monthlyBudgetLimit: 0,
+    ollamaBaseUrl: 'http://localhost:11434',
+  });
+  const [aiSettingsLoading, setAiSettingsLoading] = useState(false);
+  const [aiSettingsSaving, setAiSettingsSaving] = useState(false);
+
   // Product modal state
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -157,7 +195,6 @@ export default function SettingsPage() {
     code: '',
     name: '',
     description: '',
-    productType: 'platform' as ProductType,
     vendor: '',
     displayOrder: 0,
   });
@@ -169,6 +206,7 @@ export default function SettingsPage() {
     code: '',
     name: '',
     description: '',
+    type: '',
   });
 
   // Delete confirmation modal
@@ -303,6 +341,43 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const fetchAiSettings = useCallback(async () => {
+    try {
+      setAiSettingsLoading(true);
+      const result = await aiSettingsApi.get();
+      if (result) {
+        setAiSettings({
+          provider: result.provider || 'anthropic',
+          apiKey: '',
+          defaultModel: result.defaultModel || 'claude-sonnet-4-5-20250929',
+          fastModel: result.fastModel || 'claude-haiku-4-5-20251001',
+          isEnabled: result.isEnabled || false,
+          monthlyBudgetLimit: result.monthlyBudgetLimit || 0,
+          ollamaBaseUrl: result.ollamaBaseUrl || 'http://localhost:11434',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch AI settings:', error);
+    } finally {
+      setAiSettingsLoading(false);
+    }
+  }, []);
+
+  const handleSaveAiSettings = async () => {
+    try {
+      setAiSettingsSaving(true);
+      const payload: any = { ...aiSettings };
+      if (!payload.apiKey) delete payload.apiKey;
+      await aiSettingsApi.update(payload);
+      toast.success('AI 설정이 저장되었습니다');
+    } catch (error) {
+      console.error('Failed to save AI settings:', error);
+      toast.error('AI 설정 저장에 실패했습니다');
+    } finally {
+      setAiSettingsSaving(false);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -325,6 +400,12 @@ export default function SettingsPage() {
     }
   }, [activeTab, fetchUsers]);
 
+  useEffect(() => {
+    if (activeTab === 'ai') {
+      fetchAiSettings();
+    }
+  }, [activeTab, fetchAiSettings]);
+
   const toggleProductExpansion = (productId: string) => {
     const newExpanded = new Set(expandedProducts);
     if (newExpanded.has(productId)) {
@@ -341,7 +422,6 @@ export default function SettingsPage() {
       code: '',
       name: '',
       description: '',
-      productType: 'platform',
       vendor: '',
       displayOrder: products.length,
     });
@@ -354,7 +434,6 @@ export default function SettingsPage() {
       code: product.code,
       name: product.name,
       description: product.description || '',
-      productType: product.productType,
       vendor: product.vendor || '',
       displayOrder: product.displayOrder,
     });
@@ -389,6 +468,7 @@ export default function SettingsPage() {
       code: '',
       name: '',
       description: '',
+      type: '',
     });
     setOptionModalOpen(true);
   };
@@ -396,12 +476,12 @@ export default function SettingsPage() {
   const handleSaveOption = async () => {
     try {
       await productsApi.addOption(optionProductId, optionForm);
-      toast.success('옵션이 추가되었습니다');
+      toast.success('파생제품이 추가되었습니다');
       setOptionModalOpen(false);
       fetchProducts();
     } catch (error) {
       console.error('Failed to add option:', error);
-      toast.error('옵션 추가에 실패했습니다');
+      toast.error('파생제품 추가에 실패했습니다');
     }
   };
 
@@ -470,7 +550,7 @@ export default function SettingsPage() {
         fetchProducts();
       } else if (deleteTarget.type === 'option' && deleteTarget.productId && deleteTarget.optionId) {
         await productsApi.deleteOption(deleteTarget.productId, deleteTarget.optionId);
-        toast.success('옵션이 삭제되었습니다');
+        toast.success('파생제품이 삭제되었습니다');
         fetchProducts();
       } else if (deleteTarget.type === 'user' && deleteTarget.userId) {
         await usersApi.delete(deleteTarget.userId);
@@ -632,6 +712,18 @@ export default function SettingsPage() {
           >
             파트너사 관리
           </button>
+          <button
+            onClick={() => setActiveTab('ai')}
+            className={`
+              py-4 px-1 border-b-2 font-medium text-sm transition-colors
+              ${activeTab === 'ai'
+                ? 'border-primary-600 text-primary-600 font-bold'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-400'
+              }
+            `}
+          >
+            AI 어시스턴트
+          </button>
         </nav>
       </div>
 
@@ -679,11 +771,8 @@ export default function SettingsPage() {
                             <h3 className="text-lg font-semibold text-gray-900">
                               {product.name}
                             </h3>
-                            <Badge color={PRODUCT_TYPE_COLORS[product.productType]}>
-                              {PRODUCT_TYPE_LABELS[product.productType]}
-                            </Badge>
                             <span className="text-sm text-gray-500">
-                              {product.options?.length || 0}개 구성
+                              파생제품 {product.options?.length || 0}개
                             </span>
                           </div>
                           <p className="text-sm text-gray-600 mt-1">
@@ -734,7 +823,7 @@ export default function SettingsPage() {
                       {isExpanded && (
                         <div className="border-t-2 border-gray-800 pt-3 mt-3">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-medium text-gray-700">구성 옵션</h4>
+                            <h4 className="text-sm font-medium text-gray-700">파생제품</h4>
                             <Button
                               size="sm"
                               variant="secondary"
@@ -743,7 +832,7 @@ export default function SettingsPage() {
                               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
-                              옵션 추가
+                              파생제품 추가
                             </Button>
                           </div>
                           {product.options && product.options.length > 0 ? (
@@ -753,6 +842,11 @@ export default function SettingsPage() {
                                   key={option.id}
                                   className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-800 rounded-full text-xs"
                                 >
+                                  {option.type && (
+                                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">
+                                      {option.type}
+                                    </span>
+                                  )}
                                   <span className="font-medium">{option.name}</span>
                                   <span className="text-gray-500">({option.code})</span>
                                   <button
@@ -767,7 +861,7 @@ export default function SettingsPage() {
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-500">구성 옵션이 없습니다</p>
+                            <p className="text-sm text-gray-500">파생제품이 없습니다</p>
                           )}
                         </div>
                       )}
@@ -1063,13 +1157,6 @@ export default function SettingsPage() {
             onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
             placeholder="제품에 대한 설명을 입력하세요"
           />
-          <Select
-            label="제품 유형"
-            value={productForm.productType}
-            onChange={(e) => setProductForm({ ...productForm, productType: e.target.value as ProductType })}
-            options={PRODUCT_TYPE_OPTIONS}
-            required
-          />
           <Input
             label="제조사"
             value={productForm.vendor}
@@ -1097,28 +1184,54 @@ export default function SettingsPage() {
       <Modal
         open={optionModalOpen}
         onClose={() => setOptionModalOpen(false)}
-        title="옵션 추가"
+        title="파생제품 추가"
       >
         <div className="space-y-4">
           <Input
-            label="옵션 코드"
+            label="코드"
             value={optionForm.code}
             onChange={(e) => setOptionForm({ ...optionForm, code: e.target.value })}
-            placeholder="예: OPT-001"
+            placeholder="예: DWM-BASIC"
             required
           />
           <Input
-            label="옵션명"
+            label="파생제품명"
             value={optionForm.name}
             onChange={(e) => setOptionForm({ ...optionForm, name: e.target.value })}
             placeholder="예: 기본 라이선스"
             required
           />
+          <div>
+            <label className="block text-sm font-bold text-gray-800 mb-1">유형</label>
+            <div className="flex flex-wrap gap-2">
+              {DERIVED_TYPE_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setOptionForm({ ...optionForm, type: optionForm.type === preset ? '' : preset })}
+                  className={`px-3 py-1 rounded-full text-xs font-medium border-2 transition-colors ${
+                    optionForm.type === preset
+                      ? 'border-blue-600 bg-blue-100 text-blue-700'
+                      : 'border-gray-300 bg-white text-gray-600 hover:border-gray-400'
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <Input
+              label=""
+              value={DERIVED_TYPE_PRESETS.includes(optionForm.type) ? '' : optionForm.type}
+              onChange={(e) => setOptionForm({ ...optionForm, type: e.target.value })}
+              placeholder="직접 입력 (프리셋 외)"
+              className="mt-2"
+            />
+          </div>
           <Textarea
             label="설명"
             value={optionForm.description}
             onChange={(e) => setOptionForm({ ...optionForm, description: e.target.value })}
-            placeholder="옵션에 대한 설명을 입력하세요"
+            placeholder="파생제품에 대한 설명을 입력하세요"
           />
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="secondary" onClick={() => setOptionModalOpen(false)}>
@@ -1403,6 +1516,95 @@ export default function SettingsPage() {
         </div>
       </Modal>
 
+      {/* AI Tab */}
+      {activeTab === 'ai' && (
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900">AI 어시스턴트 설정</h2>
+            <p className="text-sm text-gray-500 mt-1">LLM 프로바이더와 모델을 설정합니다</p>
+          </div>
+
+          {currentUser && !['owner', 'admin'].includes(currentUser.role) ? (
+            <Card>
+              <div className="text-center py-6">
+                <p className="text-gray-600 font-medium">AI 설정은 Owner 또는 Admin만 접근할 수 있습니다</p>
+              </div>
+            </Card>
+          ) : aiSettingsLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
+            </div>
+          ) : (
+            <Card>
+              <div className="space-y-6">
+                <Select
+                  label="LLM 프로바이더"
+                  value={aiSettings.provider}
+                  onChange={(e) => setAiSettings({ ...aiSettings, provider: e.target.value })}
+                  options={PROVIDER_OPTIONS}
+                />
+
+                {aiSettings.provider !== 'ollama' && (
+                  <Input
+                    label="API 키"
+                    type="password"
+                    value={aiSettings.apiKey}
+                    onChange={(e) => setAiSettings({ ...aiSettings, apiKey: e.target.value })}
+                    placeholder={aiSettings.provider === 'anthropic' ? 'sk-ant-...' : 'sk-...'}
+                  />
+                )}
+
+                {aiSettings.provider === 'ollama' && (
+                  <Input
+                    label="Ollama 서버 URL"
+                    value={aiSettings.ollamaBaseUrl}
+                    onChange={(e) => setAiSettings({ ...aiSettings, ollamaBaseUrl: e.target.value })}
+                    placeholder="http://localhost:11434"
+                  />
+                )}
+
+                <Select
+                  label="기본 모델 (분석/요약용)"
+                  value={aiSettings.defaultModel}
+                  onChange={(e) => setAiSettings({ ...aiSettings, defaultModel: e.target.value })}
+                  options={getModelOptions(aiSettings.provider, 'default')}
+                />
+
+                <Select
+                  label="빠른 모델 (생성/추천용)"
+                  value={aiSettings.fastModel}
+                  onChange={(e) => setAiSettings({ ...aiSettings, fastModel: e.target.value })}
+                  options={getModelOptions(aiSettings.provider, 'fast')}
+                />
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="text-sm font-bold text-gray-800">AI 기능 활성화</label>
+                    <p className="text-xs text-gray-500">비활성화하면 모든 AI 기능이 숨겨집니다</p>
+                  </div>
+                  <button
+                    onClick={() => setAiSettings({ ...aiSettings, isEnabled: !aiSettings.isEnabled })}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full border-2 border-gray-800 transition-colors ${
+                      aiSettings.isEnabled ? 'bg-violet-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white border border-gray-800 transition-transform ${
+                      aiSettings.isEnabled ? 'translate-x-5' : 'translate-x-1'
+                    }`} />
+                  </button>
+                </div>
+
+                <div className="flex justify-end pt-4">
+                  <Button onClick={handleSaveAiSettings} disabled={aiSettingsSaving}>
+                    {aiSettingsSaving ? '저장 중...' : '저장'}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+        </div>
+      )}
+
       {/* Delete Confirmation Modal */}
       <Modal
         open={deleteModalOpen}
@@ -1412,9 +1614,9 @@ export default function SettingsPage() {
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
             {deleteTarget?.type === 'product'
-              ? '이 제품을 삭제하시겠습니까? 관련된 모든 옵션도 함께 삭제됩니다.'
+              ? '이 제품을 삭제하시겠습니까? 관련된 모든 파생제품도 함께 삭제됩니다.'
               : deleteTarget?.type === 'option'
-              ? '이 옵션을 삭제하시겠습니까?'
+              ? '이 파생제품을 삭제하시겠습니까?'
               : '이 사용자를 비활성화하시겠습니까?'}
           </p>
           <div className="flex justify-end gap-2">

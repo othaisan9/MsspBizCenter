@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { AiChatDrawer } from '@/components/ai';
 
 export default function DashboardLayout({
   children,
@@ -37,6 +38,7 @@ export default function DashboardLayout({
         <Header />
         <main className="p-6">{children}</main>
       </div>
+      <AiChatDrawer />
     </div>
   );
 }

@@ -578,8 +578,8 @@ export default function NewContractPage() {
           )}
 
           <div className="border-t-2 border-gray-800 pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">공급 제품 및 구성</h3>
-            <p className="text-sm text-gray-600 mb-4">계약에 포함되는 제품과 구성(옵션)을 선택하세요.</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">공급 제품 및 파생제품</h3>
+            <p className="text-sm text-gray-600 mb-4">계약에 포함되는 제품과 파생제품을 선택하세요.</p>
 
             <div className="space-y-4">
               {contractProducts.map((item, index) => (
@@ -609,7 +609,7 @@ export default function NewContractPage() {
                     />
 
                     <Select
-                      label="구성"
+                      label="파생제품"
                       value={item.productOptionId}
                       onChange={(e) => updateContractProduct(index, 'productOptionId', e.target.value)}
                       disabled={!item.productId}
@@ -617,7 +617,7 @@ export default function NewContractPage() {
                         { value: '', label: item.productId ? '선택하세요' : '제품을 먼저 선택하세요' },
                         ...getProductOptions(item.productId).map((opt: any) => ({
                           value: opt.id,
-                          label: `${opt.name} (${opt.code})`
+                          label: `${opt.type ? `[${opt.type}] ` : ''}${opt.name} (${opt.code})`
                         }))
                       ]}
                     />

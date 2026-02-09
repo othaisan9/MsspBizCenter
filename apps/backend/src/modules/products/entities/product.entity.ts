@@ -1,6 +1,6 @@
 import { Entity, Column, OneToMany, Index } from 'typeorm';
 import { TenantBaseEntity } from '../../../common/entities/base.entity';
-import { ProductType, ProductStatus } from '@msspbiz/shared';
+import { ProductStatus } from '@msspbiz/shared';
 import { ProductOption } from './product-option.entity';
 
 @Entity('products')
@@ -15,9 +15,6 @@ export class Product extends TenantBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   description: string | null;
-
-  @Column({ type: 'enum', enum: ProductType, name: 'product_type' })
-  productType: ProductType;
 
   @Column({ type: 'enum', enum: ProductStatus, default: ProductStatus.ACTIVE })
   status: ProductStatus;

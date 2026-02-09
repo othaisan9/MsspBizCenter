@@ -14,6 +14,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { StatsModule } from './modules/stats/stats.module';
 import { FilesModule } from './modules/files/files.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { FilesModule } from './modules/files/files.module';
     AuditModule,
     StatsModule,
     FilesModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

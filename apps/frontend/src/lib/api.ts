@@ -310,6 +310,7 @@ export const productsApi = {
     }),
   deleteOption: (productId: string, optionId: string) =>
     request<any>(`/products/${productId}/options/${optionId}`, { method: 'DELETE' }),
+  getDerivedProductTypes: () => request<string[]>('/products/derived-product-types'),
 };
 
 // Users
@@ -325,6 +326,27 @@ export const usersApi = {
     request<any>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: (id: string) =>
     request<any>(`/users/${id}`, { method: 'DELETE' }),
+};
+
+// AI Settings API
+export const aiSettingsApi = {
+  get: () => request<any>('/ai/settings'),
+  update: (data: any) => request<any>('/ai/settings', { method: 'PATCH', body: JSON.stringify(data) }),
+};
+
+// AI API (non-streaming)
+export const aiApi = {
+  generateTaskDesc: (data: { title: string; tags?: string[]; priority?: string }) =>
+    request<{ text: string }>('/ai/generate-task-desc', { method: 'POST', body: JSON.stringify(data) }),
+
+  generateMeetingTemplate: (data: { title: string; meetingType: string; attendeeNames?: string[] }) =>
+    request<{ text: string }>('/ai/generate-meeting-template', { method: 'POST', body: JSON.stringify(data) }),
+
+  summarizeMeeting: (data: { meetingId: string }) =>
+    request<{ text: string }>('/ai/summarize-meeting', { method: 'POST', body: JSON.stringify(data) }),
+
+  extractActions: (data: { meetingId: string }) =>
+    request<{ actionItems: Array<{ title: string; assigneeName?: string; dueDescription?: string }> }>('/ai/extract-actions', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export { ApiError };

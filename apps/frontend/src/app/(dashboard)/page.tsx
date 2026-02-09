@@ -11,6 +11,8 @@ import { WeeklyTaskChart } from '@/components/charts/WeeklyTaskChart';
 import { TaskStatusChart } from '@/components/charts/TaskStatusChart';
 import { TaskPriorityChart } from '@/components/charts/TaskPriorityChart';
 import { MonthlyContractChart } from '@/components/charts/MonthlyContractChart';
+import { AiButton, AiStreamPanel } from '@/components/ai';
+import { useAiStream } from '@/hooks/useAiStream';
 
 interface DashboardStats {
   totalTasks: number;
@@ -39,6 +41,8 @@ export default function DashboardPage() {
     within7Days: 0,
     within30Days: 0,
   });
+
+  const { content: perfContent, loading: perfLoading, error: perfError, start: startPerf, reset: resetPerf } = useAiStream();
 
   const loadDashboardStats = useCallback(async () => {
     try {
@@ -80,6 +84,10 @@ export default function DashboardPage() {
     loadExpiringContracts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const handlePerformanceAnalysis = useCallback(() => {
+    startPerf('/ai/my-performance', {});
+  }, [startPerf]);
 
   const currentWeek = getWeekNumber();
   const currentYear = new Date().getFullYear();
@@ -249,6 +257,34 @@ export default function DashboardPage() {
           <TaskPriorityChart />
         </Card>
       </div>
+
+      {/* AI Performance Analysis Card */}
+      <Card
+        title="내 업무 성과 분석"
+        action={
+          <AiButton
+            onClick={handlePerformanceAnalysis}
+            loading={perfLoading}
+            label="분석하기"
+            size="sm"
+          />
+        }
+      >
+        {perfContent || perfError ? (
+          <AiStreamPanel
+            content={perfContent}
+            loading={perfLoading}
+            error={perfError}
+            onRegenerate={handlePerformanceAnalysis}
+            onClose={resetPerf}
+            title="AI 성과 분석"
+          />
+        ) : (
+          <p className="text-sm text-gray-400 py-4">
+            AI 버튼을 클릭하면 이번 주/월 업무 성과를 분석합니다.
+          </p>
+        )}
+      </Card>
     </div>
   );
 }

@@ -57,8 +57,8 @@ interface Contract {
     id: string;
     quantity: number;
     notes?: string;
-    product: { id: string; name: string; code: string; description?: string; productType: string };
-    productOption?: { id: string; name: string; code: string; description?: string } | null;
+    product: { id: string; name: string; code: string; description?: string };
+    productOption?: { id: string; name: string; code: string; description?: string; type?: string } | null;
   }>;
   createdAt: string;
   updatedAt: string;
@@ -110,12 +110,6 @@ interface FileAttachment {
   uploadedBy: { id: string; name: string; email: string };
 }
 
-const PRODUCT_TYPE_COLORS: Record<string, { bg: string; text: string; border: string; light: string }> = {
-  platform: { bg: 'bg-purple-600', text: 'text-purple-700', border: 'border-purple-200', light: 'bg-purple-50' },
-  report: { bg: 'bg-red-600', text: 'text-red-700', border: 'border-red-200', light: 'bg-red-50' },
-  consulting: { bg: 'bg-green-600', text: 'text-green-700', border: 'border-green-200', light: 'bg-green-50' },
-  other: { bg: 'bg-gray-600', text: 'text-gray-700', border: 'border-gray-200', light: 'bg-gray-50' },
-};
 
 export default function ContractDetailPage() {
   const router = useRouter();
@@ -731,29 +725,35 @@ export default function ContractDetailPage() {
 
                   return Object.entries(groupedProducts).map(([productId, items]) => {
                     const product = items[0].product;
-                    const colors = PRODUCT_TYPE_COLORS[product.productType] || PRODUCT_TYPE_COLORS.other;
 
                     return (
                       <div key={productId} className="rounded-lg overflow-hidden">
-                        <div className={cn(colors.bg, 'text-white px-4 py-3 flex items-center justify-between')}>
+                        <div className="bg-gray-800 text-white px-4 py-3 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-lg">{product.name}</span>
                             {product.description && (
-                              <span className={cn(colors.bg.replace('600', '500'), 'px-2 py-0.5 rounded text-xs')}>
+                              <span className="bg-gray-700 px-2 py-0.5 rounded text-xs">
                                 {product.description}
                               </span>
                             )}
                           </div>
-                          <span className="text-white/70 text-sm">{items.length}개 구성</span>
+                          <span className="text-white/70 text-sm">{items.length}개 파생제품</span>
                         </div>
-                        <div className={cn(colors.light, 'p-4')}>
+                        <div className="bg-gray-50 p-4">
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {items.map((item) => (
-                              <div key={item.id} className={cn('bg-white rounded-md p-4 border-2', colors.border)}>
-                                <div className="text-xs text-gray-500 mb-1">
-                                  {item.productOption?.name || '기본 구성'}
+                              <div key={item.id} className="bg-white rounded-md p-4 border-2 border-gray-200">
+                                <div className="flex items-center gap-1 mb-1">
+                                  {item.productOption?.type && (
+                                    <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium">
+                                      {item.productOption.type}
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-500">
+                                    {item.productOption?.name || '기본'}
+                                  </span>
                                 </div>
-                                <div className={cn('font-bold text-2xl', colors.text)}>{item.quantity}</div>
+                                <div className="font-bold text-2xl text-gray-800">{item.quantity}</div>
                                 {item.notes && (
                                   <div className="text-xs text-gray-500 mt-1">{item.notes}</div>
                                 )}
