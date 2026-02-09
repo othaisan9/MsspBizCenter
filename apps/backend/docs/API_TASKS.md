@@ -6,7 +6,7 @@ Task 모듈은 주차별 업무 관리 기능을 제공합니다.
 ## Endpoints
 
 ### 1. Create Task
-**POST** `/api/tasks`
+**POST** `/api/v1/tasks`
 
 담당자가 새로운 작업을 생성합니다.
 
@@ -56,7 +56,7 @@ Task 모듈은 주차별 업무 관리 기능을 제공합니다.
 ---
 
 ### 2. Get Tasks (Paginated)
-**GET** `/api/tasks`
+**GET** `/api/v1/tasks`
 
 작업 목록을 조회합니다. 페이지네이션, 필터링, 검색을 지원합니다.
 
@@ -76,7 +76,7 @@ Task 모듈은 주차별 업무 관리 기능을 제공합니다.
 
 **Example Request**:
 ```
-GET /api/tasks?page=1&limit=20&status=in_progress&priority=high&search=API
+GET /api/v1/tasks?page=1&limit=20&status=in_progress&priority=high&search=API
 ```
 
 **Response**: `200 OK`
@@ -127,7 +127,7 @@ GET /api/tasks?page=1&limit=20&status=in_progress&priority=high&search=API
 ---
 
 ### 3. Get Weekly Tasks
-**GET** `/api/tasks/weekly`
+**GET** `/api/v1/tasks/weekly`
 
 특정 주차의 작업 목록을 조회합니다.
 
@@ -139,7 +139,7 @@ GET /api/tasks?page=1&limit=20&status=in_progress&priority=high&search=API
 
 **Example Request**:
 ```
-GET /api/tasks/weekly?year=2026&week=6
+GET /api/v1/tasks/weekly?year=2026&week=6
 ```
 
 **Response**: `200 OK`
@@ -162,7 +162,7 @@ GET /api/tasks/weekly?year=2026&week=6
 ---
 
 ### 4. Get Task by ID
-**GET** `/api/tasks/:id`
+**GET** `/api/v1/tasks/:id`
 
 작업 상세 정보를 조회합니다.
 
@@ -198,7 +198,7 @@ GET /api/tasks/weekly?year=2026&week=6
 ---
 
 ### 5. Update Task
-**PATCH** `/api/tasks/:id`
+**PATCH** `/api/v1/tasks/:id`
 
 작업 정보를 수정합니다.
 
@@ -224,7 +224,7 @@ GET /api/tasks/weekly?year=2026&week=6
 ---
 
 ### 6. Delete Task
-**DELETE** `/api/tasks/:id`
+**DELETE** `/api/v1/tasks/:id`
 
 작업을 삭제합니다.
 
@@ -244,7 +244,7 @@ GET /api/tasks/weekly?year=2026&week=6
 ---
 
 ### 7. Update Task Status
-**PATCH** `/api/tasks/:id/status`
+**PATCH** `/api/v1/tasks/:id/status`
 
 작업 상태를 변경합니다.
 
@@ -265,7 +265,7 @@ GET /api/tasks/weekly?year=2026&week=6
 ---
 
 ### 8. Assign Task
-**PATCH** `/api/tasks/:id/assign`
+**PATCH** `/api/v1/tasks/:id/assign`
 
 작업 담당자를 할당합니다.
 
@@ -365,7 +365,7 @@ JWT 토큰에서 `tenantId`와 `userId`를 추출하여 모든 쿼리에 자동�
 
 실행 중인 서버에서 Swagger UI를 통해 대화형 API 문서를 확인할 수 있습니다.
 
-**URL**: `http://localhost:4001/api`
+**URL**: `http://localhost:4001/api/docs`
 
 ---
 

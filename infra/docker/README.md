@@ -496,12 +496,18 @@ docker volume rm docker_redis_data
 
 ### Q2. node_modules를 수정했는데 반영이 안돼요
 
-**A**: node_modules는 Anonymous Volume으로 마운트되어 있어 호스트와 공유되지 않습니다. 패키지를 추가/수정했다면 컨테이너를 재빌드하세요:
+**A**: node_modules는 Anonymous Volume으로 마운트되어 있어 호스트와 공유되지 않습니다. 패키지를 추가/수정했다면 **`-V` 플래그**로 anonymous volume을 재생성해야 합니다:
 
 ```bash
+# -V 플래그: anonymous volume 재생성 (stale node_modules 방지)
+docker compose -f docker-compose.dev.yml up -d -V --build backend
+
+# 또는 전체 재빌드
 docker compose -f docker-compose.dev.yml build --no-cache
 docker compose -f docker-compose.dev.yml up -d
 ```
+
+> **주의**: `-V` 없이 `up -d`만 실행하면 기존 anonymous volume의 오래된 node_modules가 유지되어 새로 추가한 패키지를 찾지 못합니다.
 
 ### Q3. shared 패키지 변경이 반영 안돼요
 

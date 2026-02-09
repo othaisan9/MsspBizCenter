@@ -2,9 +2,9 @@
 
 > **작성일**: 2026-02-07
 > **작성자**: 박서연 (PM)
-> **버전**: v1.2
+> **버전**: v1.3
 > **상태**: 승인됨
-> **최종 수정**: 2026-02-07 - 독립 플랫폼 전환 (NestJS + Next.js, PostgreSQL)
+> **최종 수정**: 2026-02-09 - AI 어시스턴트, 제품 관리, tiptap 에디터, 디자인 시스템 반영
 
 ## ⚠️ 기술 스택 변경 (v1.2)
 
@@ -51,15 +51,19 @@
 | 주차별 업무 일지 (Task) | 외부 프로젝트 관리 도구 연동 (Jira, Asana 등) |
 | 회의록 관리 | 화상 회의 기능 |
 | 계약 관리 | 전자 계약/서명 기능 |
-| 감사 로그 | 회계 시스템 연동 |
+| 제품/옵션 마스터 데이터 관리 | 회계 시스템 연동 |
+| AI 어시스턴트 (4 LLM 프로바이더) | 자체 LLM 학습/파인튜닝 |
+| 감사 로그 | - |
 
 ### 1.4 기술 스택
 
 ```json
 {
-  "frontend": "Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS",
-  "backend": "NestJS 10 + TypeORM 0.3.x + PostgreSQL 16",
-  "infra": "Docker Compose + Redis + pnpm Workspaces + Turborepo",
+  "frontend": "Next.js 15 (App Router) + React 19 + TypeScript + Tailwind CSS + tiptap (Rich Text) + Recharts + @dnd-kit",
+  "backend": "NestJS 10 + TypeORM 0.3.x + PostgreSQL 16 + helmet + @nestjs/throttler",
+  "ai": "LlmProvider 인터페이스 (Anthropic, OpenAI, Gemini, Ollama) + SSE 스트리밍",
+  "infra": "Docker Compose + Redis 7 + pnpm 9 Workspaces + Turborepo 2",
+  "design": "Soft Neo-Brutalism (border-2 + hard shadow + rounded-md)",
   "testing": "Jest (Backend) + Vitest (Frontend) + Playwright (E2E)"
 }
 ```
@@ -85,7 +89,7 @@
 | id | UUID | O | PK |
 | tenantId | UUID | O | 테넌트 ID |
 | title | VARCHAR(200) | O | Task 제목 |
-| description | TEXT | X | 상세 설명 (Markdown 지원) |
+| description | TEXT | X | 상세 설명 (tiptap 리치텍스트) |
 | weekNumber | INT | O | 해당 연도의 주차 (1-53) |
 | year | INT | O | 연도 |
 | status | ENUM | O | pending/in_progress/review/completed/cancelled |
@@ -161,7 +165,7 @@ enum TaskPriority {
 | location | VARCHAR(255) | X | 회의 장소/채널 |
 | meetingType | ENUM | O | regular/adhoc/review/retrospective |
 | agenda | JSONB | X | 안건 목록 |
-| content | TEXT | X | 회의 내용 (Markdown) |
+| content | TEXT | X | 회의 내용 (tiptap 리치텍스트) |
 | decisions | JSONB | X | 결정사항 목록 |
 | attachments | JSONB | X | 첨부파일 목록 |
 | status | ENUM | O | draft/published |
@@ -317,6 +321,111 @@ enum ContractStatus {
 
 ---
 
+### 2.4 Product (제품 관리)
+
+#### 2.4.1 요구사항
+
+- 제품(Product) 마스터 데이터 관리
+- 제품별 옵션(ProductOption) 관리
+- 계약과 제품 연결 (ContractProduct)
+- 파생제품 유형 프리셋 지원
+
+#### 2.4.2 주요 필드
+
+**Product (제품)**
+
+| 필드명 | 타입 | 필수 | 설명 |
+|--------|------|------|------|
+| id | UUID | O | PK |
+| tenantId | UUID | O | 테넌트 ID |
+| code | VARCHAR(50) | O | 제품 코드 (테넌트별 유니크) |
+| name | VARCHAR(255) | O | 제품명 |
+| description | TEXT | X | 설명 |
+| status | ENUM | O | active/inactive |
+| vendor | VARCHAR(255) | X | 벤더명 |
+| displayOrder | INT | X | 표시 순서 |
+
+**ProductOption (제품 옵션)**
+
+| 필드명 | 타입 | 필수 | 설명 |
+|--------|------|------|------|
+| id | UUID | O | PK |
+| tenantId | UUID | O | 테넌트 ID |
+| productId | UUID | O | 제품 FK |
+| code | VARCHAR(50) | O | 옵션 코드 |
+| name | VARCHAR(255) | O | 옵션명 |
+| type | VARCHAR(50) | X | 파생제품 유형 (사용자 정의) |
+| description | TEXT | X | 설명 |
+| isActive | BOOLEAN | O | 활성 상태 |
+| displayOrder | INT | X | 표시 순서 |
+
+**파생제품 유형 프리셋**: 플랫폼, 서비스, 리포트, API, 컨설팅, 라이선스, 기타
+
+#### 2.4.3 기능 목록
+
+| 기능 | 설명 | 우선순위 |
+|------|------|----------|
+| Product CRUD | 제품 생성/조회/수정/삭제 | P0 |
+| ProductOption CRUD | 옵션 생성/조회/수정/삭제 | P0 |
+| 계약 연결 | 계약에 제품/옵션 연결 | P0 |
+| 접근 제어 | Admin+ 생성/수정, Owner 삭제 | P0 |
+
+---
+
+### 2.5 AI (AI 어시스턴트)
+
+#### 2.5.1 요구사항
+
+- 다중 LLM 프로바이더 지원 (Anthropic, OpenAI, Gemini, Ollama)
+- 업무 컨텍스트 기반 AI 생성 (업무 설명, 회의 템플릿, 요약 등)
+- SSE 스트리밍 응답 (성과 분석, 주간 리포트, 채팅)
+- 테넌트별 AI 설정 관리 (API 키 암호화 저장)
+
+#### 2.5.2 LLM 프로바이더
+
+```typescript
+interface LlmProvider {
+  generate(prompt: string, options?: LlmOptions): Promise<string>;
+  stream(prompt: string, options?: LlmOptions): AsyncGenerator<string>;
+  listModels(apiKey?: string): Promise<LlmModel[]>;
+}
+```
+
+| 프로바이더 | 설명 | 모델 조회 |
+|-----------|------|-----------|
+| Anthropic | Claude 시리즈 | `client.models.list()` |
+| OpenAI | GPT 시리즈 (chat 모델 필터) | `client.models.list()` |
+| Gemini | Google Gemini (generateContent 지원만) | `client.models.list()` |
+| Ollama | 로컬 자체 호스팅 모델 | `client.list()` |
+
+#### 2.5.3 AI 설정 (테넌트별)
+
+| 필드명 | 타입 | 필수 | 설명 |
+|--------|------|------|------|
+| provider | VARCHAR(20) | O | LLM 프로바이더 (기본: anthropic) |
+| apiKeyEncrypted | TEXT | X | 암호화된 API 키 |
+| defaultModel | VARCHAR(100) | O | 기본 모델 |
+| fastModel | VARCHAR(100) | O | 빠른 모델 |
+| isEnabled | BOOLEAN | O | 활성 여부 |
+| monthlyBudgetLimit | DECIMAL | X | 월 예산 한도 |
+| ollamaBaseUrl | VARCHAR(255) | X | Ollama 서버 URL |
+
+#### 2.5.4 기능 목록
+
+| 기능 | 설명 | 우선순위 | 응답 방식 |
+|------|------|----------|-----------|
+| 모델 목록 | 프로바이더별 사용 가능 모델 조회 | P0 | JSON |
+| 업무 설명 생성 | 제목/태그/우선순위로 업무 설명 생성 | P0 | JSON |
+| 회의 템플릿 | 회의 유형별 템플릿 생성 | P0 | JSON |
+| 회의 요약 | 회의록 내용 자동 요약 | P0 | JSON |
+| 성과 분석 | 사용자 업무 성과 분석 | P1 | SSE |
+| 주간 리포트 | 주차별 업무 리포트 생성 | P1 | SSE |
+| 액션 아이템 추출 | 회의록에서 후속 조치 추출 | P1 | JSON |
+| AI 채팅 | 컨텍스트 기반 자유 대화 | P1 | SSE |
+| AI 설정 관리 | 프로바이더/모델/예산 설정 | P0 | JSON |
+
+---
+
 ## 3. 기술 스택 상세
 
 ### 3.1 Frontend
@@ -326,11 +435,14 @@ enum ContractStatus {
 | Framework | Next.js | 15.x | App Router, SSR |
 | UI Library | React | 19.x | UI 컴포넌트 |
 | Language | TypeScript | 5.7+ | 타입 안정성 |
-| Styling | Tailwind CSS | 3.4+ | 유틸리티 CSS |
+| Styling | Tailwind CSS | 3.4+ | 유틸리티 CSS + Soft Neo-Brutalism |
+| Rich Text | tiptap | 3.x | 리치텍스트 에디터/뷰어 |
 | State | SWR | 2.x | 서버 상태 관리 |
 | Icons | Iconoir | 7.x | SVG 아이콘 |
-| Charts | Recharts | 2.x | 데이터 시각화 |
-| DnD | @dnd-kit | 6.x+ | 드래그앤드롭 |
+| Charts | Recharts | 2.x | 데이터 시각화 (Donut, Bar, Area) |
+| DnD | @dnd-kit | 6.x+ | 칸반 드래그앤드롭 |
+| Toast | sonner | - | 토스트 알림 |
+| Sanitize | isomorphic-dompurify | - | XSS 방지 |
 | Testing | Vitest + Playwright | 2.x + 1.x | Unit + E2E |
 
 ### 3.2 Backend
@@ -342,7 +454,10 @@ enum ContractStatus {
 | Database | PostgreSQL | 16+ | 메인 DB |
 | Cache | Redis | 7.x | 캐시, 세션 |
 | Validation | class-validator | 0.14+ | DTO 검증 |
-| Auth | Passport + JWT | - | 인증 |
+| Auth | Passport + JWT (HS256) | - | 인증 |
+| Security | helmet + @nestjs/throttler | - | 보안 헤더, Rate Limiting |
+| File Upload | Multer | - | 파일 업로드 (10MB, MIME 화이트리스트) |
+| AI | @anthropic-ai/sdk, openai, @google/genai | - | LLM 프로바이더 |
 | API Docs | @nestjs/swagger | - | Swagger 자동 생성 |
 | Testing | Jest | 29.x | Unit/E2E 테스트 |
 
@@ -430,6 +545,38 @@ enum ContractStatus {
                       │ uploaded_by(FK) │       │ ip_address      │
                       │ created_at      │       │ created_at      │
                       └─────────────────┘       └─────────────────┘
+
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    products     │     │ product_options │     │contract_products│
+├─────────────────┤     ├─────────────────┤     ├─────────────────┤
+│ id (PK)         │     │ id (PK)         │     │ id (PK)         │
+│ tenant_id (FK)  │◄────┤ product_id (FK) │     │ tenant_id (FK)  │
+│ code            │     │ tenant_id (FK)  │     │ contract_id(FK) │──► contracts
+│ name            │     │ code            │     │ product_id (FK) │──► products
+│ description     │     │ name            │     │ product_option  │──► product_options
+│ status          │     │ type            │     │ quantity        │
+│ vendor          │     │ description     │     │ notes           │
+│ display_order   │     │ is_active       │     │ created_at      │
+│ created_at      │     │ display_order   │     │ updated_at      │
+│ updated_at      │     │ created_at      │     └─────────────────┘
+└─────────────────┘     │ updated_at      │
+                        └─────────────────┘
+
+┌─────────────────┐
+│   ai_settings   │
+├─────────────────┤
+│ id (PK)         │
+│ tenant_id (UK)  │
+│ provider        │
+│ api_key_encrypt │
+│ default_model   │
+│ fast_model      │
+│ is_enabled      │
+│ monthly_budget  │
+│ ollama_base_url │
+│ created_at      │
+│ updated_at      │
+└─────────────────┘
 ```
 
 ### 4.2 인덱스 전략
@@ -454,6 +601,15 @@ CREATE INDEX idx_contracts_tenant_type ON contracts(tenant_id, contract_type);
 -- Audit Log 인덱스
 CREATE INDEX idx_audit_tenant_entity ON audit_logs(tenant_id, entity_type, entity_id);
 CREATE INDEX idx_audit_tenant_date ON audit_logs(tenant_id, created_at);
+
+-- Product 인덱스
+CREATE UNIQUE INDEX idx_products_tenant_code ON products(tenant_id, code);
+CREATE INDEX idx_products_tenant_status ON products(tenant_id, status);
+CREATE INDEX idx_product_options_tenant_product ON product_options(tenant_id, product_id);
+CREATE INDEX idx_contract_products_tenant_contract ON contract_products(tenant_id, contract_id);
+
+-- AI Settings 인덱스
+CREATE UNIQUE INDEX idx_ai_settings_tenant ON ai_settings(tenant_id);
 ```
 
 ---
@@ -566,13 +722,60 @@ GET    /api/v1/files/:id                # 파일 다운로드
 DELETE /api/v1/files/:id                # 파일 삭제
 ```
 
-### 5.6 Dashboard API
+### 5.6 Product API
 
 ```
-GET    /api/v1/dashboard/summary        # 전체 요약
-GET    /api/v1/dashboard/tasks/stats    # Task 통계
-GET    /api/v1/dashboard/meetings/recent # 최근 회의록
-GET    /api/v1/dashboard/contracts/expiring # 만료 예정 계약
+# 제품 CRUD
+GET    /api/v1/products                  # 제품 목록 (옵션 포함)
+POST   /api/v1/products                  # 제품 생성 (Admin+)
+GET    /api/v1/products/:id              # 제품 상세
+PATCH  /api/v1/products/:id              # 제품 수정 (Admin+)
+DELETE /api/v1/products/:id              # 제품 삭제 (Owner)
+
+# 제품 옵션
+POST   /api/v1/products/:id/options              # 옵션 추가 (Admin+)
+PATCH  /api/v1/products/:id/options/:optionId    # 옵션 수정 (Admin+)
+DELETE /api/v1/products/:id/options/:optionId    # 옵션 삭제 (Admin+)
+```
+
+### 5.7 User API
+
+```
+# 사용자 CRUD
+GET    /api/v1/users                     # 사용자 목록
+POST   /api/v1/users                     # 사용자 추가 (Admin+)
+PATCH  /api/v1/users/:id                 # 사용자 수정 (Admin+)
+DELETE /api/v1/users/:id                 # 사용자 삭제 (Owner)
+```
+
+### 5.8 AI API
+
+```
+# AI 생성
+POST   /api/v1/ai/models                # 프로바이더별 모델 목록 (Admin+)
+POST   /api/v1/ai/generate-task-desc     # 업무 설명 생성
+POST   /api/v1/ai/generate-meeting-template  # 회의 템플릿 생성
+POST   /api/v1/ai/summarize-meeting      # 회의 요약
+POST   /api/v1/ai/extract-actions        # 액션 아이템 추출
+
+# AI 스트리밍 (SSE)
+POST   /api/v1/ai/my-performance         # 성과 분석 (SSE)
+POST   /api/v1/ai/weekly-report          # 주간 리포트 (SSE, Analyst+)
+POST   /api/v1/ai/chat                   # AI 채팅 (SSE)
+
+# AI 설정
+GET    /api/v1/ai/settings               # AI 설정 조회 (Admin+)
+PATCH  /api/v1/ai/settings               # AI 설정 수정 (Admin+)
+```
+
+### 5.9 Stats API (Dashboard)
+
+```
+GET    /api/v1/stats/dashboard           # 대시보드 전체 통계
+GET    /api/v1/stats/tasks/weekly        # 주차별 업무 통계 (12주)
+GET    /api/v1/stats/contracts/monthly   # 월별 계약 통계 (12개월)
+GET    /api/v1/stats/tasks/by-status     # 상태별 업무 비율
+GET    /api/v1/stats/tasks/by-priority   # 우선순위별 업무 비율
 ```
 
 ---
@@ -623,7 +826,7 @@ enum UserRole {
 |------|------|------|
 | 계약 금액 | AES-256-GCM 암호화 | 환경변수 `CONTRACT_ENCRYPTION_KEY` |
 | 비밀번호 | bcrypt 해싱 | salt rounds: 12 |
-| JWT | RS256 또는 HS256 | 환경변수 `JWT_SECRET` |
+| JWT | HS256 | 환경변수 `JWT_SECRET` |
 | 파일 업로드 | 바이러스 스캔 | ClamAV (선택) |
 | 파일 타입 | 화이트리스트 | pdf, docx, xlsx, png, jpg, txt |
 | 파일 크기 | 제한 | 최대 10MB |
@@ -646,62 +849,57 @@ enum UserRole {
 
 ## 7. 개발 우선순위
 
-### 7.1 Phase 1 (MVP) - 2주
+### 7.1 Phase 1 (MVP) - 완료 (v0.1.0-alpha.4)
 
-**목표**: 핵심 CRUD 및 기본 UI
+**목표**: 핵심 CRUD 및 기본 UI - **완료**
 
-| 기능 | 담당 | 예상 공수 |
-|------|------|----------|
-| Auth 모듈 (JWT, RBAC) | Backend | 2일 |
-| User 엔티티/API | Backend | 1일 |
-| Task 엔티티/API | Backend | 2일 |
-| Task 기본 UI (목록/생성/수정) | Frontend | 2일 |
-| Meeting 엔티티/API | Backend | 2일 |
-| Meeting 기본 UI | Frontend | 2일 |
-| Contract 엔티티/API (암호화 포함) | Backend | 3일 |
-| Contract 기본 UI | Frontend | 2일 |
-| 권한 적용 | Backend | 1일 |
-| 감사 로그 연동 | Backend | 1일 |
+- Auth 모듈 (JWT HS256, RBAC 5역할)
+- Task/Meeting/Contract 엔티티 + API + Frontend
+- 계약 금액 AES-256-GCM 암호화
+- 감사 로그 (90일 보존)
+- Products 마스터 데이터 모듈
 
-**마일스톤**:
-- 기본 CRUD 동작
-- 역할별 권한 적용
-- 계약 금액 암호화 동작
+### 7.2 Phase 2 - 완료 (v0.1.0-alpha.5~8)
 
-### 7.2 Phase 2 - 2주
+**목표**: UX 개선 및 편의 기능 - **완료**
 
-**목표**: UX 개선 및 편의 기능
+- 칸반 보드 (@dnd-kit 드래그앤드롭)
+- tiptap 리치텍스트 에디터 (Markdown 대체)
+- 대시보드 차트 4종 (Recharts)
+- Stats API 5개 엔드포인트
+- 파일 업로드 (Multer, 10MB, MIME 화이트리스트)
+- Docker 핫리로드 개발 환경
+- 토스트 알림 (sonner)
+- 사용자 추가 API + 모달
+- 페이지네이션 통일
+- Soft Neo-Brutalism 디자인 시스템 (25파일)
+- 보안 강화 (helmet, throttler, SQL Injection 방어)
 
-| 기능 | 담당 | 예상 공수 |
-|------|------|----------|
-| Task 칸반 보드 | Frontend | 2일 |
-| Task 주차별 뷰 (캘린더) | Frontend | 2일 |
-| 회의록 Markdown 에디터 | Frontend | 2일 |
-| Action Item → Task 연동 | Backend + Frontend | 2일 |
-| 계약 만료 알림 (Cron) | Backend | 1일 |
-| 파일 업로드 모듈 | Backend + Frontend | 2일 |
-| 대시보드 | Frontend | 2일 |
+### 7.3 Phase 3 - 완료 (v0.1.0-alpha.9~10)
 
-**마일스톤**:
-- 사용자 편의성 개선
-- 모듈 간 연동 (Meeting → Task)
-- 알림 기능
+**목표**: AI, 타입 안전성, 품질 - **완료**
 
-### 7.3 Phase 3 - 1주
+- AI 어시스턴트 모듈 (4 LLM 프로바이더, 7 엔드포인트, SSE)
+- 제품 구조 재설계 (productType 제거 → ProductOption.type)
+- tiptap 리치텍스트 에디터 (3모듈 6페이지)
+- P1 타입 안전성 리팩토링 (Backend any 34→2, Frontend any 48→0)
+- Shared DTO 통합 (25+ 인터페이스)
+- XSS 보안 수정 (DOMPurify 화이트리스트)
 
-**목표**: 리포팅 및 고급 기능
+### 7.4 Phase 4 - 진행 예정
 
-| 기능 | 담당 | 예상 공수 |
-|------|------|----------|
-| 주간 리포트 생성 | Backend | 2일 |
-| 회의록 PDF 내보내기 | Backend | 1일 |
-| 계약 대시보드 (차트) | Frontend | 2일 |
-| 전문 검색 (회의록) | Backend | 1일 |
-| Sub-Task | Backend + Frontend | 2일 |
+**목표**: 안정화 및 프로덕션 준비
 
-**마일스톤**:
-- 리포팅 기능
-- 분석/통계 기능
+| 기능 | 담당 | 상태 |
+|------|------|------|
+| 공통 컴포넌트 추출 (Pagination, Table) | Frontend | 미착수 |
+| SWR 데이터 fetching 표준화 | Frontend | 미착수 |
+| Redis 캐싱 (Dashboard Stats, Products) | Backend | 미착수 |
+| localStorage → HttpOnly Cookie + CSRF | Security + Backend | 미착수 |
+| Backend Unit Test 60% 커버리지 | Backend | 미착수 |
+| 프로덕션 Docker Compose | DevOps | 미착수 |
+| CI/CD 파이프라인 | DevOps | 미착수 |
+| E2E 테스트 (Playwright) | QA | 미착수 |
 
 ---
 
@@ -743,3 +941,4 @@ enum UserRole {
 | v1.0 | 2026-02-07 | 정하윤 | 초안 작성, 캡틴 승인 |
 | v1.1 | 2026-02-07 | 박서연 | Flask + React + MariaDB (미시시피 통합) |
 | v1.2 | 2026-02-07 | 박서연 | 독립 플랫폼 전환, NestJS + Next.js + PostgreSQL |
+| v1.3 | 2026-02-09 | 문서인 | AI 어시스턴트, 제품 관리, tiptap, 디자인 시스템, Phase 현행화 |

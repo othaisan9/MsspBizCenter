@@ -33,12 +33,13 @@ apps/backend/src/modules/products/
 | code | VARCHAR(50) | Product code (unique per tenant) |
 | name | VARCHAR(255) | Product name |
 | description | TEXT | Product description (nullable) |
-| product_type | ENUM | PLATFORM / REPORT / CONSULTING / OTHER |
 | status | ENUM | ACTIVE / INACTIVE (default: ACTIVE) |
 | vendor | VARCHAR(255) | Vendor name (nullable) |
 | display_order | INT | Display order (default: 0) |
 | created_at | TIMESTAMP | Created timestamp |
 | updated_at | TIMESTAMP | Updated timestamp |
+
+> **Note**: `product_type` 컬럼은 v0.1.0-alpha.10에서 제거됨. 파생제품 유형은 `product_options.type`으로 이동.
 
 **Indexes:**
 - `idx_products_tenant_status` (tenant_id, status)
@@ -53,6 +54,7 @@ apps/backend/src/modules/products/
 | product_id | UUID | Foreign Key to products |
 | code | VARCHAR(50) | Option code |
 | name | VARCHAR(255) | Option name |
+| type | VARCHAR(50) | Derived product type (nullable, user-defined) |
 | description | TEXT | Option description (nullable) |
 | is_active | BOOLEAN | Active status (default: true) |
 | display_order | INT | Display order (default: 0) |
@@ -137,13 +139,13 @@ removeOption(productId: string, optionId: string, tenantId: string): Promise<voi
 - `code`: Required, max 50 chars, unique per tenant
 - `name`: Required, max 255 chars
 - `description`: Optional
-- `productType`: Required, must be valid ProductType enum
 - `vendor`: Optional, max 255 chars
 - `displayOrder`: Optional, integer >= 0
 
 ### CreateProductOptionDto
 - `code`: Required, max 50 chars
 - `name`: Required, max 255 chars
+- `type`: Optional, max 50 chars (파생제품 유형, 프리셋: 플랫폼/서비스/리포트/API/컨설팅/라이선스/기타)
 - `description`: Optional
 - `isActive`: Optional, boolean (default: true)
 - `displayOrder`: Optional, integer >= 0
@@ -166,7 +168,6 @@ Authorization: Bearer <token>
   "code": "stealthmole",
   "name": "StealthMole",
   "description": "DarkWeb 위협 인텔리전스",
-  "productType": "PLATFORM",
   "vendor": "StealthMole Inc.",
   "displayOrder": 0
 }
@@ -181,6 +182,7 @@ Authorization: Bearer <token>
 {
   "code": "DT",
   "name": "Dark Tracer",
+  "type": "플랫폼",
   "description": "DarkWeb 추적 서비스",
   "isActive": true,
   "displayOrder": 0
@@ -199,13 +201,14 @@ Response:
     "id": "uuid",
     "code": "stealthmole",
     "name": "StealthMole",
-    "productType": "PLATFORM",
     "status": "ACTIVE",
+    "vendor": "StealthMole Inc.",
     "options": [
       {
         "id": "uuid",
         "code": "DT",
         "name": "Dark Tracer",
+        "type": "플랫폼",
         "isActive": true
       }
     ]

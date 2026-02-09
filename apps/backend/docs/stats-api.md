@@ -240,7 +240,7 @@ console.log(stats);
 ## Swagger UI
 개발 환경에서는 Swagger UI를 통해 API를 테스트할 수 있습니다.
 
-URL: http://localhost:4001/api
+URL: http://localhost:4001/api/docs
 
 1. Swagger UI에 접속
 2. "Authorize" 버튼 클릭
