@@ -1,7 +1,7 @@
 # MsspBizCenter 프로젝트 상태
 
-**마지막 업데이트**: 2026-02-08
-**현재 버전**: v0.1.0-alpha.9
+**마지막 업데이트**: 2026-02-09
+**현재 버전**: v0.1.0-alpha.10
 **개발 브랜치**: `master` (main 브랜치로 PR 예정)
 
 ---
@@ -53,7 +53,8 @@ MsspBizCenter/
 │   │           ├── users/        # 사용자 CRUD + 역할 관리
 │   │           ├── audit/        # 감사 로그
 │   │           ├── stats/        # 대시보드 통계 API (5개 엔드포인트)
-│   │           └── files/        # 파일 업로드 (Multer, 10MB)
+│   │           ├── files/        # 파일 업로드 (Multer, 10MB)
+│   │           └── ai/           # AI 어시스턴트 (4 LLM 프로바이더, SSE 스트리밍)
 │   └── frontend/         # Next.js 15 앱 (포트 3001)
 │       └── src/
 │           ├── app/
@@ -67,7 +68,8 @@ MsspBizCenter/
 │           │   ├── ui/           # Button, Input, Select, Badge, Modal, Card, FileUpload, FileList, Breadcrumb, MarkdownEditor, MarkdownViewer
 │           │   ├── layout/       # Sidebar (알림 뱃지), Header
 │           │   ├── charts/       # WeeklyTask, TaskStatus, TaskPriority, MonthlyContract
-│           │   └── tasks/        # KanbanBoard, KanbanColumn, KanbanCard
+│           │   ├── tasks/        # KanbanBoard, KanbanColumn, KanbanCard
+│           │   └── settings/     # AiTab, MasterDataTab, FinanceTab, UsersTab, PartnersTab
 │           └── lib/              # API Client, Auth Context, Utils
 ├── packages/
 │   └── shared/           # 공유 타입/Enum/상수 (PaymentCycle, CommissionType 등)
@@ -85,6 +87,78 @@ MsspBizCenter/
 ---
 
 ## 3. 최근 변경사항
+
+### v0.1.0-alpha.10 - AI 어시스턴트 모듈 + 제품 재설계 + QA (2026-02-08~09)
+
+**담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend) + 나검수(QA)
+
+#### 📋 주요 작업
+
+**1. AI 어시스턴트 모듈 (박안도)**
+- LlmProvider 인터페이스 설계: `generate()`, `stream()`, `listModels()` 3대 메서드
+- 4개 프로바이더 구현: Anthropic, OpenAI, Gemini (`@google/genai`), Ollama
+- `listModels()`: 각 프로바이더 API를 통한 동적 모델 목록 조회
+  - Anthropic: `client.models.list()`
+  - OpenAI: `client.models.list()` (chat 모델 필터)
+  - Gemini: `client.models.list()` (generateContent 지원 모델만)
+  - Ollama: `client.list()` (로컬 모델)
+- AI 엔드포인트 7개: models, generate-task-desc, generate-meeting-template, summarize-meeting, my-performance, weekly-report, extract-actions, chat
+- `POST /ai/models`: 프로바이더/API키를 body로 받아 DB 저장 전에도 모델 조회 가능
+- SSE 스트리밍 (my-performance, weekly-report, chat)
+- PromptBuilder 서비스: 한국어 MSSP 컨텍스트 프롬프트
+
+**2. 제품 구조 재설계 (박안도)**
+- Product에서 productType 제거 → ProductOption에 `type` (사용자 정의 문자열) 추가
+- 파생제품 유형 프리셋: 플랫폼, 서비스, 리포트, API, 컨설팅, 라이선스, 기타
+
+**3. 계약-제품 관계 수정 (박안도)**
+- `Contract ↔ ContractProduct` OneToMany 관계 추가
+- `CreateContractDto`에 `products` 필드 추가 (ContractProductItemDto[])
+- `contracts.service.ts`: create/update에서 ContractProduct 레코드 생성/갱신
+- `contracts.service.ts findOne()`: contractProducts relations 추가
+
+**4. 프론트엔드 QA 수정 (유아이)**
+- `contracts/new/page.tsx`: `product?.productOptions` → `product?.options` (필드명 수정)
+- 대시보드 만료임박 카드: `bg-red-50 border-red-700` → `bg-white border-gray-800` (통일)
+- 설정 페이지 컴포넌트 분리: AiTab, MasterDataTab, FinanceTab, UsersTab, PartnersTab, types
+- AI 설정 탭: 하드코딩 모델 제거 → 동적 모델 조회 (모델 목록 불러오기 버튼)
+- `isomorphic-dompurify` SSR 에러 수정 (lazy require)
+- `api.ts` 전면 리팩토링: shared 타입 import + any 제거
+
+**5. XSS 보안 수정 (나검수)**
+- `sanitizeHtml()` DOMPurify 화이트리스트 적용 (ALLOWED_TAGS/ATTR)
+- HTTP Exception Filter 강화
+- `jwt-auth.guard.ts` 토큰 검증 강화
+
+#### 📁 수정/생성된 파일
+
+**Backend** (15파일):
+- `apps/backend/src/modules/ai/` - AI 모듈 전체 (controller, service, dto, providers×4, prompt-builder)
+- `apps/backend/src/modules/contracts/entities/contract.entity.ts` - ContractProduct OneToMany
+- `apps/backend/src/modules/contracts/contracts.service.ts` - products 처리
+- `apps/backend/src/modules/contracts/contracts.module.ts` - ContractProduct 등록
+- `apps/backend/src/modules/contracts/dto/create-contract.dto.ts` - products 필드
+- `apps/backend/src/common/filters/http-exception.filter.ts` - 응답 강화
+
+**Frontend** (15파일):
+- `apps/frontend/src/components/settings/` - 5개 탭 컴포넌트 (신규)
+- `apps/frontend/src/app/(dashboard)/settings/page.tsx` - 컴포넌트 분리
+- `apps/frontend/src/app/(dashboard)/page.tsx` - 만료임박 카드 스타일 통일
+- `apps/frontend/src/app/(dashboard)/contracts/new/page.tsx` - productOptions→options
+- `apps/frontend/src/lib/api.ts` - 타입 리팩토링 + aiApi POST models
+- `apps/frontend/src/lib/utils.ts` - sanitizeHtml DOMPurify lazy require
+
+**Shared** (2파일):
+- `packages/shared/src/types/index.ts` - 타입 확장
+- `packages/shared/src/types/api-responses.ts` - API 응답 타입 정의 (신규)
+
+#### 🎯 성과 지표
+- Backend: 11개 모듈 (auth, tasks, meetings, contracts, products, users, audit, common, stats, files, **ai**)
+- Frontend: 13개 라우트 + 4개 차트 + 칸반 + 파일 업로드 + 브레드크럼 + **AI 컴포넌트**
+- AI: 4 LLM 프로바이더 + 7 엔드포인트 + SSE 스트리밍
+- 빌드: 3/3 패키지 성공
+
+---
 
 ### v0.1.0-alpha.9 - tiptap 리치텍스트 에디터 적용 (2026-02-08)
 
@@ -378,35 +452,38 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - alpha.9 핫픽스: tiptap SSR 에러 수정 (`immediatelyRender: false`)
-  - Docker anonymous volume 이슈 해결 (`docker compose up -V`)
-  - 에디터 UI 조정: 기본 높이 200→120px, 패딩 p-4→p-3
-  - 폼 페이지 너비 확장: max-w-3xl → max-w-5xl (3페이지)
-  - **제품 구조 재설계 플랜 수립** (productType 제거 → 파생제품 유형 도입)
-- **수정한 파일**: MarkdownEditor.tsx, MarkdownViewer.tsx, tasks/new, contracts/new, meetings/[id]
-- **커밋 여부**: ✅ (핫픽스)
+  - AI 모듈 구현: 4 LLM 프로바이더 + 7 엔드포인트 + SSE 스트리밍
+  - Gemini 프로바이더 추가 (`@google/genai` SDK)
+  - 동적 모델 조회: `POST /ai/models` (provider/apiKey body 전달)
+  - 계약-제품 관계 풀스택 수정 (entity, DTO, service, frontend)
+  - 대시보드 만료임박 카드 스타일 통일
+  - 설정 페이지 컴포넌트 분리 (5 탭 컴포넌트)
+  - `api.ts` 타입 리팩토링 (shared 타입 import)
+  - `isomorphic-dompurify` SSR 에러 해결 (lazy require)
+- **수정한 파일**: AI 모듈 전체, contracts 모듈, settings 컴포넌트, api.ts, utils.ts
+- **커밋 여부**: ❌ (미커밋 - 동작 확인 후 커밋 필요)
 
 ### 진행 중 작업 (미완료)
-- **제품 데이터 모델 재설계** (계획 완료, 구현 대기)
-  - 플랜 파일: `~/.claude/plans/resilient-orbiting-mccarthy.md`
-  - 핵심: Product에서 productType 제거 → ProductOption에 type(사용자 정의) 추가
-  - 영향 범위: shared enum + backend entity/DTO/service/controller + DB migration + frontend settings/contracts
-  - 예상 수정 파일: ~12파일
+- **AI 모델 목록 조회 확인**: POST /ai/models 엔드포인트 구현 완료, 프론트엔드 연동 완료
+  - 사용자가 API 키 입력 후 "모델 목록 불러오기" 클릭 시 동작해야 함
+  - 백엔드/프론트엔드 컨테이너 재빌드 완료
+  - 동작 확인 대기 중
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
-**우선 (제품 재설계)**:
-1. 제품 구조 재설계 구현 — 플랜 승인 후 실행 (박안도+유아이, 8h)
+**즉시 (미커밋 작업 정리)**:
+1. AI 모델 조회 동작 확인 후 커밋 (박안도+유아이)
+2. 전체 빌드 확인 (3/3 패키지)
 
 **Phase B: 핵심 개선 (잔여)**:
 1. 공통 컴포넌트 추출 — Pagination, Table (유아이, 6h) ← EmptyState/Skeleton 완료
 2. SWR 데이터 fetching 표준화 (유아이, 12h)
 3. 차트 인터랙션 드릴다운 + 스파크라인 (송대시, 8h)
-4. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h)
+4. API 응답 형식 통일 + Shared 타입 정의 (박안도, 8h) ← api.ts 리팩토링 진행 중
 5. Redis 캐싱 (Dashboard Stats, Products) (박안도, 8h)
 
 **Phase C: 안정화 (~60h)**:
-1. TypeScript any 제거 + 페이지 컴포넌트 분할 (유아이, 16h)
+1. TypeScript any 제거 + 페이지 컴포넌트 분할 (유아이, 16h) ← settings 분할 완료
 2. 테이블 정렬 기능 (송대시, 4h)
 3. localStorage → HttpOnly Cookie + CSRF (Chloe+박안도, 16h)
 4. Backend Unit Test 60% 커버리지 (박안도, 20h)
@@ -418,13 +495,13 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | 제품 재설계 플랜 수립 완료, 구현 대기 |
-| **Backend** | 박안도 | API, DB, 서버 로직 | 제품 재설계 구현 대기 (entity/DTO/migration) |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | tiptap 핫픽스 완료 ✅ → 제품 설정 UI 재설계 대기 |
-| **Security** | Chloe O'Brian | 보안, 암호화 | Helmet + FilesController RolesGuard 완료 ✅ |
+| **PM** | 박서연 | 요구사항, 일정 관리 | AI 모듈 + QA 완료, 커밋 대기 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | AI 모듈 4 프로바이더 + 동적 모델 조회 구현 완료 ✅ |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 설정 컴포넌트 분리 + AI 탭 + api.ts 타입 리팩토링 완료 ✅ |
+| **Security** | Chloe O'Brian | 보안, 암호화 | XSS sanitizeHtml + HTTP Exception 강화 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
-| **QA** | 나검수 | 테스트, 품질 보증 | alpha.8 검수 완료 (FE 95/100, BE 96.7%) ✅ |
-| **Visualization** | 송대시 | 차트, 시각화 | prose Neo-Brutalism 타이포 완료 ✅ → 드릴다운 대기 |
+| **QA** | 나검수 | 테스트, 품질 보증 | alpha.10 QA 수행 완료 ✅ |
+| **Visualization** | 송대시 | 차트, 시각화 | 드릴다운 대기 |
 | **Docs** | 문서인 | 문서화 | Stats API 문서 유지 ✅ |
 | **Data Analyst** | 이지표 | KPI, 분석 | 대시보드 데이터 유지 ✅ |
 
@@ -521,5 +598,5 @@ MsspBizCenter/
 
 ---
 
-**다음 작업 시작 시점**: Phase A 완료, Phase B 잔여 작업 진행 예정
+**다음 작업 시작 시점**: AI 모듈 구현 완료, Phase B 잔여 작업 진행 예정
 **예상 정식 릴리스**: 2026-03-21 (v0.1.0)
