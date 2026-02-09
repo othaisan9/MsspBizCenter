@@ -368,7 +368,7 @@ export const usersApi = {
     return request<{ items: UserResponse[]; total: number; page: number; limit: number; totalPages: number }>(`/users${query}`);
   },
   get: (id: string) => request<UserResponse>(`/users/${id}`),
-  create: (data: { email: string; name: string; password: string; role?: string }) =>
+  create: (data: { email: string; name: string; password: string; role?: string; affiliation?: string; affiliationName?: string }) =>
     request<UserResponse>('/users', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
     request<UserResponse>(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
@@ -406,6 +406,49 @@ export const aiApi = {
 
   extractWeeklyTasks: (data: { reportText: string; year: number; weekNumber: number }) =>
     request<{ tasks: Array<{ title: string; description: string; priority: string; tags: string[] }> }>('/ai/extract-weekly-tasks', { method: 'POST', body: JSON.stringify(data) }),
+};
+
+// ─── Backup ───────────────────────────────────────────────
+
+export const backupApi = {
+  exportJson: (modules: string[]) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const query = modules.length ? `?modules=${modules.join(',')}` : '';
+    return fetch(`${API_BASE}${API_PREFIX}/backup/export${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+  exportCsv: (modules: string[]) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const query = modules.length ? `?modules=${modules.join(',')}` : '';
+    return fetch(`${API_BASE}${API_PREFIX}/backup/export/csv${query}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+  importPreview: async (file: File) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}${API_PREFIX}/backup/import/preview`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) throw new Error('미리보기 실패');
+    return res.json();
+  },
+  importData: async (file: File) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_BASE}${API_PREFIX}/backup/import`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) throw new Error('가져오기 실패');
+    return res.json();
+  },
 };
 
 export { ApiError };

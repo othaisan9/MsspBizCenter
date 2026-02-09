@@ -1,6 +1,6 @@
 import { IsEmail, IsString, IsEnum, IsOptional, MinLength, MaxLength } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@msspbiz/shared';
+import { UserRole, UserAffiliation } from '@msspbiz/shared';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -38,4 +38,23 @@ export class CreateUserDto {
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
+
+  @ApiPropertyOptional({
+    description: '소속 유형',
+    enum: UserAffiliation,
+    default: UserAffiliation.INTERNAL,
+  })
+  @IsOptional()
+  @IsEnum(UserAffiliation)
+  affiliation?: UserAffiliation;
+
+  @ApiPropertyOptional({
+    description: '소속명 (벤더사/파트너사/고객사 이름)',
+    example: 'RSA Security',
+    maxLength: 200,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  affiliationName?: string;
 }

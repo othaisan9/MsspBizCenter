@@ -327,6 +327,7 @@ export default function ContractsPage() {
               options={[
                 { value: '', label: '전체 상태' },
                 { value: 'draft', label: '초안' },
+                { value: 'poc_demo', label: 'PoC/Demo' },
                 { value: 'active', label: '활성' },
                 { value: 'expired', label: '만료' },
                 { value: 'terminated', label: '해지' },
@@ -362,7 +363,7 @@ export default function ContractsPage() {
                         유형
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        상대방
+                        고객사
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         계약 기간

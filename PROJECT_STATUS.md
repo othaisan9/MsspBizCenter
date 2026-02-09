@@ -54,7 +54,9 @@ MsspBizCenter/
 │   │           ├── audit/        # 감사 로그
 │   │           ├── stats/        # 대시보드 통계 API (5개 엔드포인트)
 │   │           ├── files/        # 파일 업로드 (Multer, 10MB)
-│   │           └── ai/           # AI 어시스턴트 (4 LLM 프로바이더, SSE 스트리밍)
+│   │           ├── ai/           # AI 어시스턴트 (4 LLM 프로바이더, SSE 스트리밍)
+│   │           ├── tags/         # 태그 CRUD
+│   │           └── backup/       # 데이터 백업/복원 (JSON/CSV 내보내기, 가져오기)
 │   └── frontend/         # Next.js 15 앱 (포트 3001)
 │       └── src/
 │           ├── app/
@@ -63,19 +65,20 @@ MsspBizCenter/
 │           │       ├── tasks/    # 업무 목록/생성/상세 + 칸반
 │           │       ├── meetings/ # 회의록 목록/생성/상세
 │           │       ├── contracts/# 계약 목록/생성/상세
-│           │       └── settings/ # 설정 (마스터데이터/재무관리/사용자관리/파트너사)
+│           │       └── settings/ # 설정 (마스터데이터/재무/사용자/파트너사/AI/데이터관리)
 │           ├── components/
 │           │   ├── ui/           # Button, Input, Select, Badge, Modal, Card, FileUpload, FileList, Breadcrumb, MarkdownEditor, MarkdownViewer
 │           │   ├── layout/       # Sidebar (알림 뱃지), Header
 │           │   ├── charts/       # WeeklyTask, TaskStatus, TaskPriority, MonthlyContract
 │           │   ├── tasks/        # KanbanBoard, KanbanColumn, KanbanCard
-│           │   └── settings/     # AiTab, MasterDataTab, FinanceTab, UsersTab, PartnersTab
+│           │   └── settings/     # AiTab, MasterDataTab, FinanceTab, UsersTab, PartnersTab, DataManagementTab
 │           └── lib/              # API Client, Auth Context, Utils
 ├── packages/
 │   └── shared/           # 공유 타입/Enum/상수 (PaymentCycle, CommissionType 등)
 ├── mockup/               # HTML 프로토타입 (9개 파일)
 ├── infra/
-│   └── docker/           # Docker Compose 개발 환경 (핫리로드)
+│   ├── docker/           # Docker Compose 개발 환경 (핫리로드)
+│   └── scripts/          # DB 백업/복원 스크립트 (backup-db.sh, restore-db.sh)
 ├── docs/                 # 프로젝트 문서
 ├── CLAUDE.md             # 개발 가이드 (Claude Code용)
 ├── VERSION               # 버전 관리 (단일 소스)
@@ -87,6 +90,76 @@ MsspBizCenter/
 ---
 
 ## 3. 최근 변경사항
+
+### v0.1.0-alpha.10 세션3 - 사용자 관리 개선 + 데이터 백업/복원 (2026-02-09)
+
+**담당**: PM 박서연 + 박안도(Backend) + 유아이(Frontend)
+
+#### 📋 주요 작업
+
+**1. 사용자 관리 개선 (박안도 + 유아이)**
+- "팀원 추가" → "사용자 추가"로 명칭 변경
+- `UserAffiliation` enum 추가 (INTERNAL, VENDOR, PARTNER, CLIENT) — shared 패키지
+- User 엔티티에 `affiliation`, `affiliationName` 컬럼 추가
+- CreateUserDto, UpdateUserDto에 소속 필드 추가
+- UsersTab: 소속 컬럼 표시 + 사용자 추가 시 소속 선택
+- `sales` 역할 추가 (ROLE_COLORS, ROLE_LABELS, ROLE_OPTIONS)
+- 사용자 수정 모달 신규: 이름/역할/소속/소속명 편집 (기존 "역할 변경" 대체)
+
+**2. 데이터 백업/복원 L1: DB 덤프 스크립트 (배포준)**
+- `infra/scripts/backup-db.sh` — Docker pg_dump, 자동 보존 기간 관리
+- `infra/scripts/restore-db.sh` — Docker psql 복원, 확인 프롬프트
+
+**3. 데이터 백업/복원 L2+L3: BackupModule (박안도)**
+- `backup.module.ts` + `backup.controller.ts` + `backup.service.ts` 신규
+- 4개 API 엔드포인트:
+  - `GET /backup/export` — 모듈별 선택 JSON 내보내기 (OWNER, ADMIN)
+  - `GET /backup/export/csv` — 모듈별 선택 CSV 내보내기 (OWNER, ADMIN)
+  - `POST /backup/import/preview` — 가져오기 미리보기 (OWNER)
+  - `POST /backup/import` — JSON 데이터 가져오기 (OWNER)
+- 모듈 선택: tasks, meetings, contracts, products, users (5개)
+- 계약 금액: Export 시 복호화, Import 시 재암호화
+- CSV: UTF-8 BOM + RFC 4180 이스케이프 (Excel 한국어 호환)
+- Import: 트랜잭션, 신규 UUID, tenantId 격리, users 보안상 skip
+
+**4. 데이터 백업/복원 Frontend (유아이)**
+- `DataManagementTab.tsx` 신규 — 설정 > 데이터 관리 탭
+  - 모듈 체크박스 선택, JSON/CSV 내보내기 버튼
+  - 파일 업로드 → 자동 미리보기 → 확인 후 가져오기
+  - 권한 분기: OWNER+ADMIN 내보내기, OWNER만 가져오기
+- `api.ts`: `backupApi` 객체 추가 (exportJson, exportCsv, importPreview, importData)
+- `settings/page.tsx`: 데이터 관리 탭 추가
+
+#### 📁 수정/생성된 파일
+
+**Infra** (2파일):
+- `infra/scripts/backup-db.sh` — 신규 (DB 백업 스크립트)
+- `infra/scripts/restore-db.sh` — 신규 (DB 복원 스크립트)
+
+**Backend** (5파일):
+- `apps/backend/src/modules/backup/backup.module.ts` — 신규
+- `apps/backend/src/modules/backup/backup.controller.ts` — 신규
+- `apps/backend/src/modules/backup/backup.service.ts` — 신규
+- `apps/backend/src/app.module.ts` — BackupModule 등록
+- `apps/backend/src/modules/users/dto/` — affiliation 필드 추가
+
+**Frontend** (5파일):
+- `apps/frontend/src/components/settings/DataManagementTab.tsx` — 신규
+- `apps/frontend/src/components/settings/UsersTab.tsx` — 수정 모달 + 소속
+- `apps/frontend/src/components/settings/types.ts` — AFFILIATION_*, sales 역할
+- `apps/frontend/src/app/(dashboard)/settings/page.tsx` — 데이터 관리 탭 추가
+- `apps/frontend/src/lib/api.ts` — backupApi 추가 + 소속 타입
+
+**Shared** (2파일):
+- `packages/shared/src/enums/index.ts` — UserAffiliation enum
+- `packages/shared/src/types/api-responses.ts` — affiliation 필드
+
+#### 🎯 성과 지표
+- Backend: **12개 모듈** (auth, tasks, meetings, contracts, products, users, audit, common, stats, files, ai, **backup**)
+- 설정 페이지: **6탭** (마스터데이터, 재무, 사용자, 파트너사, AI, **데이터 관리**)
+- 빌드: 3/3 패키지 성공 + Docker 재빌드 완료
+
+---
 
 ### v0.1.0-alpha.10 세션2 - AI 업무 추출 + 채팅 개선 + 담당자 편집 (2026-02-09)
 
@@ -558,16 +631,17 @@ MsspBizCenter/
 
 ### 마지막 작업
 - **수행한 작업**:
-  - 주간보고서 AI → 업무 생성 기능 풀스택 구현 (방안 C)
-  - AI 어시스턴트 채팅 프롬프트 개선 (5개 데이터 소스 병렬 조회)
-  - 업무 수정 모달 담당자 변경 기능 추가
-  - 개발팀 리뷰 진행 (박안도/유아이/나검수 - 총 8건 이슈 식별)
+  - 사용자 관리 개선: 소속(affiliation) 필드 + 수정 모달 + sales 역할
+  - 데이터 백업/복원 L1+L2+L3 풀스택 구현
+  - DB 덤프/복원 쉘 스크립트 (backup-db.sh, restore-db.sh)
+  - BackupModule 4 API (export JSON/CSV, import preview/execute)
+  - DataManagementTab 설정 UI (모듈 선택, 내보내기/가져오기)
   - Docker 이미지 재빌드 + 런타임 검증 완료
-- **수정한 파일**: Backend 6파일, Frontend 5파일, QA 2파일
-- **커밋 여부**: ❌ (미커밋 - 이번 세션 변경사항 전체)
+- **수정한 파일**: Infra 2파일, Backend 5파일, Frontend 5파일, Shared 2파일
+- **커밋 여부**: ❌ (미커밋 - 세션2 + 세션3 변경사항 전체)
 
 ### 진행 중 작업 (미완료)
-- 개발팀 리뷰 결과 반영 대기 (캡틴 결정 필요)
+- 없음 (백업/복원 기능 구현 + 검증 완료)
 
 ### 다음 세션 TODO (PM 종합 우선순위)
 
@@ -600,9 +674,9 @@ MsspBizCenter/
 
 | 역할 | 이름 | 담당 영역 | 현재 작업 |
 |------|------|-----------|----------|
-| **PM** | 박서연 | 요구사항, 일정 관리 | 리뷰 결과 정리 → 캡틴 결정 대기 |
-| **Backend** | 박안도 | API, DB, 서버 로직 | AI 업무 추출 + 채팅 개선 완료, Bulk API 대기 |
-| **Frontend** | 유아이 | UI/UX, 컴포넌트 | 업무 추출 UI + 담당자 편집 완료, 인라인 편집 대기 |
+| **PM** | 박서연 | 요구사항, 일정 관리 | 백업/복원 기능 완료 → 커밋 대기 |
+| **Backend** | 박안도 | API, DB, 서버 로직 | BackupModule 4 API 완료, Bulk API 대기 |
+| **Frontend** | 유아이 | UI/UX, 컴포넌트 | DataManagementTab + 사용자 수정 완료 |
 | **Security** | Chloe O'Brian | 보안, 암호화 | XSS sanitizeHtml 완료 ✅ |
 | **DevOps** | 배포준 | CI/CD, 인프라 | 프로덕션 Docker 대기 |
 | **QA** | 나검수 | 테스트, 품질 보증 | AI 업무 추출 QA 완료 (Critical 2건 + High 3건 발견) |

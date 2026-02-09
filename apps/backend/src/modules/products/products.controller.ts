@@ -35,7 +35,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '제품 목록 조회 (모든 사용자)' })
   @ApiResponse({ status: 200, description: '제품 목록 조회 성공' })
   findAll(@CurrentUser('tenantId') tenantId: string) {
@@ -56,7 +56,7 @@ export class ProductsController {
   }
 
   @Get('derived-product-types')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '사용 중인 파생제품 유형 목록 조회' })
   @ApiResponse({ status: 200, description: '파생제품 유형 목록 반환' })
   getDerivedProductTypes(@CurrentUser('tenantId') tenantId: string) {
@@ -64,7 +64,7 @@ export class ProductsController {
   }
 
   @Get(':id')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '제품 상세 조회 (모든 사용자)' })
   @ApiParam({ name: 'id', description: '제품 ID' })
   @ApiResponse({ status: 200, description: '제품 조회 성공' })

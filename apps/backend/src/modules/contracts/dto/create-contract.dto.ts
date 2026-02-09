@@ -9,12 +9,11 @@ import {
   IsInt,
   IsUUID,
   MaxLength,
-  IsObject,
   IsArray,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { ContractType, ContractStatus } from '@msspbiz/shared';
+import { ContractType, ContractStatus, ContractSourceType } from '@msspbiz/shared';
 
 class ContractProductItemDto {
   @ApiProperty({ description: '제품 ID' })
@@ -37,7 +36,13 @@ class ContractProductItemDto {
   notes?: string;
 }
 
-class PartyBContactDto {
+class PartyBContactItemDto {
+  @ApiPropertyOptional({ description: '플랫폼/서비스명' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  platform?: string;
+
   @ApiPropertyOptional({ description: '담당자 이름' })
   @IsOptional()
   @IsString()
@@ -49,12 +54,6 @@ class PartyBContactDto {
   @IsString()
   @MaxLength(255)
   email?: string;
-
-  @ApiPropertyOptional({ description: '담당자 전화번호' })
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  phone?: string;
 }
 
 export class CreateContractDto {
@@ -77,25 +76,40 @@ export class CreateContractDto {
   @IsEnum(ContractType)
   contractType: ContractType;
 
-  @ApiProperty({ description: '계약 당사자 A (우리 측)', example: '(주)오타이산' })
+  @ApiPropertyOptional({
+    description: '거래 유형',
+    enum: ContractSourceType,
+    default: ContractSourceType.DIRECT,
+  })
+  @IsOptional()
+  @IsEnum(ContractSourceType)
+  sourceType?: ContractSourceType;
+
+  @ApiPropertyOptional({ description: '원 벤더명 (리셀링/벤더 직계약 시)', example: 'RSA Security' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  originalVendor?: string;
+
+  @ApiProperty({ description: '계약 당사자 A (공급사)', example: '(주)오타이산' })
   @IsString()
   @MaxLength(255)
   partyA: string;
 
-  @ApiProperty({ description: '계약 당사자 B (상대방)', example: 'ABC Corporation' })
+  @ApiProperty({ description: '계약 당사자 B (고객사)', example: 'ABC Corporation' })
   @IsString()
   @MaxLength(255)
   partyB: string;
 
   @ApiPropertyOptional({
-    description: '상대방 연락처 정보',
-    type: PartyBContactDto,
+    description: '고객사 연락처 정보 배열',
+    type: [PartyBContactItemDto],
   })
   @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => PartyBContactDto)
-  partyBContact?: PartyBContactDto;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PartyBContactItemDto)
+  partyBContact?: PartyBContactItemDto[];
 
   @ApiProperty({ description: '계약 시작일', example: '2026-01-01' })
   @IsDateString()

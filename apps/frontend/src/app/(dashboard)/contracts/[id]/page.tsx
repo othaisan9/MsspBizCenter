@@ -383,23 +383,44 @@ export default function ContractDetailPage() {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">계약 정보</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <p className="text-xs text-gray-500 mb-1">계약 주체 (갑)</p>
-                <p className="text-sm text-gray-900">{contract.partyA}</p>
+                <p className="text-xs text-gray-500 mb-1">공급사</p>
+                <p className="text-sm text-gray-900">
+                  {contract.partyA}
+                  {contract.sourceType && contract.sourceType !== 'direct' && (
+                    <span className={cn(
+                      "ml-2 px-2 py-0.5 rounded text-[10px] font-medium",
+                      contract.sourceType === 'reselling'
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-violet-100 text-violet-700"
+                    )}>
+                      {contract.sourceType === 'reselling' ? '리셀링' : '벤더 직계약'}
+                    </span>
+                  )}
+                </p>
+                {contract.originalVendor && (
+                  <p className="text-xs text-gray-600 mt-1">원 벤더: {contract.originalVendor}</p>
+                )}
               </div>
               <div>
-                <p className="text-xs text-gray-500 mb-1">계약 상대방 (을)</p>
+                <p className="text-xs text-gray-500 mb-1">고객사</p>
                 <p className="text-sm text-gray-900">{contract.partyB}</p>
-                {contract.partyBContact && (
-                  <div className="mt-2 space-y-1">
-                    {contract.partyBContact.name && (
-                      <p className="text-xs text-gray-600">담당자: {contract.partyBContact.name}</p>
-                    )}
-                    {contract.partyBContact.email && (
-                      <p className="text-xs text-gray-600">이메일: {contract.partyBContact.email}</p>
-                    )}
-                    {contract.partyBContact.phone && (
-                      <p className="text-xs text-gray-600">전화: {contract.partyBContact.phone}</p>
-                    )}
+                {contract.partyBContact && Array.isArray(contract.partyBContact) && contract.partyBContact.length > 0 && (
+                  <div className="mt-2 space-y-2">
+                    {contract.partyBContact.map((contact: any, index: number) => (
+                      <div key={index} className="text-xs bg-gray-50 border border-gray-300 rounded p-2">
+                        {contact.platform && (
+                          <span className="inline-block px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-[10px] font-medium mr-2">
+                            {contact.platform}
+                          </span>
+                        )}
+                        {contact.name && (
+                          <span className="text-gray-900 font-medium">{contact.name}</span>
+                        )}
+                        {contact.email && (
+                          <span className="text-gray-600 ml-1">({contact.email})</span>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -598,7 +619,7 @@ export default function ContractDetailPage() {
             </div>
           )}
 
-          {(contract.internalManager || contract.partyBContact) && (
+          {(contract.internalManager || (contract.partyBContact && Array.isArray(contract.partyBContact) && contract.partyBContact.length > 0)) && (
             <div className="border-t-2 border-gray-800 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">담당자 정보</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -609,18 +630,26 @@ export default function ContractDetailPage() {
                     <p className="text-xs text-gray-600 mt-1">{contract.internalManager.email}</p>
                   </div>
                 )}
-                {contract.partyBContact && (contract.partyBContact.name || contract.partyBContact.email || contract.partyBContact.phone) && (
+                {contract.partyBContact && Array.isArray(contract.partyBContact) && contract.partyBContact.length > 0 && (
                   <div>
-                    <p className="text-xs text-gray-500 mb-1">업체 담당자</p>
-                    {contract.partyBContact.name && (
-                      <p className="text-sm font-medium text-gray-900">{contract.partyBContact.name}</p>
-                    )}
-                    {contract.partyBContact.email && (
-                      <p className="text-xs text-gray-600 mt-1">이메일: {contract.partyBContact.email}</p>
-                    )}
-                    {contract.partyBContact.phone && (
-                      <p className="text-xs text-gray-600">전화: {contract.partyBContact.phone}</p>
-                    )}
+                    <p className="text-xs text-gray-500 mb-2">고객사 담당자</p>
+                    <div className="space-y-2">
+                      {contract.partyBContact.map((contact: any, index: number) => (
+                        <div key={index} className="bg-gray-50 border-2 border-gray-800 rounded-md p-3">
+                          {contact.platform && (
+                            <span className="inline-block px-2 py-0.5 bg-violet-100 text-violet-700 rounded text-[10px] font-medium mb-1">
+                              {contact.platform}
+                            </span>
+                          )}
+                          {contact.name && (
+                            <p className="text-sm font-medium text-gray-900">{contact.name}</p>
+                          )}
+                          {contact.email && (
+                            <p className="text-xs text-gray-600 mt-1">{contact.email}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -889,6 +918,7 @@ export default function ContractDetailPage() {
             onChange={(e) => setNewStatus(e.target.value)}
             options={[
               { value: 'draft', label: '초안' },
+              { value: 'poc_demo', label: 'PoC/Demo' },
               { value: 'active', label: '활성' },
               { value: 'expired', label: '만료' },
               { value: 'terminated', label: '해지' },

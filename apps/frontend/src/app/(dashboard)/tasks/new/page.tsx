@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 import { getWeekNumber } from '@/lib/utils';
+import { useAuth } from '@/lib/auth-context';
 import { AiButton, AiStreamPanel } from '@/components/ai';
 import { useAiGenerate } from '@/hooks/useAiGenerate';
 
@@ -21,6 +22,7 @@ type User = UserResponse;
 
 export default function NewTaskPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [users, setUsers] = useState<User[]>([]);
@@ -43,6 +45,13 @@ export default function NewTaskPage() {
     assigneeId: '',
   });
 
+  // 로그인 사용자를 기본 담당자로 설정
+  useEffect(() => {
+    if (user?.id && !formData.assigneeId) {
+      setFormData((prev) => ({ ...prev, assigneeId: user.id }));
+    }
+  }, [user?.id]);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { result: aiResult, loading: aiLoading, error: aiError, generate: aiGenerate, reset: aiReset } = useAiGenerate();
@@ -56,7 +65,7 @@ export default function NewTaskPage() {
   ];
 
   const priorityOptions = [
-    { value: 'critical', label: '긴급' },
+    { value: 'critical', label: '최상' },
     { value: 'high', label: '높음' },
     { value: 'medium', label: '보통' },
     { value: 'low', label: '낮음' },
@@ -333,7 +342,7 @@ export default function NewTaskPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <Input
                 type="date"
-                label="마감일"
+                label="완료 예정일"
                 value={formData.dueDate}
                 onChange={(e) => handleChange('dueDate', e.target.value)}
                 error={errors.dueDate}
@@ -382,7 +391,7 @@ export default function NewTaskPage() {
                 ))}
               </div>
               <Input
-                placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 개발, 긴급)"
+                placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 개발, 보안)"
                 value={formData.tags}
                 onChange={(e) => handleChange('tags', e.target.value)}
               />

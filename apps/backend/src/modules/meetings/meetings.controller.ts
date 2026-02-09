@@ -52,6 +52,7 @@ export class MeetingsController {
   }
 
   @Get()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.SALES)
   @ApiOperation({ summary: '회의록 목록 조회' })
   @ApiResponse({ status: 200, description: '회의록 목록을 반환합니다.' })
   @ApiResponse({ status: 401, description: '인증이 필요합니다.' })
@@ -63,6 +64,7 @@ export class MeetingsController {
   }
 
   @Get(':id')
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.SALES)
   @ApiOperation({ summary: '회의록 상세 조회' })
   @ApiResponse({ status: 200, description: '회의록 정보를 반환합니다.' })
   @ApiResponse({ status: 401, description: '인증이 필요합니다.' })

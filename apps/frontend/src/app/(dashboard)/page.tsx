@@ -91,58 +91,61 @@ export default function DashboardPage() {
       </div>
 
       {/* Expiring contracts alert banners */}
-      {expiringInfo.within7Days > 0 && (
-        <Link href="/contracts?status=active&expiringWithinDays=7">
-          <div className="bg-red-50 border-2 border-red-700 rounded-md p-4 hover:bg-red-100 transition-all duration-150 cursor-pointer shadow-brutal-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 text-red-600 rounded-md flex items-center justify-center flex-shrink-0 border-2 border-red-700">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+      {(expiringInfo.within7Days > 0 || expiringInfo.within30Days > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {expiringInfo.within7Days > 0 && (
+            <Link href="/contracts?status=active&expiringWithinDays=7">
+              <div className="bg-red-50 border-2 border-red-700 rounded-md p-4 hover:bg-red-100 transition-all duration-150 cursor-pointer shadow-brutal-sm h-full">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-red-100 text-red-600 rounded-md flex items-center justify-center flex-shrink-0 border-2 border-red-700">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-red-900">
+                      {expiringInfo.within7Days}건의 계약이 7일 이내 만료
+                    </p>
+                    <p className="text-xs text-red-600 mt-0.5">
+                      확인이 필요합니다
+                    </p>
+                  </div>
+                  <div className="text-red-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-red-900">
-                  {expiringInfo.within7Days}건의 계약이 7일 이내 만료됩니다
-                </p>
-                <p className="text-xs text-red-600 mt-0.5">
-                  긴급 조치가 필요합니다
-                </p>
+            </Link>
+          )}
+          {expiringInfo.within30Days > 0 && (
+            <Link href="/contracts?status=active&expiringWithinDays=30">
+              <div className="bg-yellow-50 border-2 border-yellow-700 rounded-md p-4 hover:bg-yellow-100 transition-all duration-150 cursor-pointer shadow-brutal-sm h-full">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-md flex items-center justify-center flex-shrink-0 border-2 border-yellow-700">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-900">
+                      만료 임박 <span className="font-bold">{expiringInfo.within30Days}건</span>
+                    </p>
+                    <p className="text-xs text-yellow-600 mt-0.5">
+                      30일 이내 만료 예정
+                    </p>
+                  </div>
+                  <div className="text-yellow-600">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
-              <div className="text-red-600">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </Link>
-      )}
-
-      {expiringInfo.within7Days === 0 && expiringInfo.within30Days > 0 && (
-        <Link href="/contracts?status=active&expiringWithinDays=30">
-          <div className="bg-yellow-50 border-2 border-yellow-700 rounded-md p-4 hover:bg-yellow-100 transition-all duration-150 cursor-pointer shadow-brutal-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-yellow-100 text-yellow-600 rounded-md flex items-center justify-center flex-shrink-0 border-2 border-yellow-700">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-yellow-900">
-                  {expiringInfo.within30Days}건의 계약이 30일 이내 만료됩니다
-                </p>
-                <p className="text-xs text-yellow-600 mt-0.5">
-                  갱신 준비가 필요합니다
-                </p>
-              </div>
-              <div className="text-yellow-600">
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </Link>
+            </Link>
+          )}
+        </div>
       )}
 
       {/* Stats cards */}
@@ -209,17 +212,16 @@ export default function DashboardPage() {
         <Link href="/contracts">
           <div className="bg-white rounded-md border-2 border-gray-800 p-6 hover:shadow-brutal-hover hover:translate-x-[1px] hover:translate-y-[1px] transition-all duration-150 cursor-pointer shadow-brutal-sm">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-md flex items-center justify-center border-2 border-red-700">
+              <div className="w-12 h-12 bg-gray-100 text-gray-600 rounded-md flex items-center justify-center border-2 border-gray-700">
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {loading ? '-' : stats.expiringContracts}
+                  {loading ? '-' : stats.totalContracts}
                 </p>
-                <p className="text-sm text-gray-500">만료 임박</p>
-                <p className="text-xs text-red-500 mt-1">30일 이내</p>
+                <p className="text-sm text-gray-500">전체 계약</p>
               </div>
             </div>
           </div>

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useAiStream } from '@/hooks/useAiStream';
+import { AiMarkdown } from './AiMarkdown';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -110,7 +111,11 @@ export function AiChatDrawer() {
                       : 'bg-gray-100 text-gray-900 border-2 border-gray-800'
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                  {msg.role === 'assistant' ? (
+                    <AiMarkdown content={msg.content} compact />
+                  ) : (
+                    <div className="whitespace-pre-wrap">{msg.content}</div>
+                  )}
                 </div>
               </div>
             ))}
@@ -119,7 +124,7 @@ export function AiChatDrawer() {
             {loading && streamContent && (
               <div className="flex justify-start">
                 <div className="max-w-[80%] px-3 py-2 rounded-md text-sm bg-gray-100 text-gray-900 border-2 border-gray-800">
-                  <div className="whitespace-pre-wrap">{streamContent}</div>
+                  <AiMarkdown content={streamContent} compact />
                   <span className="inline-block w-2 h-3 bg-violet-600 animate-pulse ml-0.5" />
                 </div>
               </div>

@@ -40,6 +40,7 @@ export function getStatusColor(status: string): string {
     expired: 'bg-red-100 text-red-800',
     terminated: 'bg-red-100 text-red-800',
     renewed: 'bg-blue-100 text-blue-800',
+    poc_demo: 'bg-purple-100 text-purple-800',
   };
   return colors[status] || 'bg-gray-100 text-gray-800';
 }
@@ -67,13 +68,14 @@ export function getStatusLabel(status: string): string {
     expired: '만료',
     terminated: '해지',
     renewed: '갱신됨',
+    poc_demo: 'PoC/Demo',
   };
   return labels[status] || status;
 }
 
 export function getPriorityLabel(priority: string): string {
   const labels: Record<string, string> = {
-    critical: '긴급',
+    critical: '최상',
     high: '높음',
     medium: '보통',
     low: '낮음',

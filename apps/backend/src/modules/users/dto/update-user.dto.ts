@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsString, IsBoolean, MinLength, MaxLength } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { UserRole } from '@msspbiz/shared';
+import { UserRole, UserAffiliation } from '@msspbiz/shared';
 
 export class UpdateUserDto {
   @ApiPropertyOptional({
@@ -31,4 +31,21 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @ApiPropertyOptional({
+    description: '소속 유형',
+    enum: UserAffiliation,
+  })
+  @IsOptional()
+  @IsEnum(UserAffiliation)
+  affiliation?: UserAffiliation;
+
+  @ApiPropertyOptional({
+    description: '소속명',
+    maxLength: 200,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(200)
+  affiliationName?: string;
 }

@@ -50,6 +50,7 @@ export class TasksController {
   }
 
   @Get()
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.SALES)
   @ApiOperation({ summary: '작업 목록 조회 (페이지네이션 + 필터링)' })
   @ApiResponse({ status: 200, description: '작업 목록을 성공적으로 조회했습니다.' })
   @ApiResponse({ status: 401, description: '인증되지 않았습니다.' })
@@ -61,6 +62,7 @@ export class TasksController {
   }
 
   @Get('weekly')
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.SALES)
   @ApiOperation({ summary: '주차별 작업 조회' })
   @ApiResponse({ status: 200, description: '주차별 작업을 성공적으로 조회했습니다.' })
   @ApiResponse({ status: 401, description: '인증되지 않았습니다.' })
@@ -73,6 +75,7 @@ export class TasksController {
   }
 
   @Get(':id')
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.SALES)
   @ApiOperation({ summary: '작업 상세 조회' })
   @ApiParam({ name: 'id', description: '작업 ID (UUID)', type: 'string' })
   @ApiResponse({ status: 200, description: '작업을 성공적으로 조회했습니다.' })

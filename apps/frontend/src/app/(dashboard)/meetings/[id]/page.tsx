@@ -322,7 +322,7 @@ export default function MeetingDetailPage() {
                         <p>담당자: {item.assignee.name || item.assignee.email}</p>
                       )}
                       {item.dueDate && (
-                        <p>마감일: {formatDateTime(item.dueDate)}</p>
+                        <p>완료 예정일: {formatDateTime(item.dueDate)}</p>
                       )}
                     </div>
                   </div>
@@ -390,7 +390,7 @@ export default function MeetingDetailPage() {
             }
           />
           <Input
-            label="마감일 (선택)"
+            label="완료 예정일 (선택)"
             type="date"
             value={actionItemForm.dueDate}
             onChange={(e) =>

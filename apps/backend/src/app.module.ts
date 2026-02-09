@@ -16,6 +16,7 @@ import { StatsModule } from './modules/stats/stats.module';
 import { FilesModule } from './modules/files/files.module';
 import { AiModule } from './modules/ai/ai.module';
 import { TagsModule } from './modules/tags/tags.module';
+import { BackupModule } from './modules/backup/backup.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { TagsModule } from './modules/tags/tags.module';
     FilesModule,
     AiModule,
     TagsModule,
+    BackupModule,
   ],
   controllers: [AppController],
   providers: [

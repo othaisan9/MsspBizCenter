@@ -7,7 +7,7 @@ import {
   Index,
 } from 'typeorm';
 import { TenantBaseEntity } from '../../../common/entities/base.entity';
-import { ContractType, ContractStatus } from '@msspbiz/shared';
+import { ContractType, ContractStatus, ContractSourceType } from '@msspbiz/shared';
 import { User } from '../../auth/entities/user.entity';
 import { ContractProduct } from '../../products/entities/contract-product.entity';
 
@@ -29,6 +29,17 @@ export class Contract extends TenantBaseEntity {
   })
   contractType: ContractType;
 
+  @Column({
+    type: 'enum',
+    enum: ContractSourceType,
+    default: ContractSourceType.DIRECT,
+    name: 'source_type',
+  })
+  sourceType: ContractSourceType;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, name: 'original_vendor' })
+  originalVendor: string | null;
+
   @Column({ type: 'varchar', length: 255, name: 'party_a' })
   partyA: string;
 
@@ -36,11 +47,11 @@ export class Contract extends TenantBaseEntity {
   partyB: string;
 
   @Column({ type: 'jsonb', nullable: true, name: 'party_b_contact' })
-  partyBContact: {
+  partyBContact: Array<{
+    platform?: string;
     name?: string;
     email?: string;
-    phone?: string;
-  } | null;
+  }> | null;
 
   @Column({ type: 'date', name: 'start_date' })
   startDate: Date;

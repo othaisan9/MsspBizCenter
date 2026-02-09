@@ -41,6 +41,7 @@ export const ROLE_COLORS: Record<string, string> = {
   editor: 'bg-blue-100 text-blue-800',
   analyst: 'bg-green-100 text-green-800',
   viewer: 'bg-gray-100 text-gray-800',
+  sales: 'bg-orange-100 text-orange-800',
 };
 
 export const ROLE_LABELS: Record<string, string> = {
@@ -49,6 +50,7 @@ export const ROLE_LABELS: Record<string, string> = {
   editor: '편집자',
   analyst: '분석가',
   viewer: '뷰어',
+  sales: '영업',
 };
 
 export const ROLE_OPTIONS = [
@@ -57,6 +59,21 @@ export const ROLE_OPTIONS = [
   { value: 'editor', label: '편집자' },
   { value: 'analyst', label: '분석가' },
   { value: 'viewer', label: '뷰어' },
+  { value: 'sales', label: '영업' },
+];
+
+export const AFFILIATION_LABELS: Record<string, string> = {
+  internal: '자사',
+  vendor: '벤더사',
+  partner: '파트너사',
+  client: '고객사',
+};
+
+export const AFFILIATION_OPTIONS = [
+  { value: 'internal', label: '자사' },
+  { value: 'vendor', label: '벤더사' },
+  { value: 'partner', label: '파트너사' },
+  { value: 'client', label: '고객사' },
 ];
 
 export const COMMISSION_TYPE_OPTIONS = [

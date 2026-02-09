@@ -93,7 +93,7 @@ export default function TasksPage() {
 
   const priorityOptions = [
     { value: '', label: '전체 우선순위' },
-    { value: 'critical', label: '긴급' },
+    { value: 'critical', label: '최상' },
     { value: 'high', label: '높음' },
     { value: 'medium', label: '보통' },
     { value: 'low', label: '낮음' },

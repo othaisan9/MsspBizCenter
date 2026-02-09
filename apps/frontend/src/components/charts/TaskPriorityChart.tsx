@@ -19,8 +19,8 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-  critical: '긴급',
-  urgent: '긴급',
+  critical: '최상',
+  urgent: '최상',
   high: '높음',
   medium: '보통',
   low: '낮음',

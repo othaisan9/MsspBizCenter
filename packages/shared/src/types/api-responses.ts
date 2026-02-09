@@ -14,6 +14,8 @@ import {
   UserRole,
   AuditAction,
   ProductStatus,
+  ContractSourceType,
+  UserAffiliation,
 } from '../enums';
 
 // ─── Common ───────────────────────────────────────────────
@@ -32,6 +34,8 @@ export interface UserResponse {
   email: string;
   name: string;
   role: UserRole;
+  affiliation: UserAffiliation;
+  affiliationName: string | null;
   isActive: boolean;
   lastLoginAt: string | null;
   tenantId: string;
@@ -144,9 +148,11 @@ export interface ContractResponse {
   contractNumber: string | null;
   contractType: ContractType;
   status: ContractStatus;
+  sourceType: ContractSourceType;
+  originalVendor: string | null;
   partyA: string;
   partyB: string;
-  partyBContact?: { name?: string; email?: string; phone?: string } | null;
+  partyBContact?: Array<{ platform?: string; name?: string; email?: string }> | null;
   startDate: string;
   endDate: string | null;
   currency: string | null;

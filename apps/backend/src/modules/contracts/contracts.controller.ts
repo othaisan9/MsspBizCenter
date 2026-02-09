@@ -39,7 +39,7 @@ export class ContractsController {
   constructor(private readonly contractsService: ContractsService) {}
 
   @Post()
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 생성 (EDITOR 이상)' })
   @ApiResponse({ status: 201, description: '계약 생성 성공' })
   @ApiResponse({ status: 403, description: '권한 없음' })
@@ -55,7 +55,7 @@ export class ContractsController {
   }
 
   @Get()
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 목록 조회 (EDITOR 이상)' })
   @ApiResponse({ status: 200, description: '계약 목록 조회 성공' })
   findAll(
@@ -66,7 +66,7 @@ export class ContractsController {
   }
 
   @Get('dashboard')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 대시보드 (통계)' })
   @ApiResponse({ status: 200, description: '대시보드 조회 성공' })
   getDashboard(@CurrentUser() user: RequestUser) {
@@ -74,7 +74,7 @@ export class ContractsController {
   }
 
   @Get('expiring')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '만료 예정 계약 목록' })
   @ApiQuery({ name: 'days', description: '만료 예정 일수', example: 30 })
   @ApiResponse({ status: 200, description: '만료 예정 계약 조회 성공' })
@@ -86,7 +86,7 @@ export class ContractsController {
   }
 
   @Get(':id')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({
     summary: '계약 상세 조회 (EDITOR 이상, 금액은 ADMIN 이상만 복호화)',
     description: 'EDITOR는 금액 제외한 정보만 조회 가능',
@@ -100,8 +100,8 @@ export class ContractsController {
   ) {
     const contract = await this.contractsService.findOne(id, user.tenantId);
 
-    // EDITOR는 금액 정보 제외
-    if (user.role === UserRole.EDITOR) {
+    // EDITOR와 SALES는 금액 정보 제외
+    if (user.role === UserRole.EDITOR || user.role === UserRole.SALES) {
       const { amount, amountEncrypted, ...rest } = contract as any;
       return rest;
     }
@@ -110,7 +110,7 @@ export class ContractsController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 수정 (EDITOR 이상)' })
   @ApiParam({ name: 'id', description: '계약 ID' })
   @ApiResponse({ status: 200, description: '계약 수정 성공' })
@@ -144,7 +144,7 @@ export class ContractsController {
   }
 
   @Patch(':id/status')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 상태 변경 (EDITOR 이상)' })
   @ApiParam({ name: 'id', description: '계약 ID' })
   @ApiResponse({ status: 200, description: '상태 변경 성공' })
@@ -162,7 +162,7 @@ export class ContractsController {
   }
 
   @Post(':id/renew')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({
     summary: '계약 갱신 (EDITOR 이상)',
     description: '기존 계약을 RENEWED 상태로 변경하고 새 계약 생성',
@@ -178,7 +178,7 @@ export class ContractsController {
   }
 
   @Get(':id/history')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.SALES)
   @ApiOperation({ summary: '계약 변경 이력 조회 (EDITOR 이상)' })
   @ApiParam({ name: 'id', description: '계약 ID' })
   @ApiResponse({ status: 200, description: '변경 이력 조회 성공' })

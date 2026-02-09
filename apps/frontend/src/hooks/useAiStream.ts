@@ -72,6 +72,11 @@ export function useAiStream(): UseAiStreamReturn {
 
             try {
               const parsed = JSON.parse(data);
+              if (parsed.error) {
+                setError(parsed.error);
+                setLoading(false);
+                return;
+              }
               if (parsed.text) {
                 accumulatedContent += parsed.text;
                 setContent(accumulatedContent);

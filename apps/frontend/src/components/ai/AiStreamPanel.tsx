@@ -1,7 +1,8 @@
 'use client';
 
-import { cn, sanitizeHtml } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
+import { AiMarkdown } from './AiMarkdown';
 
 interface AiStreamPanelProps {
   content: string;
@@ -84,8 +85,8 @@ export function AiStreamPanel({
           생성 중...
         </div>
       ) : (
-        <div className="prose prose-sm max-w-none text-gray-900">
-          <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+        <div>
+          <AiMarkdown content={content} />
           {loading && (
             <span className="inline-block w-2 h-4 bg-violet-600 animate-pulse ml-1" />
           )}

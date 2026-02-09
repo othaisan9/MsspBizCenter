@@ -50,7 +50,7 @@ export class AiController {
   }
 
   @Post('generate-task-desc')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '업무 설명 생성 (AI)' })
   @ApiResponse({ status: 200, description: '업무 설명 생성 성공' })
   @ApiResponse({ status: 400, description: 'AI 기능 비활성화 또는 API 키 미설정' })
@@ -62,7 +62,7 @@ export class AiController {
   }
 
   @Post('generate-meeting-template')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '회의 템플릿 생성 (AI)' })
   @ApiResponse({ status: 200, description: '회의 템플릿 생성 성공' })
   async generateMeetingTemplate(
@@ -73,7 +73,7 @@ export class AiController {
   }
 
   @Post('summarize-meeting')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '회의록 요약 (AI)' })
   @ApiResponse({ status: 200, description: '회의록 요약 성공' })
   @ApiResponse({ status: 404, description: '회의록을 찾을 수 없음' })
@@ -86,7 +86,7 @@ export class AiController {
   }
 
   @Post('my-performance')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @Header('Content-Type', 'text/event-stream')
   @Header('Cache-Control', 'no-cache')
   @Header('Connection', 'keep-alive')
@@ -153,7 +153,7 @@ export class AiController {
   }
 
   @Post('extract-actions')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: 'Action Item 추출 (AI)' })
   @ApiResponse({ status: 200, description: 'Action Item 추출 성공' })
   @ApiResponse({ status: 404, description: '회의록을 찾을 수 없음' })
@@ -165,7 +165,7 @@ export class AiController {
   }
 
   @Post('chat')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @Header('Content-Type', 'text/event-stream')
   @Header('Cache-Control', 'no-cache')
   @Header('Connection', 'keep-alive')

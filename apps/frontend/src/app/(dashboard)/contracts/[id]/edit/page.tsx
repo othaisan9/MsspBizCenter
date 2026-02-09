@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { contractsApi, productsApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
@@ -13,11 +13,20 @@ import { Card } from '@/components/ui/Card';
 import { Breadcrumb } from '@/components/ui/Breadcrumb';
 import { MarkdownEditor } from '@/components/ui/MarkdownEditor';
 
-export default function NewContractPage() {
+function toDateString(value: string | Date | null | undefined): string {
+  if (!value) return '';
+  return String(value).split('T')[0];
+}
+
+export default function EditContractPage() {
   const router = useRouter();
+  const params = useParams();
+  const contractId = params.id as string;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [error, setError] = useState('');
+  const [contractTitle, setContractTitle] = useState('');
 
   const isFinanceUser = user && ['owner', 'admin'].includes(user.role);
 
@@ -36,10 +45,8 @@ export default function NewContractPage() {
     description: '',
     autoRenewal: false,
     renewalNoticeDays: '30',
-    // A-1. 결제 정보
     paymentCycle: 'annual',
     vatIncluded: true,
-    // A-2. 재무 정보
     purchasePrice: '',
     purchaseCommissionRate: '',
     sellingPrice: '',
@@ -47,13 +54,10 @@ export default function NewContractPage() {
     partnerName: '',
     commissionType: 'percentage',
     partnerCommission: '',
-    // A-3. 담당자 정보
     internalManagerId: '',
-    // A-4. 알림 설정
     notifyBefore30Days: true,
     notifyBefore7Days: true,
     notifyOnExpiry: false,
-    // A-5. 메모
     memo: '',
   });
 
@@ -75,19 +79,95 @@ export default function NewContractPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    productsApi.list().then(setProducts).catch(console.error);
-    // Fetch users for internal manager dropdown
-    fetch('/api/v1/users', {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-      },
-    })
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setUsers(Array.isArray(data) ? data : []))
-      .catch(console.error);
-  }, []);
+    const fetchData = async () => {
+      try {
+        setFetching(true);
 
-  // 재무 정보 자동 계산
+        const [productsData, contract] = await Promise.all([
+          productsApi.list(),
+          contractsApi.get(contractId),
+        ]);
+
+        setProducts(productsData || []);
+        setContractTitle(contract.title);
+
+        // Fetch users
+        const usersRes = await fetch('/api/v1/users', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+          },
+        });
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          setUsers(Array.isArray(usersData) ? usersData : []);
+        }
+
+        // Map contract data to form
+        setFormData({
+          title: contract.title || '',
+          contractNumber: contract.contractNumber || '',
+          contractType: contract.contractType || 'service',
+          sourceType: contract.sourceType || 'direct',
+          originalVendor: contract.originalVendor || '',
+          partyA: contract.partyA || '',
+          partyB: contract.partyB || '',
+          startDate: toDateString(contract.startDate),
+          endDate: toDateString(contract.endDate),
+          amount: contract.amount !== undefined && contract.amount !== null ? String(contract.amount) : '',
+          currency: contract.currency || 'KRW',
+          description: contract.description || '',
+          autoRenewal: contract.autoRenewal ?? false,
+          renewalNoticeDays: contract.renewalNoticeDays != null ? String(contract.renewalNoticeDays) : '30',
+          paymentCycle: contract.paymentCycle || 'annual',
+          vatIncluded: contract.vatIncluded ?? true,
+          purchasePrice: contract.purchasePrice !== undefined && contract.purchasePrice !== null ? String(contract.purchasePrice) : '',
+          purchaseCommissionRate: contract.purchaseCommissionRate != null ? String(contract.purchaseCommissionRate) : '',
+          sellingPrice: contract.sellingPrice !== undefined && contract.sellingPrice !== null ? String(contract.sellingPrice) : '',
+          hasPartner: contract.hasPartner ?? false,
+          partnerName: contract.partnerName || '',
+          commissionType: contract.commissionType || 'percentage',
+          partnerCommission: contract.partnerCommission != null ? String(contract.partnerCommission) : '',
+          internalManagerId: contract.internalManagerId || '',
+          notifyBefore30Days: contract.notifyBefore30Days ?? true,
+          notifyBefore7Days: contract.notifyBefore7Days ?? true,
+          notifyOnExpiry: contract.notifyOnExpiry ?? false,
+          memo: contract.memo || '',
+        });
+
+        // Map contract products
+        if (contract.contractProducts && contract.contractProducts.length > 0) {
+          setContractProducts(
+            contract.contractProducts.map((cp: any) => ({
+              productId: cp.product?.id || '',
+              productOptionId: cp.productOption?.id || '',
+              quantity: cp.quantity || 1,
+              notes: cp.notes || '',
+            }))
+          );
+        }
+
+        // Map partyB contacts
+        if (contract.partyBContact && Array.isArray(contract.partyBContact) && contract.partyBContact.length > 0) {
+          setPartyBContacts(
+            contract.partyBContact.map((c: any) => ({
+              platform: c.platform || '',
+              name: c.name || '',
+              email: c.email || '',
+            }))
+          );
+        }
+      } catch (err: any) {
+        console.error('Failed to fetch contract:', err);
+        setError(err.message || '계약 정보를 불러오는데 실패했습니다.');
+        toast.error('계약 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setFetching(false);
+      }
+    };
+
+    fetchData();
+  }, [contractId]);
+
   const financeCalculations = useMemo(() => {
     const purchasePrice = parseFloat(formData.purchasePrice) || 0;
     const purchaseCommissionRate = parseFloat(formData.purchaseCommissionRate) || 0;
@@ -137,11 +217,9 @@ export default function NewContractPage() {
   const updateContractProduct = (index: number, field: string, value: any) => {
     const updated = [...contractProducts];
     updated[index] = { ...updated[index], [field]: value };
-
     if (field === 'productId') {
       updated[index].productOptionId = '';
     }
-
     setContractProducts(updated);
   };
 
@@ -246,13 +324,11 @@ export default function NewContractPage() {
         payload.products = validProducts;
       }
 
-      // A-1. 결제 정보
       if (formData.paymentCycle) {
         payload.paymentCycle = formData.paymentCycle;
       }
       payload.vatIncluded = formData.vatIncluded;
 
-      // A-2. 재무 정보 (Admin/Owner만)
       if (isFinanceUser) {
         if (formData.purchasePrice && !isNaN(parseFloat(formData.purchasePrice))) {
           payload.purchasePrice = parseFloat(formData.purchasePrice);
@@ -277,7 +353,6 @@ export default function NewContractPage() {
         }
       }
 
-      // A-3. 담당자 정보
       if (formData.internalManagerId) {
         payload.internalManagerId = formData.internalManagerId;
       }
@@ -290,22 +365,20 @@ export default function NewContractPage() {
         }));
       }
 
-      // A-4. 알림 설정
       payload.notifyBefore30Days = formData.notifyBefore30Days;
       payload.notifyBefore7Days = formData.notifyBefore7Days;
       payload.notifyOnExpiry = formData.notifyOnExpiry;
 
-      // A-5. 메모
       if (formData.memo.trim()) {
         payload.memo = formData.memo.trim();
       }
 
-      await contractsApi.create(payload);
-      toast.success('계약이 등록되었습니다.');
-      router.push('/contracts');
+      await contractsApi.update(contractId, payload);
+      toast.success('계약이 수정되었습니다.');
+      router.push(`/contracts/${contractId}`);
     } catch (err: any) {
-      console.error('Contract creation error:', err);
-      const message = err.message || '계약 생성에 실패했습니다.';
+      console.error('Contract update error:', err);
+      const message = err.message || '계약 수정에 실패했습니다.';
       setError(message);
       toast.error(message);
     } finally {
@@ -313,12 +386,36 @@ export default function NewContractPage() {
     }
   };
 
+  if (fetching) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex justify-center items-center py-24">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !formData.title) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <Card className="bg-red-50 border-2 border-red-700">
+          <p className="text-sm text-red-800">{error}</p>
+          <Button variant="secondary" size="sm" onClick={() => router.back()} className="mt-4">
+            돌아가기
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
       <Breadcrumb
         items={[
           { label: '계약 관리', href: '/contracts' },
-          { label: '새 계약' },
+          { label: contractTitle, href: `/contracts/${contractId}` },
+          { label: '수정' },
         ]}
       />
       <div className="mb-6">
@@ -328,7 +425,7 @@ export default function NewContractPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900">새 계약 등록</h1>
+          <h1 className="text-3xl font-bold text-gray-900">계약 수정</h1>
         </div>
       </div>
 
@@ -814,31 +911,12 @@ export default function NewContractPage() {
             minHeight="120px"
           />
 
-          <div className="border-t-2 border-gray-800 pt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">첨부 파일</h3>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p className="text-sm font-medium text-blue-900">
-                    계약 저장 후 첨부파일을 추가할 수 있습니다.
-                  </p>
-                  <p className="text-xs text-blue-700 mt-1">
-                    계약을 먼저 등록한 후, 상세 페이지에서 파일을 업로드하세요.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <div className="flex justify-end space-x-3 pt-4 border-t">
             <Button type="button" variant="secondary" onClick={() => router.back()}>
               취소
             </Button>
             <Button type="submit" loading={loading}>
-              등록
+              저장
             </Button>
           </div>
         </form>

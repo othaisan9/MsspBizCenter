@@ -7,6 +7,7 @@ import { FinanceTab } from '@/components/settings/FinanceTab';
 import { UsersTab } from '@/components/settings/UsersTab';
 import { PartnersTab } from '@/components/settings/PartnersTab';
 import { AiTab } from '@/components/settings/AiTab';
+import { DataManagementTab } from '@/components/settings/DataManagementTab';
 import { User } from '@/components/settings/types';
 
 const TABS = [
@@ -15,6 +16,7 @@ const TABS = [
   { key: 'users', label: '사용자 관리' },
   { key: 'partners', label: '파트너사 관리' },
   { key: 'ai', label: 'AI 어시스턴트' },
+  { key: 'data-management', label: '데이터 관리' },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
@@ -69,6 +71,7 @@ export default function SettingsPage() {
       {activeTab === 'users' && <UsersTab currentUser={currentUser} />}
       {activeTab === 'partners' && <PartnersTab />}
       {activeTab === 'ai' && <AiTab currentUser={currentUser} />}
+      {activeTab === 'data-management' && <DataManagementTab currentUser={currentUser} />}
     </div>
   );
 }

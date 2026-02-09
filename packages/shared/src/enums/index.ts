@@ -54,6 +54,7 @@ export enum ContractStatus {
   EXPIRED = 'expired',
   TERMINATED = 'terminated',
   RENEWED = 'renewed',
+  POC_DEMO = 'poc_demo',
 }
 
 // User 관련
@@ -63,6 +64,7 @@ export enum UserRole {
   EDITOR = 'editor',
   ANALYST = 'analyst',
   VIEWER = 'viewer',
+  SALES = 'sales',
 }
 
 // Audit 관련
@@ -79,6 +81,21 @@ export enum AuditAction {
 export enum ProductStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
+}
+
+// 거래 유형
+export enum ContractSourceType {
+  DIRECT = 'direct',           // 자사 직접 판매
+  RESELLING = 'reselling',     // 리셀링 (벤더 제품 재판매)
+  VENDOR_DIRECT = 'vendor_direct', // 벤더 직계약 중개
+}
+
+// 사용자 소속
+export enum UserAffiliation {
+  INTERNAL = 'internal',       // 자사 (내부 직원)
+  VENDOR = 'vendor',           // 벤더사
+  PARTNER = 'partner',         // 파트너사
+  CLIENT = 'client',           // 고객사
 }
 
 // 결제 관련

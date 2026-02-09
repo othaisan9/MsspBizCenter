@@ -26,9 +26,11 @@ export class ProductsService {
   /**
    * 제품 목록 조회 (옵션 포함, displayOrder 순으로 정렬)
    */
-  async findAll(tenantId: string): Promise<Product[]> {
+  async findAll(tenantId: string, includeInactive = false): Promise<Product[]> {
     return this.productRepository.find({
-      where: { tenantId },
+      where: includeInactive
+        ? { tenantId }
+        : { tenantId, status: ProductStatus.ACTIVE },
       relations: ['options'],
       order: {
         displayOrder: 'ASC',

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
-import { User, ROLE_COLORS, ROLE_LABELS, ROLE_OPTIONS } from './types';
+import { User, ROLE_COLORS, ROLE_LABELS, ROLE_OPTIONS, AFFILIATION_LABELS, AFFILIATION_OPTIONS } from './types';
 
 interface UsersTabProps {
   currentUser: User | null;
@@ -19,10 +19,16 @@ export function UsersTab({ currentUser }: UsersTabProps) {
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(false);
 
-  // Role modal
-  const [roleModalOpen, setRoleModalOpen] = useState(false);
+  // Edit user modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [newRole, setNewRole] = useState('');
+  const [editUserSaving, setEditUserSaving] = useState(false);
+  const [editUserForm, setEditUserForm] = useState({
+    name: '',
+    role: '',
+    affiliation: 'internal',
+    affiliationName: '',
+  });
 
   // Add user modal
   const [addUserModalOpen, setAddUserModalOpen] = useState(false);
@@ -32,6 +38,8 @@ export function UsersTab({ currentUser }: UsersTabProps) {
     name: '',
     password: '',
     role: 'viewer',
+    affiliation: 'internal',
+    affiliationName: '',
   });
 
   // Delete confirmation
@@ -73,35 +81,53 @@ export function UsersTab({ currentUser }: UsersTabProps) {
     try {
       setAddUserSaving(true);
       await usersApi.create(addUserForm);
-      toast.success('팀원이 추가되었습니다');
+      toast.success('사용자가 추가되었습니다');
       setAddUserModalOpen(false);
-      setAddUserForm({ email: '', name: '', password: '', role: 'viewer' });
+      setAddUserForm({ email: '', name: '', password: '', role: 'viewer', affiliation: 'internal', affiliationName: '' });
       fetchUsers();
     } catch (err: any) {
-      const message = err.message || '팀원 추가에 실패했습니다';
+      const message = err.message || '사용자 추가에 실패했습니다';
       toast.error(message);
     } finally {
       setAddUserSaving(false);
     }
   };
 
-  const handleEditUserRole = (user: User) => {
+  const handleEditUser = (user: User) => {
     setEditingUser(user);
-    setNewRole(user.role);
-    setRoleModalOpen(true);
+    setEditUserForm({
+      name: user.name,
+      role: user.role,
+      affiliation: user.affiliation || 'internal',
+      affiliationName: user.affiliationName || '',
+    });
+    setEditModalOpen(true);
   };
 
-  const handleSaveUserRole = async () => {
+  const handleSaveEditUser = async () => {
     if (!editingUser) return;
+    if (!editUserForm.name.trim()) {
+      toast.error('이름을 입력하세요');
+      return;
+    }
 
     try {
-      await usersApi.update(editingUser.id, { role: newRole });
-      toast.success('역할이 변경되었습니다');
-      setRoleModalOpen(false);
+      setEditUserSaving(true);
+      const payload: Record<string, unknown> = {
+        name: editUserForm.name.trim(),
+        role: editUserForm.role,
+        affiliation: editUserForm.affiliation,
+        affiliationName: editUserForm.affiliation !== 'internal' ? editUserForm.affiliationName.trim() || null : null,
+      };
+      await usersApi.update(editingUser.id, payload);
+      toast.success('사용자 정보가 수정되었습니다');
+      setEditModalOpen(false);
       fetchUsers();
     } catch (error) {
-      console.error('Failed to update user role:', error);
-      toast.error('역할 변경에 실패했습니다');
+      console.error('Failed to update user:', error);
+      toast.error('사용자 수정에 실패했습니다');
+    } finally {
+      setEditUserSaving(false);
     }
   };
 
@@ -158,7 +184,7 @@ export function UsersTab({ currentUser }: UsersTabProps) {
             <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            팀원 추가
+            사용자 추가
           </Button>
         </div>
         <Card>
@@ -168,6 +194,7 @@ export function UsersTab({ currentUser }: UsersTabProps) {
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이메일</th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">소속</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">역할</th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">최근 로그인</th>
@@ -185,6 +212,12 @@ export function UsersTab({ currentUser }: UsersTabProps) {
                         {isSelf && <span className="ml-2 text-xs text-gray-500">(나)</span>}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-900">
+                        {AFFILIATION_LABELS[user.affiliation] || '자사'}
+                        {user.affiliationName && (
+                          <span className="ml-1 text-gray-500">({user.affiliationName})</span>
+                        )}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-center">
                         <Badge color={ROLE_COLORS[user.role] || 'bg-gray-100 text-gray-800'}>
                           {ROLE_LABELS[user.role] || user.role}
@@ -204,9 +237,9 @@ export function UsersTab({ currentUser }: UsersTabProps) {
                             size="sm"
                             variant="ghost"
                             disabled={isSelf}
-                            onClick={() => handleEditUserRole(user)}
+                            onClick={() => handleEditUser(user)}
                           >
-                            역할 변경
+                            수정
                           </Button>
                           <Button
                             size="sm"
@@ -227,29 +260,51 @@ export function UsersTab({ currentUser }: UsersTabProps) {
         </Card>
       </div>
 
-      {/* User Role Modal */}
+      {/* Edit User Modal */}
       <Modal
-        open={roleModalOpen}
-        onClose={() => setRoleModalOpen(false)}
-        title="역할 변경"
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        title="사용자 수정"
       >
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            사용자 <strong>{editingUser?.name}</strong>의 역할을 변경합니다.
+            <strong>{editingUser?.email}</strong>
           </p>
+          <Input
+            label="이름"
+            value={editUserForm.name}
+            onChange={(e) => setEditUserForm({ ...editUserForm, name: e.target.value })}
+            placeholder="홍길동"
+            required
+          />
           <Select
             label="역할"
-            value={newRole}
-            onChange={(e) => setNewRole(e.target.value)}
+            value={editUserForm.role}
+            onChange={(e) => setEditUserForm({ ...editUserForm, role: e.target.value })}
             options={ROLE_OPTIONS}
             required
           />
+          <Select
+            label="소속"
+            value={editUserForm.affiliation}
+            onChange={(e) => setEditUserForm({ ...editUserForm, affiliation: e.target.value, affiliationName: e.target.value === 'internal' ? '' : editUserForm.affiliationName })}
+            options={AFFILIATION_OPTIONS}
+            required
+          />
+          {editUserForm.affiliation !== 'internal' && (
+            <Input
+              label="소속명"
+              value={editUserForm.affiliationName}
+              onChange={(e) => setEditUserForm({ ...editUserForm, affiliationName: e.target.value })}
+              placeholder={editUserForm.affiliation === 'vendor' ? '벤더사명 입력' : editUserForm.affiliation === 'partner' ? '파트너사명 입력' : '고객사명 입력'}
+            />
+          )}
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="secondary" onClick={() => setRoleModalOpen(false)}>
+            <Button variant="secondary" onClick={() => setEditModalOpen(false)}>
               취소
             </Button>
-            <Button onClick={handleSaveUserRole}>
-              변경
+            <Button onClick={handleSaveEditUser} disabled={editUserSaving}>
+              {editUserSaving ? '저장 중...' : '저장'}
             </Button>
           </div>
         </div>
@@ -259,7 +314,7 @@ export function UsersTab({ currentUser }: UsersTabProps) {
       <Modal
         open={addUserModalOpen}
         onClose={() => setAddUserModalOpen(false)}
-        title="팀원 추가"
+        title="사용자 추가"
       >
         <div className="space-y-4">
           <Input
@@ -292,6 +347,21 @@ export function UsersTab({ currentUser }: UsersTabProps) {
             options={ROLE_OPTIONS}
             required
           />
+          <Select
+            label="소속"
+            value={addUserForm.affiliation}
+            onChange={(e) => setAddUserForm({ ...addUserForm, affiliation: e.target.value, affiliationName: e.target.value === 'internal' ? '' : addUserForm.affiliationName })}
+            options={AFFILIATION_OPTIONS}
+            required
+          />
+          {addUserForm.affiliation !== 'internal' && (
+            <Input
+              label="소속명"
+              value={addUserForm.affiliationName}
+              onChange={(e) => setAddUserForm({ ...addUserForm, affiliationName: e.target.value })}
+              placeholder={addUserForm.affiliation === 'vendor' ? '벤더사명 입력' : addUserForm.affiliation === 'partner' ? '파트너사명 입력' : '고객사명 입력'}
+            />
+          )}
           <div className="flex justify-end gap-2 pt-4">
             <Button variant="secondary" onClick={() => setAddUserModalOpen(false)}>
               취소

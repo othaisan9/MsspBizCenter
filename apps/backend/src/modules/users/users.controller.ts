@@ -54,7 +54,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '사용자 목록 조회 (모든 역할 접근 가능)' })
   @ApiResponse({ status: 200, description: '사용자 목록 조회 성공' })
   findAll(
@@ -65,7 +65,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER)
+  @Roles(UserRole.OWNER, UserRole.ADMIN, UserRole.EDITOR, UserRole.ANALYST, UserRole.VIEWER, UserRole.SALES)
   @ApiOperation({ summary: '사용자 상세 조회 (모든 역할)' })
   @ApiParam({ name: 'id', description: '사용자 ID (UUID)' })
   @ApiResponse({ status: 200, description: '사용자 조회 성공' })

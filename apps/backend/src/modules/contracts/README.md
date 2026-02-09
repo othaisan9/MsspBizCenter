@@ -80,8 +80,8 @@ GET    /api/v1/contracts/:id/history  # 변경 이력 (EDITOR+)
 | contractNumber | VARCHAR(100) | 계약 번호 (선택) |
 | contractType | ENUM | service/license/maintenance/nda/mou/other |
 | partyA | VARCHAR(255) | 계약 당사자 A (우리 측) |
-| partyB | VARCHAR(255) | 계약 당사자 B (상대방) |
-| partyBContact | JSONB | 상대방 연락처 (name, email, phone) |
+| partyB | VARCHAR(255) | 계약 당사자 B (고객사) |
+| partyBContact | JSONB | 고객사 연락처 (name, email, phone) |
 | startDate | DATE | 계약 시작일 |
 | endDate | DATE | 계약 종료일 (NULL: 무기한) |
 | amountEncrypted | TEXT | 암호화된 계약 금액 (AES-256-GCM) |

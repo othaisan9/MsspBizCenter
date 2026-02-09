@@ -143,7 +143,7 @@ export class PromptBuilderService {
     // 내 업무
     if (contextData?.myTasks && contextData.myTasks.length > 0) {
       const taskLines = contextData.myTasks.map(t =>
-        `- [${t.status}] ${t.title} (우선순위: ${t.priority || '-'}, 주차: ${t.year}/${t.weekNumber}주${t.dueDate ? `, 완료예정: ${t.dueDate.split('T')[0]}` : ''}${t.tags?.length ? `, 태그: ${t.tags.join(',')}` : ''})`
+        `- [${t.status}] ${t.title} (우선순위: ${t.priority || '-'}, 주차: ${t.year}/${t.weekNumber}주${t.dueDate ? `, 완료예정: ${String(t.dueDate).split('T')[0]}` : ''}${t.tags?.length ? `, 태그: ${t.tags.join(',')}` : ''})`
       );
       sections.push(`[내 담당 업무 (${contextData.myTasks.length}개)]\n${taskLines.join('\n')}`);
     }
